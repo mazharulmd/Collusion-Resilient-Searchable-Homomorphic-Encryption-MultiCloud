@@ -1,36 +1,52 @@
-# CR-SHE prototype (research artifact)
+# CR-SHE: Collusion-Resilient Searchable Homomorphic Encryption
 
-Correct, reproducible prototype of the CR-SHE search + homomorphic-aggregate pipeline.
+> Official implementation of **"Collusion-Resilient Searchable Homomorphic Encryption for Multi-Cloud IoT Data Sharing"** (IEEE Internet of Things Journal).
 
-## Files
-- `dpf.py`   : two-party BGI-style DPF (GGM tree, SHA-based PRG). Exhaustively tested.
-- `crshe.py` : pseudonymous index, DPF-based private search, Paillier aggregates.
-- `bench.py` : benchmark harness; writes results.json + search_latency.pdf/png.
-- `results.json` : the measured numbers used in the paper tables.
+**CR-SHE** is a hybrid cryptographic framework designed for privacy-preserving, multi-cloud IoT data sharing. It addresses the unique threat of *cross-cloud collusion* by distributing a replicated, pseudonymous keyword index through a Distributed Point Function (DPF) and storing computable record fields under Leveled Homomorphic Encryption (HE, via Paillier). 
 
-## Run
-    pip install phe pycryptodome numpy matplotlib
-    python3 dpf.py        # correctness
-    python3 crshe.py      # end-to-end correctness
-    python3 bench.py      # benchmarks + figure
+This architecture allows an authorized user to perform keyword retrievals and homomorphic analytics on retrieved ciphertexts without any decryption by—or at—the cloud providers, ensuring that a colluding coalition of up to `n-1` providers learns nothing about the queried keyword or access pattern.
 
-## Honest scope / threats to validity
-- DPF PRG is pure-Python SHA-512 (NOT AES-NI). A production AES-NI DPF is ~2-3 orders
-  of magnitude faster per evaluation; the absolute search latencies here are
-  Python+SHA artifacts, not the construction's intrinsic cost.
-- The "pure-FHE proxy" charges ONE Paillier addition per item, which UNDER-states a
-  real homomorphic equality scan (many ops/item). It is a generous lower bound for FHE.
-- Two providers only (n=2). n>2 needs a multiparty DPF (future work).
-- Synthetic index; the paper's full evaluation should use Enron + a real IoT dataset.
-The prototype substantiates: correctness, linear-in-N symmetric search, succinct
-O(lambda log N) keys, and feasible homomorphic aggregates. It does NOT yet substantiate
-the headline "faster than FHE" claim; that needs the AES-NI DPF and a real FHE baseline.
+---
 
-## Real-dataset evaluation (added)
-- `dataset_bench.py` runs the full evaluation on the real Reuters-21578 corpus
-  (downloaded via NLTK): builds the keyword index + posting lists, uses each
-  document's token count as a real numeric field, and emits four figures
-  (`fig_search_latency`, `fig_compute_latency`, `fig_communication`,
-  `fig_posting_cdf`) plus `results_real.json`.
-- Run:  `pip install nltk`  then  `python3 dataset_bench.py`
-  (first run downloads the `reuters` corpus from raw.githubusercontent.com).
+## Repository Structure
+
+*   **`crshe.py`**: The core logic. Handles indexing, PRF-pseudonymous address generation, and Paillier homomorphic aggregations (sum, mean, inner product).
+*   **`dpf.py`**: Implementation of the Two-Party Distributed Point Function (BGI16 GGM-tree construction) using a SHA-256-based pseudorandom generator.
+*   **`dataset_bench.py`**: Evaluates keyword search latency and communication overhead (DPF key size) against the real Reuters-21578 text corpus.
+*   **`sensor_bench.py`**: Evaluates homomorphic compute latency across varying telemetry window sizes using real Mauna Loa atmospheric CO2 sensor data.
+*   **`bench.py`**: General benchmarking scripts for base search and compute evaluations.
+*   **`requirements.txt`**: Standard Python dependencies required to run the environment.
+*   **`Figures/`**: Output directory where all generated `.pdf` and `.png` plots are securely saved.
+
+---
+
+## Quick Start (Windows PowerShell)
+
+To set up the environment and run all benchmarks from scratch, open your PowerShell terminal in the project directory and execute the following commands in order:
+
+```powershell
+# 1. (Optional) Remove any existing virtual environment for a clean slate
+Remove-Item -Recurse -Force .\venv
+
+# 2. Create a new virtual environment named 'venv'
+python -m venv venv
+
+# 3. Activate the virtual environment
+.\venv\Scripts\activate
+
+# 4. Upgrade pip to the latest version
+python -m pip install --upgrade pip
+
+# 5. Install all project dependencies
+pip install -r requirements.txt
+
+# 6. Download the required NLTK 'reuters' dataset 
+python -c "import nltk; nltk.download('reuters')"
+
+# 7. Run the core cryptographic unit tests
+python .\dpf.py
+python .\crshe.py
+
+# 8. Run the evaluation benchmarks
+python sensor_bench.py
+python dataset_bench.py

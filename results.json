@@ -1,0 +1,53 @@
+{
+  "paillier_op_ms": 0.04083700001444868,
+  "search_vs_N": [
+    {
+      "N": 1000,
+      "crshe_ms": 30.68424299999606,
+      "plain_ms": 0.05350200001430494,
+      "fhe_proxy_ms": 40.83700001444868,
+      "dpf_key_bytes": 194
+    },
+    {
+      "N": 10000,
+      "crshe_ms": 413.4563400000104,
+      "plain_ms": 0.7821149999927002,
+      "fhe_proxy_ms": 408.37000014448677,
+      "dpf_key_bytes": 262
+    },
+    {
+      "N": 100000,
+      "crshe_ms": 5109.584579,
+      "plain_ms": 9.642642000017076,
+      "fhe_proxy_ms": 4083.7000014448677,
+      "dpf_key_bytes": 313
+    }
+  ],
+  "compute_vs_S": [
+    {
+      "S": 10,
+      "sum_ms": 0.4291099999989001,
+      "mean_ms": 28.49915849998297,
+      "ip_ms": 1.2003939999942759
+    },
+    {
+      "S": 100,
+      "sum_ms": 4.75181199999497,
+      "mean_ms": 32.67924700000435,
+      "ip_ms": 12.227832000007766
+    },
+    {
+      "S": 1000,
+      "sum_ms": 48.6825890000091,
+      "mean_ms": 76.23851199997489,
+      "ip_ms": 123.48144750001211
+    }
+  ],
+  "comm": {
+    "N": 10000,
+    "n_providers": 2,
+    "dpf_key_bytes_per_provider": 262,
+    "answer_bytes_per_provider": 8,
+    "note": "2-party DPF; n>2 requires a multiparty DPF (future work)."
+  }
+}

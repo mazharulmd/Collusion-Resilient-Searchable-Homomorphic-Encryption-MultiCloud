@@ -75,11 +75,11 @@ Two deviations, and the gap between them is Remark 4 of the paper:
 
 * **inconsistent aggregate** — the provider returns a value ciphertext that is
   not the contraction its MAC ciphertext attests to. Caught except with
-  probability `1/p`. Measured at 100% over 200 trials.
+  probability `1/p`. Measured at 200/200 over 200 trials on the real corpus.
 * **well-formed contraction against a different selection vector** — the
   provider evaluates a perfectly valid aggregate, just not the one asked for,
   in *both* the value and the MAC column. Then `ct_mac = δ·ct` still holds and
-  the check passes. Measured at 0%, as it must be.
+  the check passes. Measured at 0/200, as it must be.
 
 `bench_verify` reports both. Reporting only the first would overclaim. Note
 also that a perturbation at a tag with an empty posting list does not change
@@ -88,9 +88,9 @@ denominator rather than scored as a miss.
 
 ## The general path's storage is a result, not an omission
 
-The masked index is `N × N_d` elements of `Z_p`. At full scale that is
-15,347 × 405,184 × 8 B ≈ **50 GB per provider**, replicated `n` times. It does
-not fit alongside anything else on a 64 GB machine, and this is not a defect:
+The masked index is `N × N_d` elements of `Z_p`. On the real corpus that is
+11,580 × 405,184 × 8 B = **37.5 GB per provider** (measured), replicated `n`
+times, and 9.26 GB already at N_d = 10^5. This is not a defect:
 it is the real cost of a fully general oblivious selection, and it is exactly
 why the fast path exists.
 
@@ -100,8 +100,10 @@ skipped. `Owner::build_masked_index` refuses with an explanatory message rather
 than thrashing. Report the Θ(N·N_d) scaling from the subsampled points and the
 storage blow-up as a measured limitation.
 
-With `p < 2^32` the index elements would fit in `uint32`, halving this to
-25 GB, at the cost of shrinking the Lemma 1 headroom. The code uses `uint64`
+Measured storage expansion over a plaintext bitmap is exactly 64x, i.e. the
+stored word width. With `p < 2^32` the index elements would fit in `uint32`,
+halving this to 18.8 GB, at the cost of shrinking the Lemma 1 headroom (measured
+at 75.6x on this corpus). The code uses `uint64`
 throughout for simplicity; the trade-off is available and untaken.
 
 ## Baselines

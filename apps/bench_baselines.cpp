@@ -25,12 +25,19 @@ using namespace crshe;
 
 namespace {
 
-// A tag whose posting list is close to the median, so the |S|-dependent
-// baselines are not measured on an outlier.
+// A tag whose posting list is close to the median *among non-empty lists*, so
+// the |S|-dependent baselines are not measured on an outlier -- and, more
+// importantly, not on an empty one.  Subsampling the record set empties many
+// posting lists, and a probe tag with |S| = 0 would make every baseline that
+// scales with |S| look free.
 uint64_t median_tag(const Dataset& ds) {
     std::vector<std::pair<uint64_t, uint64_t>> v;
     v.reserve(ds.n_tags);
-    for (uint64_t x = 0; x < ds.n_tags; ++x) v.push_back({ds.posting_len(x), x});
+    for (uint64_t x = 0; x < ds.n_tags; ++x)
+        if (ds.posting_len(x) > 0) v.push_back({ds.posting_len(x), x});
+    if (v.empty())
+        throw std::runtime_error(
+            "every posting list is empty at this N_d; raise --nd");
     std::sort(v.begin(), v.end());
     return v[v.size() / 2].second;
 }

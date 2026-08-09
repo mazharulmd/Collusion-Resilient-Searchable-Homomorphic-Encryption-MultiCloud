@@ -34,7 +34,7 @@ import csv
 import math
 import random
 import sys
-from collections import Counter
+from collections import Counter, defaultdict
 
 
 def load(path):
@@ -105,6 +105,34 @@ def match_attack(observed, aux, window=32):
     return correct
 
 
+def match_attack_scored(observed, aux, score_ids, window=32):
+    """As match_attack, but counts only assignments whose true tag is in
+    `score_ids`.  The matching itself still runs over the whole universe, so
+    restricting the score does not give the adversary extra information."""
+    import bisect
+    aux_items = sorted(aux.items(), key=lambda kv: kv[1])
+    aux_vals = [v for _, v in aux_items]
+    aux_ids = [k for k, _ in aux_items]
+    obs_items = sorted(observed.items(), key=lambda kv: kv[1])
+    used = set()
+    correct = 0
+    for tag, val in obs_items:
+        lo = bisect.bisect_left(aux_vals, val)
+        best, bestd = None, None
+        for j in range(max(0, lo - window), min(len(aux_vals), lo + window)):
+            if aux_ids[j] in used:
+                continue
+            d = abs(aux_vals[j] - val)
+            if bestd is None or d < bestd:
+                best, bestd = aux_ids[j], d
+        if best is None:
+            continue
+        used.add(best)
+        if best == tag and tag in score_ids:
+            correct += 1
+    return correct
+
+
 def unique_volume_pct(observed):
     """Ceiling of a pure volume attack: the fraction of tags whose observed
     statistic is unique in the corpus.
@@ -116,6 +144,20 @@ def unique_volume_pct(observed):
     """
     counts = Counter(observed.values())
     return 100.0 * sum(1 for v in observed.values() if counts[v] == 1) / len(observed)
+
+
+def tag_class(name):
+    """Metadata class a tag belongs to, from the prefix the indexer assigns.
+
+    The corpus's tag universe is dominated by one-minute time buckets, which
+    all have near-identical posting lengths and are therefore intrinsically
+    hard to tell apart by volume alone.  Aggregating over the whole universe
+    hides that the *distinctive* metadata -- device identity, sensor bands,
+    light and motion flags -- is recovered almost perfectly.  Reporting per
+    class is both more informative and more honest than a single number, and
+    it is what the leakage-abuse literature does.
+    """
+    return name.split(":", 1)[0] if ":" in name else "other"
 
 
 def uniformity(values, p, bins=64):
@@ -163,6 +205,24 @@ def main():
     chi2, pval = uniformity([r["masked"] for r in rows], p)
 
     med = lambda v: sorted(v)[len(v) // 2]
+
+    # Per-class breakdown at perfect auxiliary knowledge, which is the ceiling.
+    by_class = defaultdict(list)
+    for r in rows:
+        by_class[tag_class(r["name"])].append(r["idx"])
+    aux_perfect = auxiliary_frequencies(rows, 1.0, a.seed)
+    class_rows = []
+    for cls, ids in sorted(by_class.items()):
+        sub_un = {i: unmasked[i] for i in ids}
+        sub_ma = {i: masked[i] for i in ids}
+        # Match within the whole universe, then score only this class, so the
+        # adversary is not handed the partition as extra knowledge.
+        n_un = match_attack_scored(unmasked, aux_perfect, set(ids))
+        n_ma = match_attack_scored(masked, aux_perfect, set(ids))
+        class_rows.append((cls, len(ids), 100.0 * n_un / len(ids),
+                           100.0 * n_ma / len(ids)))
+        del sub_un, sub_ma
+
     out_rows = []
     for frac in fractions:
         ra, rb = [], []
@@ -211,7 +271,24 @@ def main():
     print(f"  masked row sums vs Uniform(Z_p): chi2={chi2:.2f} on 63 df, p={pval:.4f}")
     print( "  (a large p-value means the masked rows are not distinguishable from")
     print( "   uniform, which is what Theorem 1 asserts; it is not itself a proof.)")
+    cls_out = a.out.replace(".csv", "_by_class.csv")
+    with open(cls_out, "w", newline="") as f:
+        w = csv.writer(f)
+        w.writerow(["tag_class", "tags_in_class",
+                    "unmasked_reidentification_pct", "masked_reidentification_pct",
+                    "aux_fraction", "note"])
+        for cls, n, u, m in class_rows:
+            w.writerow([cls, n, f"{u:.2f}", f"{m:.2f}", 1.0,
+                        "perfect auxiliary knowledge; matching runs over the "
+                        "whole tag universe, scored on this class only"])
+
+    print()
+    print("  per tag class, at perfect auxiliary knowledge:")
+    print("    class        tags    unmasked    masked")
+    for cls, n, u, m in sorted(class_rows, key=lambda t: -t[2]):
+        print(f"    {cls:<11} {n:>6}   {u:8.2f}%  {m:7.2f}%")
     print(f"\nwrote {a.out}")
+    print(f"wrote {cls_out}")
 
 
 if __name__ == "__main__":

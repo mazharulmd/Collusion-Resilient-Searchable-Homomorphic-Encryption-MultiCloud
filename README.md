@@ -90,10 +90,10 @@ how a figure was produced, the answer is one file and one command.
 Three things the code deliberately reports against itself, because they are
 load-bearing for the paper's argument:
 
-* **The masked index is ~50 GB per provider at full scale**
-  (15,347 × 405,184 × 8 B). The general path is measured on subsampled record
-  sets and the skipped sizes are recorded in the CSV. That cost is the reason
-  the fast path exists.
+* **The masked index is 37.5 GB per provider at full scale**
+  (11,580 × 405,184 × 8 B, measured). The general path is measured on subsampled
+  record sets and the skipped sizes are recorded in the CSV. That cost is the
+  reason the fast path exists.
 * **The MAC does not detect everything.** It catches an inconsistent aggregate
   except with probability `1/p`, and it does not catch a well-formed
   contraction against a different selection vector. `bench_verify` reports both
@@ -102,13 +102,44 @@ load-bearing for the paper's argument:
   the whole index in `2N` queries against our own provider. Closing it needs a
   verifiable DPF or a PACL-style proof; see [`docs/DESIGN.md`](docs/DESIGN.md).
 
+## Measured results
+
+`bench/results/` holds the CSVs behind every number in the paper, measured on a
+4-core Intel Xeon @2.10 GHz with 15 GB RAM, AES-NI, OpenFHE 1.2.3, BFV at
+p = 68,724,326,401 (37-bit prime), ring dimension 8192, depth 1, 128-bit
+classical security. Corpus: the real 405,184-record telemetry dataset, indexed
+into 11,580 tags (posting lists: median 35, mean 314.9, max 404,702).
+
+| Result | Measured |
+|---|---|
+| Fast-path aggregate, N_d = 10^3 … 4.05×10^5 | 31.6 – 46.0 ms, **flat in N_d** |
+| General path, N_d = 10^3 → 5×10^4 | 87.3 → 361.3 ms (Θ(N·N_d)) |
+| Aggregate downlink | 525,950 B/provider, identical for every \|S\| |
+| Selection (DPF), N = 11,580 | 0.273 ms (1 core) / 0.158 ms (4 cores) |
+| DPF key, n = 2 | 266 B per provider |
+| Faithful FHE equality scan | 163.3 s/query — ~4,760× the fast path |
+| DORY-style search only (no analytics) | 51.0 ms vs 41.4 ms for the full fast path |
+| Leakage: unmasked index | **100%** of device/flag/sensor-band tags re-identified |
+| Leakage: masked index | **0%**, at every level of auxiliary knowledge |
+| MAC vs inconsistent aggregate | 200/200 detected |
+| MAC vs wrong selection vector | 0/200 detected (the documented gap) |
+| Malformed-key extraction | 512/512 rows recovered in 2N queries |
+| Masked index at full scale | 37.5 GB per provider — why the fast path exists |
+
+Not measured here, and not estimated: wide-area transport across real cloud
+regions, Raspberry Pi ingest energy, and the general path beyond N_d = 5×10^4
+(the masked index exceeds this machine's RAM). See `docs/RUNBOOK.md` phases 6–7.
+
 ## Datasets
 
 * **Primary** — Environmental Sensor Telemetry, 405,184 MQTT messages from
   three Raspberry-Pi sensor arrays.
   <https://www.kaggle.com/datasets/garystafford/environmental-sensor-data-132k>
-* **Second** — UCI Beijing Multi-Site Air-Quality, ~420k rows across 12 sites,
-  added because the primary corpus has only three physical devices.
+* **Second** — UCI Beijing Multi-Site Air-Quality, ~420k rows across 12 sites.
+  `prepare_dataset.py beijing` supports it, but the reported results do not use
+  it: it could not be fetched in the environment the measurements were taken in.
+  Running it is the cheapest way to answer the "only three physical devices"
+  objection.
   <https://archive.ics.uci.edu/dataset/501/beijing+multi+site+air+quality+data>
 
 `prepare_dataset.py` prints the tag count, posting-length distribution and the

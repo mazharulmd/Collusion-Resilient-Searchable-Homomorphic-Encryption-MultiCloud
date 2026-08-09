@@ -1,0 +1,11 @@
+index_variant,N,Nd,trials,aux_fraction,reidentification_pct_median,reidentification_pct_min,reidentification_pct_max,chance_pct,unique_volume_ceiling_pct,chi2_vs_uniform,chi2_p_value,note
+unmasked,11580,405184,5,1.0,4.274611398963731,4.274611398963731,4.274611398963731,0.008635578583765112,0.26770293609671847,,,"row Hamming weight = posting-list length, directly observable at rest"
+masked (CR-SHE),11580,405184,5,1.0,0.0,0.0,0.0,0.008635578583765112,100.0,72.27,0.1984,row statistic is a sum of PRF outputs; indistinguishable from uniform over Z_p (Theorem 1)
+unmasked,11580,405184,5,0.9,0.23316062176165803,0.04317789291882556,0.29360967184801384,0.008635578583765112,0.26770293609671847,,,"row Hamming weight = posting-list length, directly observable at rest"
+masked (CR-SHE),11580,405184,5,0.9,0.0,0.0,0.0,0.008635578583765112,100.0,72.27,0.1984,row statistic is a sum of PRF outputs; indistinguishable from uniform over Z_p (Theorem 1)
+unmasked,11580,405184,5,0.75,0.08635578583765112,0.06044905008635579,0.23316062176165803,0.008635578583765112,0.26770293609671847,,,"row Hamming weight = posting-list length, directly observable at rest"
+masked (CR-SHE),11580,405184,5,0.75,0.0,0.0,0.0,0.008635578583765112,100.0,72.27,0.1984,row statistic is a sum of PRF outputs; indistinguishable from uniform over Z_p (Theorem 1)
+unmasked,11580,405184,5,0.5,0.0690846286701209,0.06044905008635579,0.08635578583765112,0.008635578583765112,0.26770293609671847,,,"row Hamming weight = posting-list length, directly observable at rest"
+masked (CR-SHE),11580,405184,5,0.5,0.0,0.0,0.0,0.008635578583765112,100.0,72.27,0.1984,row statistic is a sum of PRF outputs; indistinguishable from uniform over Z_p (Theorem 1)
+unmasked,11580,405184,5,0.25,0.06044905008635579,0.04317789291882556,0.07772020725388601,0.008635578583765112,0.26770293609671847,,,"row Hamming weight = posting-list length, directly observable at rest"
+masked (CR-SHE),11580,405184,5,0.25,0.0,0.0,0.0,0.008635578583765112,100.0,72.27,0.1984,row statistic is a sum of PRF outputs; indistinguishable from uniform over Z_p (Theorem 1)

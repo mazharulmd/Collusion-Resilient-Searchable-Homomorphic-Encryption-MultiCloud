@@ -1,0 +1,10 @@
+tag_class,tags_in_class,unmasked_reidentification_pct,masked_reidentification_pct,aux_fraction,note
+co,10,100.00,0.00,1.0,"perfect auxiliary knowledge; matching runs over the whole tag universe, scored on this class only"
+dev,3,100.00,0.00,1.0,"perfect auxiliary knowledge; matching runs over the whole tag universe, scored on this class only"
+humidity,10,100.00,0.00,1.0,"perfect auxiliary knowledge; matching runs over the whole tag universe, scored on this class only"
+light,2,100.00,0.00,1.0,"perfect auxiliary knowledge; matching runs over the whole tag universe, scored on this class only"
+lpg,10,100.00,0.00,1.0,"perfect auxiliary knowledge; matching runs over the whole tag universe, scored on this class only"
+min,11523,3.80,0.00,1.0,"perfect auxiliary knowledge; matching runs over the whole tag universe, scored on this class only"
+motion,2,100.00,0.00,1.0,"perfect auxiliary knowledge; matching runs over the whole tag universe, scored on this class only"
+smoke,10,100.00,0.00,1.0,"perfect auxiliary knowledge; matching runs over the whole tag universe, scored on this class only"
+temp,10,100.00,0.00,1.0,"perfect auxiliary knowledge; matching runs over the whole tag universe, scored on this class only"

@@ -1,5 +1,3 @@
-phe>=1.5
-numpy
-matplotlib
-nltk
-statsmodels
+# Python side only: dataset preparation, the leakage-abuse attack, and plots.
+# The protocol itself is C++ (see CMakeLists.txt and scripts/install_openfhe.sh).
+matplotlib>=3.5

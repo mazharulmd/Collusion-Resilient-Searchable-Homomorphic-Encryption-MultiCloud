@@ -1,9 +1,17 @@
-# Python Environments
+# Build output
+build/
+*.o
+*.so
+
+# Prepared corpora and deployment bundles: large, and regenerable
+data/
+deploy/
+
+# Python
 venv/
 env/
-
-# Python cache files
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
+*.py[cod]
+
+# Editor
+.vscode/

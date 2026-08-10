@@ -1,0 +1,12 @@
+tag_class,tags_in_class,unmasked_reidentification_pct,masked_reidentification_pct,aux_fraction,note
+CO,11,100.00,0.00,1.0,"perfect auxiliary knowledge; matching runs over the whole tag universe, scored on this class only"
+DEWP,11,100.00,0.00,1.0,"perfect auxiliary knowledge; matching runs over the whole tag universe, scored on this class only"
+NO2,11,100.00,0.00,1.0,"perfect auxiliary knowledge; matching runs over the whole tag universe, scored on this class only"
+O3,11,100.00,0.00,1.0,"perfect auxiliary knowledge; matching runs over the whole tag universe, scored on this class only"
+PM10,11,100.00,0.00,1.0,"perfect auxiliary knowledge; matching runs over the whole tag universe, scored on this class only"
+PM2.5,11,100.00,0.00,1.0,"perfect auxiliary knowledge; matching runs over the whole tag universe, scored on this class only"
+PRES,11,100.00,0.00,1.0,"perfect auxiliary knowledge; matching runs over the whole tag universe, scored on this class only"
+SO2,10,100.00,0.00,1.0,"perfect auxiliary knowledge; matching runs over the whole tag universe, scored on this class only"
+hour,35046,0.31,0.00,1.0,"perfect auxiliary knowledge; matching runs over the whole tag universe, scored on this class only"
+site,12,100.00,0.00,1.0,"perfect auxiliary knowledge; matching runs over the whole tag universe, scored on this class only"
+wd,17,100.00,0.00,1.0,"perfect auxiliary knowledge; matching runs over the whole tag universe, scored on this class only"

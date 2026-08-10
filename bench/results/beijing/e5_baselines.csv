@@ -1,0 +1,5 @@
+baseline,N,Nd,matched_S,server_ms_median,server_ms_p25,server_ms_p75,client_ms_median,downlink_bytes,reps,extrapolated,leakage,note
+plaintext-scan,35162,100000,3,4.00003e-05,4.00003e-05,4.00003e-05,0,8,11,no,"everything: query, matched set, |S|, result",index lookup + sum over the posting list
+sse-single-server,35162,100000,3,4.00003e-05,3.99984e-05,4.00003e-05,9.99998e-05,48,11,no,"search pattern, access pattern, |S| (downlink grows with |S|)",PRF token -> hash table -> AES-CTR posting list
+path-oram,35162,100000,3,0.00617199,0.005532,0.00713199,0,41472,25,yes,hides the access pattern from one server; reveals |S| through the number of accesses,"Z=4, 17 levels, 0.001543 ms per access x (|S|+1)"
+dory-style-search,35162,100000,3,305.6,297.792,318.086,0,800000,3,no,"hides query and access pattern from n-1 colluding servers; no analytics, and the client learns S","DPF full-domain eval + Theta(N*Nd) contraction, no HE"

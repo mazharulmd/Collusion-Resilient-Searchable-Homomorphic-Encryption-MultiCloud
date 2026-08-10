@@ -1,0 +1,5 @@
+N,Nd,B,tau,inserts,insert_us_median,inserts_per_sec,rebuild_ms,amortised_rebuild_us_per_insert,buffer_scan_ms_at_full_B,total_online_overhead_pct,he_params,cpu
+35162,420370,256,4,256,0.220999,4.5249e+06,28.6667,111.979,40.2415,99.5735,"bfv-openfhe,p=68724326401,ringdim=8192,slots=8192,sec=128",AMD EPYC 7J13 64-Core Processor
+35162,420370,1024,4,1024,0.21,4.7619e+06,28.7884,28.1136,39.9602,98.8776,"bfv-openfhe,p=68724326401,ringdim=8192,slots=8192,sec=128",AMD EPYC 7J13 64-Core Processor
+35162,420370,4096,4,4096,0.179,5.58659e+06,28.9274,7.06236,40.1958,99.4606,"bfv-openfhe,p=68724326401,ringdim=8192,slots=8192,sec=128",AMD EPYC 7J13 64-Core Processor
+35162,420370,16384,4,16384,0.0900012,1.1111e+07,29.1165,1.77713,40.2089,99.493,"bfv-openfhe,p=68724326401,ringdim=8192,slots=8192,sec=128",AMD EPYC 7J13 64-Core Processor

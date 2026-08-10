@@ -1,0 +1,2 @@
+baseline,N,Nd,matched_S,server_ms_median,server_ms_p25,server_ms_p75,client_ms_median,downlink_bytes,reps,extrapolated,leakage,note
+fhe-equality-scan,35162,420370,0,24389.6,24389.6,24389.6,0,0,3,yes,hides the query and the data from a single server; costs a homomorphic equality per record,"q=65537, 1 digit(s), depth 17, ring 32768, 32768 slots; measured one batch of 32768 slots; total = batch x 13 batches (extrapolated)"

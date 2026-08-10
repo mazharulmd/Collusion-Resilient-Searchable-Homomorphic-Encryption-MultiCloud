@@ -1,0 +1,15 @@
+experiment,N,Nd,template,threads,clients,latency_ms_median,latency_ms_p25,latency_ms_p75,queries_per_sec,reps,he_params,cpu
+e8-core-scaling,35162,420370,sum,1,1,37.9691,37.9298,38.1024,26.3372,11,"bfv-openfhe,p=68724326401,ringdim=8192,slots=8192,sec=128",AMD EPYC 7J13 64-Core Processor
+e8-core-scaling,35162,420370,sum,2,1,37.8237,37.7044,37.8929,26.4384,11,"bfv-openfhe,p=68724326401,ringdim=8192,slots=8192,sec=128",AMD EPYC 7J13 64-Core Processor
+e8-core-scaling,35162,420370,sum,4,1,37.5373,37.5323,37.6529,26.6402,11,"bfv-openfhe,p=68724326401,ringdim=8192,slots=8192,sec=128",AMD EPYC 7J13 64-Core Processor
+e8-core-scaling,35162,420370,sum,8,1,37.5145,37.448,37.5421,26.6563,11,"bfv-openfhe,p=68724326401,ringdim=8192,slots=8192,sec=128",AMD EPYC 7J13 64-Core Processor
+e8-core-scaling,35162,420370,sum,16,1,37.6225,37.587,37.6915,26.5798,11,"bfv-openfhe,p=68724326401,ringdim=8192,slots=8192,sec=128",AMD EPYC 7J13 64-Core Processor
+e8-core-scaling,35162,420370,sum,32,1,38.3553,38.3042,38.4392,26.072,11,"bfv-openfhe,p=68724326401,ringdim=8192,slots=8192,sec=128",AMD EPYC 7J13 64-Core Processor
+e8-core-scaling,35162,420370,sum,64,1,40.5327,40.4991,40.6775,24.6715,11,"bfv-openfhe,p=68724326401,ringdim=8192,slots=8192,sec=128",AMD EPYC 7J13 64-Core Processor
+e10-throughput,35162,420370,sum,1,1,37.4374,37.3395,37.5356,26.6914,268,"bfv-openfhe,p=68724326401,ringdim=8192,slots=8192,sec=128",AMD EPYC 7J13 64-Core Processor
+e10-throughput,35162,420370,sum,1,2,38.1042,38.0424,38.1814,52.4448,526,"bfv-openfhe,p=68724326401,ringdim=8192,slots=8192,sec=128",AMD EPYC 7J13 64-Core Processor
+e10-throughput,35162,420370,sum,1,4,36.1743,36.0062,36.4065,110.072,1104,"bfv-openfhe,p=68724326401,ringdim=8192,slots=8192,sec=128",AMD EPYC 7J13 64-Core Processor
+e10-throughput,35162,420370,sum,1,8,88.9322,82.29,94.5586,89.8215,903,"bfv-openfhe,p=68724326401,ringdim=8192,slots=8192,sec=128",AMD EPYC 7J13 64-Core Processor
+e10-throughput,35162,420370,sum,1,16,136.015,130.549,141.038,117.416,1186,"bfv-openfhe,p=68724326401,ringdim=8192,slots=8192,sec=128",AMD EPYC 7J13 64-Core Processor
+e10-throughput,35162,420370,sum,1,32,256.744,244.981,270.151,123.85,1257,"bfv-openfhe,p=68724326401,ringdim=8192,slots=8192,sec=128",AMD EPYC 7J13 64-Core Processor
+e10-throughput,35162,420370,sum,1,64,529.082,501.288,554.776,120.126,1234,"bfv-openfhe,p=68724326401,ringdim=8192,slots=8192,sec=128",AMD EPYC 7J13 64-Core Processor

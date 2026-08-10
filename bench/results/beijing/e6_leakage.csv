@@ -1,0 +1,11 @@
+index_variant,N,Nd,trials,aux_fraction,reidentification_pct_median,reidentification_pct_min,reidentification_pct_max,chance_pct,unique_volume_ceiling_pct,chi2_vs_uniform,chi2_p_value,note
+unmasked,35162,420370,5,1.0,0.634207382970252,0.634207382970252,0.634207382970252,0.002843979295830726,0.29861782606222625,,,"row Hamming weight = posting-list length, directly observable at rest"
+masked (CR-SHE),35162,420370,5,1.0,0.0,0.0,0.0,0.002843979295830726,99.99431204140834,62.38,0.4986,row statistic is a sum of PRF outputs; indistinguishable from uniform over Z_p (Theorem 1)
+unmasked,35162,420370,5,0.9,0.13651100619987486,0.12229110972072123,0.14788692338319778,0.002843979295830726,0.29861782606222625,,,"row Hamming weight = posting-list length, directly observable at rest"
+masked (CR-SHE),35162,420370,5,0.9,0.0,0.0,0.0,0.002843979295830726,99.99431204140834,62.38,0.4986,row statistic is a sum of PRF outputs; indistinguishable from uniform over Z_p (Theorem 1)
+unmasked,35162,420370,5,0.75,0.11091519253739833,0.09100733746658324,0.1393549854957056,0.002843979295830726,0.29861782606222625,,,"row Hamming weight = posting-list length, directly observable at rest"
+masked (CR-SHE),35162,420370,5,0.75,0.0,0.0,0.0,0.002843979295830726,99.99431204140834,62.38,0.4986,row statistic is a sum of PRF outputs; indistinguishable from uniform over Z_p (Theorem 1)
+unmasked,35162,420370,5,0.5,0.09953927535407542,0.07109948239576816,0.10522723394573688,0.002843979295830726,0.29861782606222625,,,"row Hamming weight = posting-list length, directly observable at rest"
+masked (CR-SHE),35162,420370,5,0.5,0.0,0.0,0.0,0.002843979295830726,99.99431204140834,62.38,0.4986,row statistic is a sum of PRF outputs; indistinguishable from uniform over Z_p (Theorem 1)
+unmasked,35162,420370,5,0.25,0.07109948239576816,0.06825550309993743,0.09100733746658324,0.002843979295830726,0.29861782606222625,,,"row Hamming weight = posting-list length, directly observable at rest"
+masked (CR-SHE),35162,420370,5,0.25,0.0,0.0,0.0,0.002843979295830726,99.99431204140834,62.38,0.4986,row statistic is a sum of PRF outputs; indistinguishable from uniform over Z_p (Theorem 1)

@@ -1,0 +1,2 @@
+N,Nd,queries_issued,index_rows_recovered,membership_bits_recovered,recovery_rate_pct,note
+512,1024,1024,512,524288,100,malformed-key extraction against a provider with no well-formedness check; 2N queries recover the whole index

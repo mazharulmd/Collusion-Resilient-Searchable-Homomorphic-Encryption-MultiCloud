@@ -549,14 +549,14 @@ with per-thread accumulators.
 \emph{Deployment.} The artefact separates a deployment bundle along the trust
 boundary: the public half carries the crypto context, the evaluation keys, $pk$
 and the precomputed columns, and the provider process loaded from it holds no
-secret key and refuses decryption. We exercise this with independent provider
-processes communicating over TCP. We report it honestly as a
-\emph{single-host} deployment (Section~\ref{sec:wanresult}): all providers ran on
-one machine over the loopback interface, so the transport component is framing
-and serialisation only and excludes wide-area latency, and providers contend for
-the same cores instead of running on independent infrastructure. Measuring
-CR-SHE across commercial clouds in distinct regions requires accounts we did not
-have and remains the one experiment this evaluation does not supply.
+secret key and refuses decryption. We exercise this with $n\in\{2,3,4\}$
+independent provider processes and a client communicating over TCP. We report
+it as a \emph{single-host} deployment (Section~\ref{sec:wanresult}): the
+processes are genuinely separate and the protocol is the real one, but they run
+on one machine over the loopback interface, so the transport component is
+framing and serialisation only and excludes wide-area latency. Measuring CR-SHE
+across commercial clouds in distinct regions requires accounts we did not have
+and remains the one experiment this evaluation does not supply.
 
 \emph{Corpus.} The corpus is the Environmental Sensor Telemetry dataset of
 $405{,}184$ MQTT messages from three Raspberry-Pi sensor arrays, each carrying a
@@ -590,12 +590,13 @@ multiplying by the batch count; both the measured batch cost and the
 extrapolation factor are reported, and extrapolated quantities are marked as
 such throughout.
 
-\emph{Hardware.} All measurements were taken on one Intel Xeon machine at
-$2.10$\,GHz with $4$ vCPUs and $15$\,GB of RAM, with AES-NI, GCC~13.3 and
+\emph{Hardware.} All measurements were taken on one AMD EPYC~7J13 machine with
+$64$ cores and $64$\,GB of RAM running Ubuntu~24.04, with AES-NI, GCC~13 and
 OpenMP. Latencies are medians of $11$ runs unless stated otherwise, with the
-interquartile range reported in the released CSVs and drawn as error bars in the
-figures. The modest core count matters for interpretation and we flag it where
-it does.
+interquartile range recorded in the released CSVs and drawn as error bars in the
+figures. Every binary prints the CPU, thread count, AES backend and homomorphic
+parameters it ran under, and every results row repeats them, so no number in
+this section can be separated from the machine that produced it.
 
 % ===========================================================================
 \section{Results Analysis and Discussion}
@@ -604,36 +605,43 @@ it does.
 \subsection{Selection latency and key size}
 Table~\ref{tab:search} and Fig.~\ref{fig:searchlat} report the per-provider
 full-domain evaluation, which is the whole of the selection phase. At the corpus
-size $N=11{,}580$ it costs $0.273$\,ms on one core and $0.158$\,ms on four; at
-$N=10^6$ it costs $40.6$\,ms on one core and $20.5$\,ms on four. The two-party
-key is $266$\,B at the corpus size and grows to $368$\,B at $N=10^6$,
+size $N=11{,}580$ it costs $0.271$\,ms on one core and $0.141$\,ms at sixteen;
+at $N=10^6$ it costs $42.0$\,ms on one core and $18.7$\,ms at thirty-two. The
+two-party key is $266$\,B at the corpus size, growing to $368$\,B at $N=10^6$,
 consistent with the $O(\lambda\log N)$ bound.
 
-The comparison that matters is against the homomorphic half of the same query:
-selection is $0.16$\,ms while the packed contraction that follows it is tens of
-milliseconds (Section~\ref{sec:aggresult}). The symmetric-key half of CR-SHE is
-not the bottleneck at these sizes, which is the design's intent---keeping
-symmetric work on the selection path and spending homomorphic operations only on
-the aggregate---but it does mean that the core-count scaling of a whole query is
-governed by the homomorphic layer rather than by our own parallelism.
+Selection does not scale past about sixteen to thirty-two threads and then
+regresses: at $N=11{,}580$ it improves from $0.271$\,ms to $0.141$\,ms at
+sixteen threads but returns to $0.171$\,ms at sixty-four, and at $N=10^6$ from
+$42.0$\,ms to $18.7$\,ms at thirty-two and back to $24.3$\,ms at sixty-four. The
+per-level work at these domain sizes is too small to amortise thread dispatch
+across all cores of a $64$-core part. We report the regression rather than only
+the best point, and a deployment should pin the selection pass to the knee.
+
+The comparison that matters, though, is against the homomorphic half of the same
+query: selection is $0.14$\,ms while the packed contraction that follows it is
+tens of milliseconds (Section~\ref{sec:aggresult}). The symmetric-key half of
+CR-SHE is not the bottleneck, which is the design's intent---symmetric work on
+the selection path, homomorphic operations only on the aggregate.
 
 \begin{table}[t]
 \centering
 \caption{Measured per-provider selection latency (full-domain DPF evaluation,
-two-party construction) and key size vs.\ $N$. Medians of 11 runs.}
+two-party construction) and key size vs.\ $N$. Medians of 11 runs on the
+$64$-core EPYC.}
 \label{tab:search}
 \footnotesize
 \renewcommand{\arraystretch}{1.2}
 \begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}lcccc@{}}
 \toprule
-$N$ & 1 core & 2 cores & 4 cores & DPF key \\
-    & (ms)   & (ms)     & (ms)     & (B) \\
+$N$ & 1 thread & 4 threads & 16 threads & DPF key \\
+    & (ms)     & (ms)      & (ms)       & (B) \\
 \midrule
-$1{,}000$    & $0.019$  & $0.019$  & $0.019$  & $198$ \\
-$10{,}000$   & $0.238$  & $0.187$  & $0.124$  & $266$ \\
-$11{,}580$   & $0.273$  & $0.195$  & $0.158$  & $266$ \\
-$100{,}000$  & $3.460$  & $2.673$  & $1.994$  & $317$ \\
-$10^{6}$     & $40.633$ & $29.181$ & $20.468$ & $368$ \\
+$1{,}000$    & $0.026$  & $0.026$  & $0.026$  & $198$ \\
+$10{,}000$   & $0.228$  & $0.141$  & $0.122$  & $266$ \\
+$11{,}580$   & $0.271$  & $0.167$  & $0.141$  & $266$ \\
+$100{,}000$  & $4.034$  & $2.435$  & $1.862$  & $317$ \\
+$10^{6}$     & $42.040$ & $25.286$ & $19.409$ & $368$ \\
 \bottomrule
 \end{tabular*}
 \end{table}
@@ -641,24 +649,33 @@ $10^{6}$     & $40.633$ & $29.181$ & $20.468$ & $368$ \\
 \subsection{Oblivious aggregation}
 \label{sec:aggresult}
 This is the central claim of the paper, and Table~\ref{tab:compute} and
-Fig.~\ref{fig:complat} test it directly. On the fast path the provider's
-aggregate latency is $31.6$--$46.0$\,ms across a $405\times$ range of record
-counts, from $N_d=10^3$ to the full $N_d=405{,}184$: within run-to-run variation
-it does not depend on $N_d$ at all, exactly as
-$\text{ct}_j=\bplus_x e_j[x]\bdot A_f[x]$ predicts. On the general path the same
-aggregate costs $87.3$\,ms at $N_d=10^3$ and $361.3$\,ms at $N_d=5\times10^4$,
-growing with $N_d$ as the $\Theta(N N_d)$ contraction requires.
+Fig.~\ref{fig:complat} test it directly.
 
-Two observations qualify the comparison. First, at these sizes the general
-path's disadvantage in \emph{time} is modest---$11.4\times$ at
-$N_d=5\times10^4$---because both paths pay the same fixed homomorphic cost and
-the contraction only begins to dominate at larger $N_d$. Second, the binding
-constraint is not time but storage. The masked index is $N\times N_d$ elements
-of $\mathbb{Z}_p$: $9.26$\,GB at $N_d=10^5$ and $37.5$\,GB at the full corpus,
-\emph{per provider} and replicated $n$ times. Our machine could not hold it, and
-the two largest general-path points are reported as skipped rather than
-estimated. That refusal is itself the result: it is the real price of a fully
-general oblivious selection, and it is the reason the fast path exists.
+On the fast path the provider's aggregate latency is $38.8$--$39.2$\,ms across a
+$405\times$ range of record counts, from $N_d=10^3$ to the full
+$N_d=405{,}184$---a spread of $\pm0.5\%$, i.e.\ flat. An initial sweep taken in
+increasing $N_d$ showed the first four points near $53$\,ms and the last four
+near $38.5$\,ms; because that step is \emph{anti}-correlated with $N_d$, we
+repeated the sweep in decreasing order, which reproduced $38.8$--$39.2$\,ms at
+every point including $N_d=10^3$. The step was therefore a warm-up artefact of
+run ordering and not a dependence on $N_d$, and Table~\ref{tab:compute} quotes
+the order-controlled run. Both sweeps are released.
+
+On the general path the same aggregate costs $103.7$\,ms at $N_d=10^3$ and
+$1{,}378.2$\,ms at the full corpus: $35.8\times$ the fast path. The growth is
+mild up to $N_d\approx5\times10^4$, where the fixed homomorphic cost still
+dominates, and then tracks the $\Theta(N N_d)$ contraction---$196.8$, $539.5$
+and $1{,}378.2$\,ms at $10^5$, $2\times10^5$ and $4.05\times10^5$, i.e.\ a
+factor of $2.74$ and then $2.55$ for each doubling of $N_d$. The slight
+superlinearity is memory bandwidth: at full scale the masked index is
+$37.5$\,GB and every query streams all of it.
+
+That storage is the general path's real constraint. The masked index is
+$N\times N_d$ elements of $\mathbb{Z}_p$---$9.26$\,GB at $N_d=10^5$ and
+$37.5$\,GB at the full corpus, \emph{per provider} and replicated $n$ times. It
+fits on a $64$\,GB machine and not on a smaller one, and it must be resident for
+every query. This is the price of a fully general oblivious selection and it is
+the reason the fast path exists.
 
 Per-query downlink is $525{,}950$\,B per provider---two ciphertexts, the
 aggregate and its MAC---and is byte-identical for every $N_d$ and, more
@@ -666,13 +683,13 @@ importantly, for every $|S|$. We verify this directly by querying the tag with
 the shortest posting list and the tag with the longest and comparing the
 serialised responses. A design that returned the selection vector instead would
 send $O(N_d\log p)$ bits, $800{,}000$\,B at $N_d=10^5$, and would leak $|S|$
-through the result set itself.
+through the response size itself.
 
 \begin{table}[t]
 \centering
-\caption{Oblivious aggregate latency and downlink, fast vs.\ general path,
-$N=11{,}580$, template \textsc{sum}. ``---'' marks points whose masked index
-exceeds available memory; the size that would have been required is given.}
+\caption{Oblivious aggregate latency and storage, fast vs.\ general path,
+$N=11{,}580$, template \textsc{sum}. Fast-path figures are from the
+order-controlled (decreasing $N_d$) sweep.}
 \label{tab:compute}
 \footnotesize
 \renewcommand{\arraystretch}{1.2}
@@ -681,13 +698,14 @@ exceeds available memory; the size that would have been required is given.}
 $N_d$ & Fast & General & $I'$ per provider & Downlink \\
       & (ms) & (ms)     & (GB)              & (B) \\
 \midrule
-$10^3$              & $46.0$ & $87.3$  & $0.09$ & $525{,}950$ \\
-$5\times10^3$       & $43.4$ & $115.2$ & $0.46$ & $525{,}950$ \\
-$10^4$              & $41.4$ & $138.8$ & $0.93$ & $525{,}950$ \\
-$2\times10^4$       & $43.3$ & $196.1$ & $1.85$ & $525{,}950$ \\
-$5\times10^4$       & $31.6$ & $361.3$ & $4.63$ & $525{,}950$ \\
-$10^5$              & $31.8$ & ---     & $9.26$ & $525{,}950$ \\
-$4.05\times10^5$    & $34.3$ & ---     & $37.5$ & $525{,}950$ \\
+$10^3$             & $38.8$ & $103.7$   & $0.09$  & $525{,}950$ \\
+$5\times10^3$      & $39.0$ & $106.9$   & $0.46$  & $525{,}950$ \\
+$10^4$             & $38.8$ & $111.9$   & $0.93$  & $525{,}950$ \\
+$2\times10^4$      & $38.8$ & $121.7$   & $1.85$  & $525{,}950$ \\
+$5\times10^4$      & $39.1$ & $120.7$   & $4.63$  & $525{,}950$ \\
+$10^5$             & $39.2$ & $196.8$   & $9.26$  & $525{,}950$ \\
+$2\times10^5$      & $39.1$ & $539.5$   & $18.53$ & $525{,}950$ \\
+$4.05\times10^5$   & $38.8$ & $1{,}378.2$ & $37.54$ & $525{,}950$ \\
 \bottomrule
 \end{tabular*}
 \end{table}
@@ -695,33 +713,34 @@ $4.05\times10^5$    & $34.3$ & ---     & $37.5$ & $525{,}950$ \\
 \subsection{Comparison against baselines}
 Table~\ref{tab:baselines} places CR-SHE against the five baselines on the same
 corpus, the same machine and the same probe tag, whose posting list has the
-corpus median length $|S|=37$.
+corpus median length $|S|=35$.
 
 The ordering is the expected one and the magnitudes are the point. A plaintext
 scan is free and private against nobody. Single-server searchable encryption is
-also essentially free, and leaks the search pattern, the access pattern and
+also essentially free and leaks the search pattern, the access pattern and
 $|S|$; its downlink grows with the result set. Path ORAM hides the access
-pattern from one server at $1.4\,\mu$s per access, but pays per matched record,
+pattern from one server at $1.6\,\mu$s per access, but pays per matched record,
 so its cost and its $328$\,kB downlink both scale with $|S|$ while CR-SHE's do
-not. The DORY-style distributed-trust baseline---our own selection path,
-stopped before aggregation---costs $51.0$\,ms, against $41.4$\,ms for the full
-CR-SHE fast path including the aggregate at the same $N_d$: adding oblivious
-analytics to oblivious selection is not what makes this expensive, and on the
-fast path it is cheaper than materialising the selection vector.
+not. The DORY-style distributed-trust baseline---our own selection path, stopped
+before aggregation---costs $130.4$\,ms against $39.2$\,ms for the full CR-SHE
+fast path including the aggregate at the same $N_d$. Adding oblivious analytics
+to oblivious selection is not what makes this expensive: on the fast path the
+complete query is $3.3\times$ \emph{cheaper} than materialising the selection
+vector, because the fast path never touches the $N\times N_d$ index at all.
 
 The faithful homomorphic equality scan is the comparison earlier work of ours
-got wrong. At $q=65{,}537$, a single digit suffices for the tag domain but the
+got wrong. At $q=65{,}537$ a single digit suffices for the tag domain, but the
 Fermat exponentiation needs $16$ squarings, giving multiplicative depth $17$ and
-a ring dimension of $32{,}768$. One batch of $32{,}768$ slots costs
-$12.56$\,s, and the corpus needs $13$ batches: $163.3$\,s per query,
-extrapolated. That is $\sim\!4{,}760\times$ the CR-SHE fast path. Charging one
-homomorphic addition per item instead, as the earlier proxy did, would have put
-this baseline in the tens of milliseconds and inverted the conclusion.
+ring dimension $32{,}768$. One batch of $32{,}768$ slots costs $1.86$\,s and the
+corpus needs $13$ batches: $24.2$\,s per query, extrapolated---$617\times$ the
+CR-SHE fast path. Charging one homomorphic addition per item instead, as the
+earlier proxy did, would have placed this baseline in the tens of milliseconds
+and inverted the conclusion.
 
 \begin{table}[t]
 \centering
-\caption{Baselines on the same corpus and machine, $N_d=10^4$, probe tag with
-the corpus median $|S|=37$. Extrapolated quantities are marked $\dagger$.}
+\caption{Baselines on the same corpus and machine, $N_d=10^5$, probe tag with
+the corpus median $|S|=35$. Extrapolated quantities are marked $\dagger$.}
 \label{tab:baselines}
 \footnotesize
 \renewcommand{\arraystretch}{1.2}
@@ -730,41 +749,58 @@ the corpus median $|S|=37$. Extrapolated quantities are marked $\dagger$.}
 System & Server & Downlink & Leakage to the server(s) \\
        & (ms)   & (B)      & \\
 \midrule
-Plaintext scan        & $0.0001$ & $8$              & everything \\
-SSE, single server    & $<0.001$ & $592$            & search + access pattern, $|S|$ \\
-Path ORAM             & $0.053^{\dagger}$ & $328{,}320$ & $|S|$, via access count \\
-DORY-style search     & $50.97$  & $80{,}000$       & none (no analytics) \\
-FHE equality scan     & $163{,}254^{\dagger}$ & --- & none (single server) \\
+Plaintext scan        & $<0.001$ & $8$              & everything \\
+SSE, single server    & $<0.001$ & $560$            & search + access pattern, $|S|$ \\
+Path ORAM             & $0.056^{\dagger}$ & $328{,}320$ & $|S|$, via access count \\
+DORY-style search     & $130.4$  & $800{,}000$      & none (no analytics) \\
+FHE equality scan     & $24{,}157^{\dagger}$ & --- & none (single server) \\
 \midrule
-\textbf{CR-SHE, fast} & $\mathbf{41.4}$ & $\mathbf{525{,}950}$ & $\mathrm{class}(f)$ only \\
+\textbf{CR-SHE, fast} & $\mathbf{39.2}$ & $\mathbf{525{,}950}$ & $\mathrm{class}(f)$ only \\
 \bottomrule
 \end{tabular*}
 \end{table}
 
 \subsection{Multi-cloud deployment}
 \label{sec:wanresult}
-We ran the full protocol between independent provider processes and a client, in
-the deployment split described in Section~\ref{sec:impl}. For $n=2$ the
-end-to-end query took $81.7$\,ms (IQR $78.1$--$86.7$), decomposing into
-$68.2$\,ms of provider compute at the slowest provider, $11.9$\,ms of
-transport---framing, serialisation of two $263$\,kB ciphertexts, and loopback---
-and $1.6$\,ms of client combine, MAC verification and decryption. For $n=3$ the
-end-to-end query took $156.0$\,ms.
+We ran the full protocol between independent provider processes and a client,
+in the deployment split described in Section~\ref{sec:impl}, for
+$n\in\{2,3,4\}$, $100$ queries each.
 
-The $n=3$ figure should not be read as a scaling result. All providers ran on
-one four-core machine, so they competed for the same cores rather than running
-in parallel on independent infrastructure; provider compute rises from
-$68.2$ to $139.7$\,ms for that reason alone. In a genuine multi-cloud
-deployment the providers are independent and the client waits on the slowest,
-not on their sum, so the compute component should be roughly flat in $n$ while
-uplink grows as reported in Section~\ref{sec:commresult}. We state the
-single-host measurement for what it is and do not extrapolate a wide-area number
-from it.
+\emph{Provider compute is flat in $n$}: $34.82$, $34.85$ and $35.48$\,ms for
+$n=2,3,4$. This is the measurement that supports the central structural claim
+about cost, namely that the client waits on the slowest provider and not on
+their sum. End-to-end latency rises only from $44.1$\,ms to $52.5$\,ms across
+the same range, and the increase is transport---$8.3$, $9.1$ and $15.5$\,ms---
+because the client receives $n$ responses of $525{,}950$\,B each and
+deserialises them. Client-side combine, MAC verification and decryption cost
+$1.37$--$1.63$\,ms and are essentially independent of everything else, which is
+what makes the design viable for a thin data user.
 
-Client-side cost is the durable result here: combining $n$ ciphertexts,
-verifying the MAC and decrypting costs $1.6$--$1.7$\,ms and is essentially
-independent of everything else, which is what makes the design viable for a
-thin data user.
+The caveat is the one stated in Section~\ref{sec:impl}: all providers ran on one
+machine over loopback, so the transport figure is framing, serialisation and the
+loopback stack, and contains no wide-area latency. A real deployment adds the
+inter-region round-trip to the transport component and leaves provider compute
+and client cost unchanged. We do not extrapolate a wide-area number from this
+measurement.
+
+\begin{table}[t]
+\centering
+\caption{Single-host deployment, $n$ independent provider processes over
+loopback, medians of 100 queries. Transport excludes wide-area latency.}
+\label{tab:wan}
+\footnotesize
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}lcccc@{}}
+\toprule
+$n$ & End-to-end & Provider & Transport & Client \\
+    & (ms)       & compute (ms) & (ms)  & combine+dec (ms) \\
+\midrule
+$2$ & $44.12$ & $34.82$ & $8.30$  & $1.37$ \\
+$3$ & $45.40$ & $34.85$ & $9.09$  & $1.52$ \\
+$4$ & $52.53$ & $35.48$ & $15.48$ & $1.63$ \\
+\bottomrule
+\end{tabular*}
+\end{table}
 
 \subsection{Communication}
 \label{sec:commresult}
@@ -772,17 +808,17 @@ At $N=11{,}580$ the two-party construction sends a $266$\,B key to each
 provider, $532$\,B of uplink in total. The $n$-party instantiation used for
 $n>2$ sends $32$\,B to each of $n-1$ providers and $92{,}656$\,B to one, so
 total uplink is $92{,}688$\,B at $n=2$, $92{,}720$\,B at $n=3$ and
-$92{,}752$\,B at $n=4$: tolerating more collusion is nearly free in this
-instantiation, but moving beyond two providers at all costs a factor of $174$
-in uplink over the succinct two-party tree. Fig.~\ref{fig:comm} plots both
+$92{,}752$\,B at $n=4$. Tolerating more collusion is therefore nearly free in
+this instantiation, but moving beyond two providers at all costs a factor of
+$174$ in uplink over the succinct two-party tree. Fig.~\ref{fig:comm} plots both
 against $N$. This is the cost of not implementing a succinct multi-party DPF,
 and it is the clearest place where the artefact is weaker than the construction
 admits; a succinct $(n{-}1)$-private instantiation would reduce the heavy key
 from $O(N\log p)$ to $O(2^{n/2}\sqrt{N}\lambda)$.
 
-Downlink is $525{,}950$\,B per provider for an aggregate and fixed at
-$N_d\lceil\log p\rceil$ bits for a retrieval---$800{,}000$\,B at $N_d=10^5$---
-neither depending on $|S|$.
+Downlink is $525{,}950$\,B per provider for an aggregate and a fixed
+$N_d\lceil\log p\rceil$ bits for a retrieval---$800{,}000$\,B at
+$N_d=10^5$---neither depending on $|S|$.
 
 \subsection{Leakage evaluation}
 \label{sec:leakeval}
@@ -799,20 +835,21 @@ attack is not handed the answer.
 Aggregated over the whole tag universe (Fig.~\ref{fig:leakage}) the unmasked
 index yields $4.27\%$ re-identification under perfect auxiliary knowledge,
 against $0.0086\%$ for random guessing---a $500\times$ lift, but low in absolute
-terms. That aggregate
-is misleading, and Table~\ref{tab:leakage} shows why: $11{,}523$ of the
-$11{,}580$ tags are one-minute time buckets of near-identical length, which
-volume leakage genuinely cannot separate. Every other tag class---the device
-identifiers, the light and motion flags, and all five sensor-band families---is
-re-identified \emph{completely}, at $100\%$. These are precisely the tags that
-carry semantic meaning: which device, which sensor condition.
+terms. That aggregate is misleading, and Table~\ref{tab:leakage} shows why:
+$11{,}523$ of the $11{,}580$ tags are one-minute time buckets of near-identical
+length, which volume leakage genuinely cannot separate. Every other tag
+class---the device identifiers, the light and motion flags, and all five
+sensor-band families---is re-identified \emph{completely}, at $100\%$. These are
+precisely the tags that carry semantic meaning: which device, which sensor
+condition.
 
 Against the masked index the same attack recovers $0.00\%$ in every class and at
 every level of auxiliary knowledge. The masked row statistics are not
 distinguishable from uniform over $\mathbb{Z}_p$ by a $64$-bin chi-square test
 ($\chi^2=72.27$ on $63$ degrees of freedom, $p=0.198$). This is the empirical
-counterpart of Theorem~\ref{thm:mask}, and evidence for it rather than a proof
-of it.
+counterpart of Theorem~\ref{thm:mask}---evidence for it, not a proof of it. We
+note that this experiment is deterministic given the corpus and the key seed,
+and reproduced to the digit on two different machines and microarchitectures.
 
 \begin{table}[t]
 \centering
@@ -844,41 +881,47 @@ Random guessing        & ---      & \multicolumn{2}{c}{$0.0086\%$} \\
 \subsection{Setup, masking and ingest costs}
 Masking costs a factor of $64$ in index storage over a plaintext bitmap, which
 is $\lceil\log p\rceil$ rounded to the stored word width and is exactly what
-Theorem~\ref{thm:mask} buys: $4.63$\,GB against $72.4$\,MB at $N_d=5\times10^4$.
-The mask itself is cheap to generate---$822$ million $\mathbb{Z}_p$ values per
-second, since one AES call in counter mode yields two---so building the masked
-index takes $21.8$\,s at $N_d=5\times10^4$ and is bounded by memory rather than
-by time. Precomputing a correction column $U_f$ is $\Theta(N N_d)$ and takes
-$704$\,ms at the same size; the fast-path column $A_f$ costs $0.3$\,ms, since it
-touches only the postings, and occupies $2$ ciphertexts ($0.53$\,MB) regardless
-of $N_d$. Encrypting the whole record column takes $23.6$\,ms.
+Theorem~\ref{thm:mask} buys. The mask itself is cheap to generate, since one AES
+call in counter mode yields two $\mathbb{Z}_p$ values, so building the masked
+index takes $5.6$\,s at $N_d=10^5$ and is bounded by memory rather than by time.
+Precomputing a correction column $U_f$ is $\Theta(N N_d)$ and takes
+$171$--$218$\,ms per template at the same size; the fast-path column $A_f$ costs
+$1.2$--$12$\,ms, since it touches only the postings, and occupies $2$
+ciphertexts ($0.53$\,MB) regardless of $N_d$. A complete provider bundle for the
+full corpus---context, evaluation keys, $pk$ and all eight precomputed
+columns---is $12$\,MB and takes $0.8$\,s to produce.
 
-For dynamic ingest, insertion into the hot buffer runs at $4.4$--$13.5$ million
+For dynamic ingest, insertion into the hot buffer runs at $4.5$--$14.1$ million
 records per second, since a record carrying $\tau$ tags updates $A_f$ at $\tau$
 addresses in plaintext at the owner with no decryption. A static-tier rebuild
-costs $10.8$--$14.3$\,ms, which amortises to $42.2\,\mu$s per insertion at
-$B=256$ and $0.87\,\mu$s at $B=16{,}384$. The online price is the buffer scan,
-which is the same oblivious contraction over a $B$-record index and adds $98\%$
-to $116\%$ to a query. Buffer size therefore trades amortised rebuild cost
-against a near-doubling of online latency, and the knee is broad.
+costs $14.7$--$14.9$\,ms, which amortises to $58.0\,\mu$s per insertion at
+$B=256$ and $0.91\,\mu$s at $B=16{,}384$. The online price is the buffer scan,
+which is the same oblivious contraction over a $B$-record index and adds $99\%$
+to $100\%$ to a query, near-independently of $B$---the buffer index shares the
+tag domain, so its cost is dominated by the same fixed homomorphic contraction
+as the static tier. Buffer size therefore trades amortised rebuild cost against
+a near-doubling of online latency, and the knee is broad.
 
 \subsection{Core scaling and throughput}
-Per-query latency is $33.4$, $34.5$ and $34.1$\,ms at $1$, $2$ and $4$ threads:
-a single fast-path query does not speed up with cores. This is not a defect in
-the selection code, which does scale (Table~\ref{tab:search}), but a consequence
-of where the time goes---the packed homomorphic contraction and its
-rotate-and-sum dominate, and those are governed by the library's own
-parallelism.
+Per-query latency is $34.3$, $34.4$ and $38.4$\,ms at $1$, $8$ and $64$ threads:
+a single fast-path query does not speed up with cores, and degrades slightly
+once the thread count exceeds the work available. This is not a defect in the
+selection code, which does scale (Table~\ref{tab:search}), but a consequence of
+where the time goes---the packed homomorphic contraction and its rotate-and-sum
+dominate, and those are governed by the library's own parallelism.
 
-Throughput does scale, and is the number a deployment cares about: $24.1$
-queries/s with one client, $36.9$ with two, $62.3$ with four and $68.2$ with
-eight, on four cores. Median latency rises from $38.3$\,ms to $117.3$\,ms as
-concurrency saturates the machine. Fig.~\ref{fig:scaling} plots both.
+Throughput does scale, and is the number a deployment cares about: $29.1$
+queries/s with one client, $56.9$ with two, $110.2$ with four, and a plateau of
+$121.6$--$127.7$ from sixteen to sixty-four clients. Median latency rises from
+$34.4$\,ms to $516$\,ms across that range as concurrency saturates the machine,
+so the useful operating point is around four to sixteen concurrent clients,
+where throughput is already within $15\%$ of its maximum and latency is still
+under $135$\,ms. Fig.~\ref{fig:scaling} plots both.
 
 \subsection{Verification, and what it does not cover}
 The MAC column doubles the homomorphic work of an aggregate and exactly doubles
 its downlink, from $262{,}975$\,B to $525{,}950$\,B; a verified aggregate costs
-$35.7$\,ms.
+$33.6$\,ms.
 
 We measure two distinct deviations over $200$ trials each. A provider that
 returns an aggregate inconsistent with the MAC ciphertext it also returns is
@@ -904,9 +947,9 @@ bounds what the authorisation mechanism must prevent.
 \begin{figure}[t]
 \centering
 \includegraphics[width=\columnwidth]{Figures/fig_selection_latency.pdf}
-\caption{Per-query selection latency vs.\ domain size $N$, at 1, 2 and 4 cores,
-with the AES-NI DPF. Medians of 11 runs; error bars are the interquartile
-range.}
+\caption{Per-query selection latency vs.\ domain size $N$, at several thread
+counts, with the AES-NI DPF. Medians of 11 runs; error bars are the
+interquartile range.}
 \label{fig:searchlat}
 \end{figure}
 
@@ -923,8 +966,9 @@ construction and the $n$-party instantiation used for $n\in\{2,3,4\}$.}
 \includegraphics[width=\columnwidth]{Figures/fig_aggregate_latency.pdf}
 \caption{Oblivious aggregate latency: fast path vs.\ general path. The $x$-axis
 is $N_d$, not $|S|$, because the cost no longer depends on the matched-set
-size---which is the point. The general path stops where its masked index
-exceeds memory.}
+size---which is the point. The fast path is flat to $\pm0.5\%$ over a
+$405\times$ range; the general path reaches $1.38$\,s at the full corpus, where
+its masked index is $37.5$\,GB per provider.}
 \label{fig:complat}
 \end{figure}
 
@@ -961,19 +1005,22 @@ The measurements support the paper's central claim and bound it in three places
 worth stating plainly.
 
 \emph{The fast path does what it was designed to do.} Aggregate latency is flat
-in $N_d$ over a $405\times$ range, per-query downlink is two ciphertexts
-independent of $|S|$, and the whole query costs less than the distributed-trust
-baseline that performs no analytics at all. Selection is linear-work per
-provider on both paths, which is the unavoidable price of hiding the access
-pattern from a coalition; the fast path removes the dependence on record count
-but restricts queries to single keywords and templates registered at setup.
+to $\pm0.5\%$ over a $405\times$ range of $N_d$, per-query downlink is two
+ciphertexts independent of $|S|$, provider compute is flat in $n$, and the whole
+query is $3.3\times$ cheaper than a distributed-trust baseline that performs no
+analytics at all and $617\times$ cheaper than a faithful homomorphic scan.
+Selection is linear-work per provider on both paths, which is the unavoidable
+price of hiding the access pattern from a coalition; the fast path removes the
+dependence on record count but restricts queries to single keywords and
+templates registered at setup.
 
 \emph{The general path is bounded by storage, not by time.} Its $\Theta(N N_d)$
-contraction grows as predicted, but what stops it at full scale is a $37.5$\,GB
-masked index per provider, replicated $n$ times. Ad-hoc weight vectors and
-conjunctions pay that price. A partitioning or preprocessing variant that
-recovers sublinear online cost, and a $\mathbb{Z}_p$ with $p<2^{32}$ that would
-halve the index at the cost of magnitude headroom, are the obvious directions.
+contraction reaches $1.38$\,s at the full corpus, which is tolerable; what is
+not is a $37.5$\,GB masked index per provider, replicated $n$ times and resident
+for every query. Ad-hoc weight vectors and conjunctions pay that price. A
+partitioning or preprocessing variant that recovers sublinear online cost, and a
+$\mathbb{Z}_p$ with $p<2^{32}$ that would halve the index at the cost of
+magnitude headroom, are the obvious directions.
 
 \emph{Tolerating more collusion is where the artefact is weakest.} Moving from
 $n=2$ to $n>2$ costs a factor of $174$ in uplink because we did not implement a
@@ -988,9 +1035,10 @@ physical devices, so its tag cardinality derives from time and sensor conditions
 rather than device count; we report leakage per tag class rather than in
 aggregate for exactly this reason, and a device-diverse corpus would strengthen
 the evaluation. Third, the deployment measurement is single-host: it establishes
-provider compute and client cost but not wide-area transport, and running CR-SHE
-across commercial clouds in distinct regions, together with an ingest and energy
-measurement on gateway-class hardware, is the evaluation this paper still owes.
+provider compute, client cost and their independence of $n$, but not wide-area
+transport, and running CR-SHE across commercial clouds in distinct regions,
+together with an ingest and energy measurement on gateway-class hardware, is the
+evaluation this paper still owes.
 
 The construction assumes a single data owner and full delegation of decryption
 to authorised users, so multi-owner multi-key sharing and threshold or

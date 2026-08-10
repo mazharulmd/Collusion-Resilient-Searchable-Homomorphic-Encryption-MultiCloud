@@ -104,31 +104,44 @@ load-bearing for the paper's argument:
 
 ## Measured results
 
-`bench/results/` holds the CSVs behind every number in the paper, measured on a
-4-core Intel Xeon @2.10 GHz with 15 GB RAM, AES-NI, OpenFHE 1.2.3, BFV at
+`bench/results/` holds the CSVs behind every number in the paper, measured on an
+**AMD EPYC 7J13, 64 cores, 64 GB, Ubuntu 24.04**, AES-NI, OpenFHE 1.2.3, BFV at
 p = 68,724,326,401 (37-bit prime), ring dimension 8192, depth 1, 128-bit
 classical security. Corpus: the real 405,184-record telemetry dataset, indexed
 into 11,580 tags (posting lists: median 35, mean 314.9, max 404,702).
 
 | Result | Measured |
 |---|---|
-| Fast-path aggregate, N_d = 10^3 … 4.05×10^5 | 31.6 – 46.0 ms, **flat in N_d** |
-| General path, N_d = 10^3 → 5×10^4 | 87.3 → 361.3 ms (Θ(N·N_d)) |
+| Fast-path aggregate, N_d = 10^3 … 4.05×10^5 | **38.8 – 39.2 ms, flat to ±0.5%** |
+| General path, same range | 103.7 → **1378.2 ms** (35.8× the fast path) |
 | Aggregate downlink | 525,950 B/provider, identical for every \|S\| |
-| Selection (DPF), N = 11,580 | 0.273 ms (1 core) / 0.158 ms (4 cores) |
-| DPF key, n = 2 | 266 B per provider |
-| Faithful FHE equality scan | 163.3 s/query — ~4,760× the fast path |
-| DORY-style search only (no analytics) | 51.0 ms vs 41.4 ms for the full fast path |
+| Selection (DPF), N = 11,580 | 0.271 ms (1 thread) → 0.141 ms (16) |
+| DPF key, n = 2 | 266 B per provider; 532 B uplink |
+| n-party heavy key, N = 11,580 | 92,656 B → 174× the two-party tree |
+| Deployment, n = 2 → 4 | provider compute **flat**: 34.8 → 35.5 ms |
+| Faithful FHE equality scan | 24.2 s/query — **617×** the fast path |
+| DORY-style search only (no analytics) | 130.4 ms vs **39.2 ms** for the full fast path |
 | Leakage: unmasked index | **100%** of device/flag/sensor-band tags re-identified |
 | Leakage: masked index | **0%**, at every level of auxiliary knowledge |
 | MAC vs inconsistent aggregate | 200/200 detected |
 | MAC vs wrong selection vector | 0/200 detected (the documented gap) |
 | Malformed-key extraction | 512/512 rows recovered in 2N queries |
 | Masked index at full scale | 37.5 GB per provider — why the fast path exists |
+| Throughput | 29 q/s (1 client) → plateau 122–128 q/s (16–64) |
 
-Not measured here, and not estimated: wide-area transport across real cloud
-regions, Raspberry Pi ingest energy, and the general path beyond N_d = 5×10^4
-(the masked index exceeds this machine's RAM). See `docs/RUNBOOK.md` phases 6–7.
+Two measurement notes carried into the paper rather than smoothed over:
+
+* The fast path's flatness is from an **order-controlled** sweep. A first sweep
+  in increasing N_d showed the early points ~14 ms slower; because that step was
+  *anti*-correlated with N_d, the sweep was repeated in decreasing order and
+  reproduced 38.8–39.2 ms everywhere. Both runs are released
+  (`e2_agg.csv`, `e2_fast_reversed.csv`).
+* Selection peaks at 16–32 threads and **regresses** past that (N=10^6:
+  18.7 ms at 32 threads, 24.3 ms at 64). Reported, not hidden.
+
+Not measured, and not estimated: wide-area transport across real cloud regions
+(the deployment is single-host loopback), Raspberry Pi ingest energy, and the
+second corpus. See `docs/RUNBOOK.md` phases 6–7.
 
 ## Datasets
 

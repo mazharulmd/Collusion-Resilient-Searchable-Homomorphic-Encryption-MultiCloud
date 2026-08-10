@@ -605,30 +605,40 @@ this section can be separated from the machine that produced it.
 \subsection{Selection latency and key size}
 Table~\ref{tab:search} and Fig.~\ref{fig:searchlat} report the per-provider
 full-domain evaluation, which is the whole of the selection phase. At the corpus
-size $N=11{,}580$ it costs $0.271$\,ms on one core and $0.141$\,ms at sixteen;
-at $N=10^6$ it costs $42.0$\,ms on one core and $18.7$\,ms at thirty-two. The
+size $N=11{,}580$ it costs $0.336$\,ms on one thread and $0.177$\,ms at sixteen;
+at $N=10^6$ it costs $45.7$\,ms on one thread and $18.8$\,ms at thirty-two. The
 two-party key is $266$\,B at the corpus size, growing to $368$\,B at $N=10^6$,
 consistent with the $O(\lambda\log N)$ bound.
 
 Selection does not scale past about sixteen to thirty-two threads and then
-regresses: at $N=11{,}580$ it improves from $0.271$\,ms to $0.141$\,ms at
-sixteen threads but returns to $0.171$\,ms at sixty-four, and at $N=10^6$ from
-$42.0$\,ms to $18.7$\,ms at thirty-two and back to $24.3$\,ms at sixty-four. The
+regresses: at $N=11{,}580$ it improves from $0.336$\,ms to $0.177$\,ms at
+sixteen threads but returns to $0.211$\,ms at sixty-four, and at $N=10^6$ from
+$45.7$\,ms to $18.8$\,ms at thirty-two and back to $24.4$\,ms at sixty-four. The
 per-level work at these domain sizes is too small to amortise thread dispatch
 across all cores of a $64$-core part. We report the regression rather than only
 the best point, and a deployment should pin the selection pass to the knee.
 
+These are sub-millisecond quantities on a shared cloud host, and they carry
+correspondingly loose error bars: repeated runs of the identical binary differ
+by up to $25\%$ at $N\approx10^4$, while the $N=10^6$ figures---where each
+measurement is tens of milliseconds---repeat to within $1\%$. The table gives
+medians of $21$ runs and the released CSVs carry the interquartile range for
+every cell. Conclusions in this subsection are drawn only at the order-of-
+magnitude level, which is robust to that variation; the like-for-like comparison
+that matters is made in Section~\ref{sec:aggresult}, where the quantities are
+tens of milliseconds.
+
 The comparison that matters, though, is against the homomorphic half of the same
-query: selection is $0.14$\,ms while the packed contraction that follows it is
-tens of milliseconds (Section~\ref{sec:aggresult}). The symmetric-key half of
+query: selection is under $0.2$\,ms while the packed contraction that follows it
+is tens of milliseconds (Section~\ref{sec:aggresult}). The symmetric-key half of
 CR-SHE is not the bottleneck, which is the design's intent---symmetric work on
 the selection path, homomorphic operations only on the aggregate.
 
 \begin{table}[t]
 \centering
 \caption{Measured per-provider selection latency (full-domain DPF evaluation,
-two-party construction) and key size vs.\ $N$. Medians of 11 runs on the
-$64$-core EPYC.}
+two-party construction) and key size vs.\ $N$. Medians of 21 runs on the
+$64$-core EPYC; see the text on run-to-run variation at small $N$.}
 \label{tab:search}
 \footnotesize
 \renewcommand{\arraystretch}{1.2}
@@ -637,11 +647,11 @@ $64$-core EPYC.}
 $N$ & 1 thread & 4 threads & 16 threads & DPF key \\
     & (ms)     & (ms)      & (ms)       & (B) \\
 \midrule
-$1{,}000$    & $0.026$  & $0.026$  & $0.026$  & $198$ \\
-$10{,}000$   & $0.228$  & $0.141$  & $0.122$  & $266$ \\
-$11{,}580$   & $0.271$  & $0.167$  & $0.141$  & $266$ \\
-$100{,}000$  & $4.034$  & $2.435$  & $1.862$  & $317$ \\
-$10^{6}$     & $42.040$ & $25.286$ & $19.409$ & $368$ \\
+$1{,}000$    & $0.032$  & $0.032$  & $0.032$  & $198$ \\
+$10{,}000$   & $0.290$  & $0.175$  & $0.156$  & $266$ \\
+$11{,}580$   & $0.336$  & $0.200$  & $0.177$  & $266$ \\
+$100{,}000$  & $4.418$  & $2.487$  & $1.909$  & $317$ \\
+$10^{6}$     & $45.741$ & $25.701$ & $19.711$ & $368$ \\
 \bottomrule
 \end{tabular*}
 \end{table}

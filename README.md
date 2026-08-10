@@ -115,7 +115,7 @@ into 11,580 tags (posting lists: median 35, mean 314.9, max 404,702).
 | Fast-path aggregate, N_d = 10^3 … 4.05×10^5 | **38.8 – 39.2 ms, flat to ±0.5%** |
 | General path, same range | 103.7 → **1378.2 ms** (35.8× the fast path) |
 | Aggregate downlink | 525,950 B/provider, identical for every \|S\| |
-| Selection (DPF), N = 11,580 | 0.271 ms (1 thread) → 0.141 ms (16) |
+| Selection (DPF), N = 11,580 | 0.336 ms (1 thread) → 0.177 ms (16) |
 | DPF key, n = 2 | 266 B per provider; 532 B uplink |
 | n-party heavy key, N = 11,580 | 92,656 B → 174× the two-party tree |
 | Deployment, n = 2 → 4 | provider compute **flat**: 34.8 → 35.5 ms |
@@ -137,7 +137,10 @@ Two measurement notes carried into the paper rather than smoothed over:
   reproduced 38.8–39.2 ms everywhere. Both runs are released
   (`e2_agg.csv`, `e2_fast_reversed.csv`).
 * Selection peaks at 16–32 threads and **regresses** past that (N=10^6:
-  18.7 ms at 32 threads, 24.3 ms at 64). Reported, not hidden.
+  18.8 ms at 32 threads, 24.4 ms at 64). Reported, not hidden.
+* Sub-millisecond selection timings on this shared cloud host vary by up to
+  ~25% between runs of the identical binary at N≈10^4; the N=10^6 figures
+  repeat to within 1%. Medians of 21 runs, IQR in the CSV.
 
 Not measured, and not estimated: wide-area transport across real cloud regions
 (the deployment is single-host loopback), Raspberry Pi ingest energy, and the

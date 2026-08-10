@@ -71,7 +71,7 @@ and Mubasshir~Ahmed\raisebox{0.8ex}{\orcidlink{0000-0002-7502-3835}}%
 \maketitle
 
 \begin{abstract}
-Internet of Things (IoT) deployments increasingly replicate telemetry across several independent cloud providers for availability and vendor independence. Distributing data this way helps only if the providers cannot pool what they observe. Systems that hide search access patterns by splitting trust across providers already exist, but they either operate on plaintext data, stop at retrieval and offer no analytics, or require an honest majority together with server-to-server interaction. We present CR-SHE, a scheme for multi-cloud IoT data sharing in which \emph{both} keyword retrieval and analytics over the retrieved records are oblivious to a coalition of up to $t=n-1$ colluding providers, over data encrypted at rest under a single owner's key and with no communication between providers. The central construction is \emph{oblivious homomorphic aggregation}: each provider folds its distributed point function (DPF) share directly into the homomorphically encrypted record column and returns one ciphertext, so the matched record set is never materialised at any provider and its cardinality never leaves the client. A precomputed-column variant reduces the online cost of single-keyword aggregates to a full-domain symmetric pass plus a handful of packed ciphertext operations. A one-time-pad index mask removes the posting-list-length leakage that a replicated index otherwise exposes at rest, with the mask cancelled inside the ciphertext rather than at any provider. We prove correctness and adaptive $\Leak$-security against $t=n-1$ collusion with a per-query coalition leakage profile that reveals only the requested aggregate class, give a MAC-based extension that detects deviating providers, and evaluate a prototype on real IoT sensor telemetry against ORAM, searchable-encryption, distributed-trust search, and homomorphic-scan baselines.
+Internet of Things (IoT) deployments increasingly replicate telemetry across several independent cloud providers for availability and vendor independence. Distributing data this way helps only if the providers cannot pool what they observe. Systems that hide search access patterns by splitting trust across providers already exist, but they either operate on plaintext data, stop at retrieval and offer no analytics, or require an honest majority together with server-to-server interaction. We present CR-SHE, a scheme for multi-cloud IoT data sharing in which \emph{both} keyword retrieval and analytics over the retrieved records are oblivious to a coalition of up to $t=n-1$ colluding providers, over data encrypted at rest under a single owner's key and with no communication between providers. The central construction is \emph{oblivious homomorphic aggregation}: each provider folds its distributed point function (DPF) share directly into the homomorphically encrypted record column and returns one ciphertext, so the matched record set is never materialised at any provider and its cardinality never leaves the client. A precomputed-column variant reduces the online cost of single-keyword aggregates to a full-domain symmetric pass plus a handful of packed ciphertext operations. A one-time-pad index mask removes the posting-list-length leakage that a replicated index otherwise exposes at rest, with the mask cancelled inside the ciphertext rather than at any provider. We prove correctness and adaptive $\Leak$-security against $t=n-1$ collusion with a per-query coalition leakage profile that reveals only the requested aggregate class, give a MAC-based extension that detects deviating providers, and evaluate a prototype on two real IoT corpora against ORAM, searchable-encryption, distributed-trust search, and homomorphic-scan baselines.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -98,7 +98,7 @@ We propose CR-SHE (Collusion-Resilient Searchable Homomorphic Encryption). The d
 \item \textbf{Oblivious homomorphic aggregation, and a precomputed-column fast path.} We state and prove the algebraic compatibility condition (Lemma~\ref{lem:compat}) under which DPF shares and the homomorphic plaintext ring compose without wraparound, and give a variant (Section~\ref{sec:fast}) in which single-keyword aggregates over pre-registered templates cost a symmetric full-domain pass plus $O(N/\ell)$ packed ciphertext operations, independent of the record count.
 \item \textbf{Index masking compatible with oblivious aggregation.} A one-time-pad mask makes the stored index perfectly hiding, and the resulting mask term is cancelled inside the ciphertext using an encrypted correction column retrieved by the same DPF, so no provider ever sees an unmasked row or a mask value (Section~\ref{sec:mask}, Theorem~\ref{thm:mask}).
 \item \textbf{Detection of deviating providers, query authorisation, and streaming ingest.} A MAC'd ciphertext column lets the client reject an incorrectly evaluated aggregate except with probability $1/p$; DPF key well-formedness checks close a malformed-key extraction attack the semi-honest model does not cover; and an append-only two-tier index supports IoT streams, with forward and backward privacy immediate because the coalition's per-query view is query-independent.
-\item \textbf{Evaluation} on real IoT telemetry against ORAM, single-server searchable encryption, distributed-trust search, and a faithful homomorphic equality scan, together with an empirical leakage-abuse attack quantifying what index masking removes.
+\item \textbf{Evaluation} on two real IoT corpora---environmental sensor telemetry, and a twelve-site air-quality corpus with three times the tag domain---against ORAM, single-server searchable encryption, distributed-trust search, and a faithful homomorphic equality scan, together with an empirical leakage-abuse attack quantifying what index masking removes.
 \end{itemize}
 
 The remainder of this paper is organised as follows. Section~\ref{sec:related} reviews related work. Section~\ref{sec:prelim} fixes notation and primitives. Sections~\ref{sec:system} and~\ref{sec:threat} present the system and threat models. Section~\ref{sec:construction} details the construction, Section~\ref{sec:security} the security analysis, and Section~\ref{sec:complexity} the asymptotic costs. Section~\ref{sec:impl} describes the implementation, Section~\ref{sec:resultsdisc} reports and discusses results, and Section~\ref{sec:conclusion} concludes.
@@ -558,10 +558,10 @@ framing and serialisation only and excludes wide-area latency. Measuring CR-SHE
 across commercial clouds in distinct regions requires accounts we did not have
 and remains the one experiment this evaluation does not supply.
 
-\emph{Corpus.} The corpus is the Environmental Sensor Telemetry dataset of
-$405{,}184$ MQTT messages from three Raspberry-Pi sensor arrays, each carrying a
-device identifier, a timestamp, and readings for carbon monoxide, humidity,
-liquid petroleum gas, smoke, temperature, light and
+\emph{Corpora.} The primary corpus is the Environmental Sensor Telemetry
+dataset of $405{,}184$ MQTT messages from three Raspberry-Pi sensor arrays, each
+carrying a device identifier, a timestamp, and readings for carbon monoxide,
+humidity, liquid petroleum gas, smoke, temperature, light and
 motion~\cite{stafford_2020_environmental}. Records are indexed under the
 metadata tags a deployed IoT platform would attach: the device identifier, a
 one-minute time window, decile bands of each of the five continuous sensor
@@ -571,6 +571,14 @@ $314.9$, maximum $404{,}702$ (Fig.~\ref{fig:postcdf}). Aggregation operates on
 the real temperature readings, scaled to hundredths of a degree, so one coherent
 dataset drives both retrieval and analytics. The largest admissible single-tag
 aggregate is $908{,}575{,}470$, leaving $75.6\times$ headroom below $p$.
+
+That corpus has only three physical devices, so the whole evaluation is
+repeated on a second one---the UCI Beijing Multi-Site Air-Quality dataset,
+$420{,}768$ hourly records from \emph{twelve} monitoring sites over four
+years~\cite{zhang2017cautionary}---which triples the tag domain and supplies the
+device diversity the first corpus lacks. Section~\ref{sec:secondcorpus} reports
+it in full; both corpora are built by the same released script, from the
+published raw files, with no hand curation.
 
 \emph{Baselines.} We compare against (i) a plaintext linear scan; (ii) a
 single-server searchable-encryption scheme with PRF tokens and AES-CTR posting
@@ -860,6 +868,10 @@ distinguishable from uniform over $\mathbb{Z}_p$ by a $64$-bin chi-square test
 counterpart of Theorem~\ref{thm:mask}---evidence for it, not a proof of it. We
 note that this experiment is deterministic given the corpus and the key seed,
 and reproduced to the digit on two different machines and microarchitectures.
+Section~\ref{sec:secondcorpus} repeats the attack on a twelve-site corpus with
+three times the tag domain and obtains the same per-class picture, so neither
+the $100\%$ unmasked recovery nor the $0\%$ masked recovery is an artefact of
+this corpus's three devices.
 
 \begin{table}[t]
 \centering
@@ -954,9 +966,119 @@ attack from honest traffic because each share is individually uniform. This is
 what an unauthorised client can do against the artefact as it stands, and it
 bounds what the authorisation mechanism must prevent.
 
+\subsection{Second corpus: twelve devices and a larger tag domain}
+\label{sec:secondcorpus}
+The primary corpus has three physical devices, so its tag universe is dominated
+by time buckets and a reader is entitled to ask whether the results depend on
+that. We therefore repeat the entire evaluation---every correctness test and
+every experiment above---on the UCI Beijing Multi-Site Air-Quality
+corpus~\cite{zhang2017cautionary}: $420{,}768$ hourly records from twelve
+monitoring sites over four years, each carrying six pollutant channels
+(PM$_{2.5}$, PM$_{10}$, SO$_2$, NO$_2$, CO, O$_3$) alongside meteorological
+readings. Records are indexed under the site identifier, the hour, the wind
+direction, and decile bands of the six pollutant channels together with
+pressure and dew point; temperature is the aggregated field, so one dataset
+again drives both retrieval and analytics.
+
+Missing readings are handled explicitly rather than silently. A channel reading
+\texttt{NA} receives its own \texttt{:na} tag instead of falling into the lowest
+quantile band---CO is missing in $4.92\%$ of records, so band-$0$ folding would
+have merged ``sensor down'' with ``clean air''---and the $398$ records
+($0.09\%$) with a missing temperature are dropped, because temperature is the
+aggregated field and an aggregate must not sum an imputed value. The result is
+$N_d=420{,}370$ records and $N=35{,}162$ tags over $4{,}624{,}070$ postings,
+with posting lengths of median $12$, mean $131.5$ and maximum $102{,}344$:
+three times the tag domain of the primary corpus, and a much flatter posting
+distribution. The largest admissible single-tag aggregate is $698{,}963{,}226$,
+leaving $98.3\times$ headroom below $p$.
+
+Every correctness check passes unchanged: exact agreement with the plaintext
+ground truth on both paths for $n\in\{2,3,4\}$ and all four templates, exact
+retrieval of the posting list, MAC verification, and a byte-identical
+$525{,}950$\,B downlink for $|S|=0$ and $|S|=5000$.
+
+\emph{The fast path is unaffected by the larger tag domain.} It costs
+$40.2$--$41.2$\,ms from $N_d=5\times10^3$ to $N_d=4.05\times10^5$
+(Table~\ref{tab:beijing}), against $38.8$--$39.2$\,ms on the primary corpus: a
+$5\%$ increase for $3.04\times$ the tags. The $\lceil N/\ell\rceil$ packed
+products grow from $2$ ciphertexts to $5$, but the fixed rotate-and-sum,
+encryption and serialisation dominate, so the online cost grows far more slowly
+than $N$. As before, the first point of the increasing-$N_d$ sweep
+($54.6$\,ms at $N_d=10^3$) is the warm-up artefact identified in
+Section~\ref{sec:aggresult}, and is reported rather than removed.
+
+\emph{The general path degrades exactly as its complexity predicts.} At
+$N_d=10^5$ it costs $382.0$\,ms against $196.8$\,ms on the primary corpus
+($1.94\times$ for $3.04\times$ the tags), and its masked index grows linearly in
+$N$, from $9.26$ to $28.13$\,GB at that record count. At full scale it would be
+$118.2$\,GB per provider, so the harness refuses the last two points---$56.3$
+and $114.0$\,GB against $63.3$\,GB available---and records the refusal in the
+CSV. That refusal is the result: on a corpus of this tag cardinality the general
+path is storage-bound before it is time-bound, which is precisely the argument
+for the fast path.
+
+\emph{The leakage conclusion is not an artefact of three devices.} Under perfect
+auxiliary knowledge the unmasked index gives up \emph{every} one of the ten
+non-temporal tag classes at $100\%$---including the twelve site identifiers and
+the seventeen wind-direction tags, which are device and condition labels in the
+sense that matters---while the $35{,}046$ hour-bucket tags yield $0.31\%$.
+Against the masked index the same attack recovers $0.00\%$ in every class and at
+every level of auxiliary knowledge, and the masked row sums remain
+indistinguishable from uniform over $\mathbb{Z}_p$ under the same $64$-bin
+chi-square test ($\chi^2=62.38$ on $63$ degrees of freedom, $p=0.4986$). The
+per-class structure of Table~\ref{tab:leakage} therefore reproduces on a corpus
+with four times as many devices.
+
+The remaining measurements track the primary corpus with no change of
+conclusion. Provider compute in the single-host deployment is flat in $n$
+($38.67$, $37.65$, $38.47$\,ms for $n=2,3,4$), with end-to-end latency rising
+from $48.17$ to $56.04$\,ms in transport alone. The DORY-style search-only
+baseline costs $305.6$\,ms against $41.2$\,ms for the complete CR-SHE fast path
+at the same $N_d$, so the gap \emph{widens} to $7.4\times$ as $N$ grows, because
+that baseline materialises a selection vector the fast path never touches. The
+faithful homomorphic equality scan is $24.4$\,s, essentially unchanged, since it
+scales with the record count and the Fermat depth rather than with $N$;
+that is $592\times$ the fast path. Verification detects $200/200$ inconsistent
+aggregates and $0/200$ well-formed contractions against a different selection
+vector, and the malformed-key attack again recovers $512/512$ index rows in $2N$
+queries. Throughput plateaus at $117$--$124$ queries/s. The one cost that grows
+materially is setup: building the masked index at $N_d=10^5$ takes $16.6$\,s
+against $5.6$\,s, linear in $N$ as expected, while the fast-path column $A_f$
+remains $5$ ciphertexts ($1.3$\,MB) independent of $N_d$.
+
+\begin{table}[t]
+\centering
+\caption{Second corpus (UCI Beijing Multi-Site Air-Quality, $N=35{,}162$,
+$N_d=420{,}370$): oblivious aggregate latency and storage, fast vs.\ general
+path, template \textsc{sum}. Sweep taken in increasing $N_d$, so the first
+fast-path point carries the warm-up artefact of Section~\ref{sec:aggresult};
+the largest measured point is $4.05\times10^5$ records, matching the full size
+of the primary corpus so the two tables compare at equal $N_d$. ``---'' marks a
+point the harness refused because the masked index does not fit in RAM; the
+size it would have needed is given.}
+\label{tab:beijing}
+\footnotesize
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}lcccc@{}}
+\toprule
+$N_d$ & Fast & General & $I'$ per provider & Downlink \\
+      & (ms) & (ms)     & (GB)              & (B) \\
+\midrule
+$10^3$             & $54.6$ & $106.3$ & $0.28$   & $525{,}950$ \\
+$5\times10^3$      & $40.4$ & $86.9$  & $1.41$   & $525{,}950$ \\
+$10^4$             & $40.2$ & $99.7$  & $2.81$   & $525{,}950$ \\
+$2\times10^4$      & $40.5$ & $145.5$ & $5.63$   & $525{,}950$ \\
+$5\times10^4$      & $40.7$ & $220.8$ & $14.06$  & $525{,}950$ \\
+$10^5$             & $41.2$ & $382.0$ & $28.13$  & $525{,}950$ \\
+$2\times10^5$      & $40.9$ & ---     & $56.26$  & $525{,}950$ \\
+$4.05\times10^5$   & $40.9$ & ---     & $113.98$ & $525{,}950$ \\
+\bottomrule
+\end{tabular*}
+\end{table}
+
 \begin{figure}[t]
 \centering
-\includegraphics[width=\columnwidth]{Figures/fig_selection_latency.pdf}
+\includegraphics[width=\columnwidth]{Figures/telemetry/fig_selection_latency.pdf}
 \caption{Per-query selection latency vs.\ domain size $N$, at several thread
 counts, with the AES-NI DPF. Medians of 11 runs; error bars are the
 interquartile range.}
@@ -965,7 +1087,7 @@ interquartile range.}
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=\columnwidth]{Figures/fig_key_size.pdf}
+\includegraphics[width=\columnwidth]{Figures/telemetry/fig_key_size.pdf}
 \caption{Largest per-provider DPF key vs.\ $N$, for the two-party tree
 construction and the $n$-party instantiation used for $n\in\{2,3,4\}$.}
 \label{fig:comm}
@@ -973,7 +1095,7 @@ construction and the $n$-party instantiation used for $n\in\{2,3,4\}$.}
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=\columnwidth]{Figures/fig_aggregate_latency.pdf}
+\includegraphics[width=\columnwidth]{Figures/telemetry/fig_aggregate_latency.pdf}
 \caption{Oblivious aggregate latency: fast path vs.\ general path. The $x$-axis
 is $N_d$, not $|S|$, because the cost no longer depends on the matched-set
 size---which is the point. The fast path is flat to $\pm0.5\%$ over a
@@ -984,7 +1106,7 @@ its masked index is $37.5$\,GB per provider.}
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=\columnwidth]{Figures/fig_leakage_attack.pdf}
+\includegraphics[width=\columnwidth]{Figures/telemetry/fig_leakage_attack.pdf}
 \caption{Tag re-identification against the unmasked and masked index, as a
 function of the adversary's auxiliary knowledge. Aggregated over the whole tag
 universe; Table~\ref{tab:leakage} gives the per-class breakdown, in which every
@@ -994,7 +1116,7 @@ non-temporal class is fully recovered from the unmasked index.}
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=\columnwidth]{Figures/fig_scaling.pdf}
+\includegraphics[width=\columnwidth]{Figures/telemetry/fig_scaling.pdf}
 \caption{Left: speed-up of a single fast-path query with thread count, against
 linear. Right: sustained throughput against concurrent clients.}
 \label{fig:scaling}
@@ -1002,7 +1124,7 @@ linear. Right: sustained throughput against concurrent clients.}
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=\columnwidth]{Figures/fig_posting_cdf.pdf}
+\includegraphics[width=\columnwidth]{Figures/telemetry/fig_posting_cdf.pdf}
 \caption{CDF of metadata-tag posting-list sizes in the IoT telemetry corpus.
 This distribution no longer drives aggregate cost, and is retained to
 characterise the corpus and to parameterise the retrieval padding bound
@@ -1037,18 +1159,23 @@ $n=2$ to $n>2$ costs a factor of $174$ in uplink because we did not implement a
 succinct multi-party DPF. The construction does not require that; our prototype
 does. We measure the cost rather than quote an asymptotic we did not realise.
 
-Three limitations are not visible in any table. First, the adversary is
+Two limitations are not visible in any table. First, the adversary is
 semi-honest, with detection but not prevention of incorrect evaluation, and
 Section~\ref{sec:authresult} shows that query authorisation is a requirement
-rather than a solved problem in this artefact. Second, the corpus has only three
-physical devices, so its tag cardinality derives from time and sensor conditions
-rather than device count; we report leakage per tag class rather than in
-aggregate for exactly this reason, and a device-diverse corpus would strengthen
-the evaluation. Third, the deployment measurement is single-host: it establishes
-provider compute, client cost and their independence of $n$, but not wide-area
-transport, and running CR-SHE across commercial clouds in distinct regions,
-together with an ingest and energy measurement on gateway-class hardware, is the
-evaluation this paper still owes.
+rather than a solved problem in this artefact. Second, the deployment
+measurement is single-host: it establishes provider compute, client cost and
+their independence of $n$, but not wide-area transport, and running CR-SHE
+across commercial clouds in distinct regions, together with an ingest and energy
+measurement on gateway-class hardware, is the evaluation this paper still owes.
+
+A third concern is answered rather than carried: the primary corpus has only
+three physical devices, so its tag cardinality derives from time and sensor
+conditions rather than from device count. Section~\ref{sec:secondcorpus}
+repeats the whole evaluation on a twelve-site corpus with three times the tag
+domain, where the fast path costs $5\%$ more, the per-class leakage result
+reproduces exactly, and the general path's masked index reaches $118.2$\,GB per
+provider---which sharpens rather than softens the paper's own argument against
+it.
 
 The construction assumes a single data owner and full delegation of decryption
 to authorised users, so multi-owner multi-key sharing and threshold or
@@ -1062,7 +1189,10 @@ attack, and one script per figure are available at
 \url{https://github.com/mazharulmd/Collusion-Resilient-Searchable-Homomorphic-Encryption-MultiCloud}.
 Each experiment writes a CSV that records the CPU, thread count, AES backend and
 homomorphic parameters it was measured under, and every figure in this section
-is regenerated from those CSVs by a single script.
+is regenerated from those CSVs by a single script. Both corpora are released as
+separate result sets, and a checking script verifies that every value in the
+tables above still appears in the CSV it was taken from, per corpus, so the
+manuscript cannot drift from the artefact unnoticed.
 
 % ===========================================================================
 \section{Conclusion}

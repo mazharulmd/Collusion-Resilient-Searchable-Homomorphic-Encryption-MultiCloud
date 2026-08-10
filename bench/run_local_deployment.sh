@@ -14,7 +14,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 DATA="${1:-data/telemetry.crshe}"
-OUT="${2:-bench/results}"
+OUT="${2:-bench/results/telemetry}"
 QUERIES="${QUERIES:-100}"
 BUNDLE="${BUNDLE:-$(mktemp -d)/deploy}"
 

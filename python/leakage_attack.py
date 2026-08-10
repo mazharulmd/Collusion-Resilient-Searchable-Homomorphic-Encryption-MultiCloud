@@ -24,9 +24,11 @@ nothing beyond chance -- which is the empirical counterpart of Theorem 1.
 Input is the CSV produced by build/dump_index_stats, which computes the masked
 row sums with the real PRF.
 
-  build/dump_index_stats --data=data/telemetry.crshe --out=bench/results/e6_index_stats.csv
-  python3 python/leakage_attack.py --stats bench/results/e6_index_stats.csv \\
-      --out bench/results/e6_leakage.csv
+  build/dump_index_stats --data=data/telemetry.crshe \\
+      --out=bench/results/telemetry/e6_index_stats.csv
+  python3 python/leakage_attack.py \\
+      --stats bench/results/telemetry/e6_index_stats.csv \\
+      --out bench/results/telemetry/e6_leakage.csv
 """
 
 import argparse

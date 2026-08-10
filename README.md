@@ -38,8 +38,11 @@ apps/             test_*     correctness go/no-gos
                   crshe_setup / crshe_provider / crshe_client   deployment
 python/           prepare_dataset.py   raw CSV -> the binary corpus format
                   leakage_attack.py    E6
-                  plot_all.py          CSVs -> Figures/
-bench/            run_all.sh, netem_wan.sh
+                  plot_all.py          CSVs -> Figures/<corpus>/
+                  paper_numbers.py     CSVs -> LaTeX rows, and --check the paper
+                  fig_architecture.py  Fig. 1
+bench/            run_all.sh, run_local_deployment.sh, netem_wan.sh
+bench/results/    one directory per corpus: telemetry/, beijing/
 docs/             RUNBOOK.md   the phase-by-phase process
                   DESIGN.md    decisions, and what this artefact does not do
 legacy/           the v1 pure-Python prototype, kept for provenance only
@@ -80,6 +83,18 @@ bench/run_all.sh data/telemetry.crshe bench/results/telemetry Figures/telemetry
 bench/run_all.sh data/beijing.crshe   bench/results/beijing   Figures/beijing
 ```
 
+The sweeps are sized from the corpus itself -- the tag domain `N` and the record
+count `N_d` are read out of the `.crshe` header -- so the domain sweep measures
+the tag count the corpus actually has and the record sweep ends at the whole
+corpus. Nothing is hard-coded to one dataset.
+
+The last step of each run checks the manuscript against the CSVs
+(`python/paper_numbers.py --check`). It is corpus-aware: the paper reports the
+telemetry corpus in the selection and aggregate tables, and the Beijing corpus
+in the second-corpus table, so each is checked against its own. A corpus the
+paper does not report at all (a synthetic dry run, say) has its rows printed and
+the check skipped rather than failed.
+
 The real multi-cloud deployment (E3) and the Raspberry Pi edge measurement are
 driven separately — see [`docs/RUNBOOK.md`](docs/RUNBOOK.md).
 
@@ -107,8 +122,10 @@ load-bearing for the paper's argument:
 
 ## Measured results
 
-`bench/results/` holds the CSVs behind every number in the paper, measured on an
-**AMD EPYC 7J13, 64 cores, 64 GB, Ubuntu 24.04**, AES-NI, OpenFHE 1.2.3, BFV at
+`bench/results/<corpus>/` holds the CSVs behind every number in the paper, and
+`Figures/<corpus>/` the figures regenerated from them. The primary corpus is
+`telemetry`, and the manuscript's figures point at `Figures/telemetry/`.
+Measured on an **AMD EPYC 7J13, 64 cores, 64 GB, Ubuntu 24.04**, AES-NI, OpenFHE 1.2.3, BFV at
 p = 68,724,326,401 (37-bit prime), ring dimension 8192, depth 1, 128-bit
 classical security. Corpus: the real 405,184-record telemetry dataset, indexed
 into 11,580 tags (posting lists: median 35, mean 314.9, max 404,702).
@@ -145,9 +162,34 @@ Two measurement notes carried into the paper rather than smoothed over:
   ~25% between runs of the identical binary at N≈10^4; the N=10^6 figures
   repeat to within 1%. Medians of 21 runs, IQR in the CSV.
 
+### Second corpus
+
+The whole suite was re-run on the Beijing corpus below
+(`bench/results/beijing/`, `Figures/beijing/`), on the same machine:
+
+| Result | telemetry (N=11,580) | Beijing (N=35,162) |
+|---|---|---|
+| Fast-path aggregate | 38.8–39.2 ms | **40.2–41.2 ms** (+5% for 3.04× the tags) |
+| General path at N_d = 10^5 | 196.8 ms | **382.0 ms**, 28.13 GB index |
+| General path at full scale | 37.5 GB | **118.2 GB** — last two sweep points refused |
+| Aggregate downlink | 525,950 B | 525,950 B, unchanged |
+| DORY-style search only | 130.4 ms | **305.6 ms** (7.4× the fast path) |
+| FHE equality scan | 24.2 s | 24.4 s (592× the fast path) |
+| Leakage, unmasked | 100% per non-time class | **100%** in all ten non-time classes |
+| Leakage, masked | 0% | **0%**, χ²=62.38 on 63 df, p=0.4986 |
+| Deployment, n = 2 → 4 | 34.8 → 35.5 ms | **38.67 → 38.47 ms**, flat |
+| Masked-index build, N_d = 10^5 | 5.6 s | 16.6 s (linear in N) |
+
+The point of the second corpus is the twelve monitoring sites: the primary
+corpus has three physical devices, so a reader can reasonably ask whether the
+leakage result depends on that. It does not — the site identifiers and the
+wind-direction tags are re-identified at 100% from the unmasked index and 0%
+from the masked one, exactly as the device identifiers are in the primary
+corpus.
+
 Not measured, and not estimated: wide-area transport across real cloud regions
-(the deployment is single-host loopback), Raspberry Pi ingest energy, and the
-second corpus. See `docs/RUNBOOK.md` phases 6–7.
+(the deployment is single-host loopback) and Raspberry Pi ingest energy. See
+`docs/RUNBOOK.md` phases 6–7.
 
 ## Datasets
 
@@ -172,9 +214,10 @@ second corpus. See `docs/RUNBOOK.md` phases 6–7.
   corpus.
 
   Yields **35,162 tags** over 4,624,070 postings (posting lengths: median 12,
-  mean 131.5, max 102,344), 3x the tag domain of the primary corpus, and a
-  **118.2 GB** masked index at full scale. This corpus has missing values, and
-  they are handled explicitly rather than silently: a channel reading `NA` gets
+  mean 131.5, max 102,344) and 420,370 records, 3x the tag domain of the
+  primary corpus, and a **118.2 GB** masked index at full scale. This corpus
+  has missing values, and they are handled explicitly rather than silently:
+  a channel reading `NA` gets
   its own `<chan>:na` tag instead of being folded into the lowest quantile band
   (CO is NA in 4.9% of rows, so band-0 folding would have merged "sensor down"
   with "clean air"), and the 398 rows with a missing TEMP are dropped, because

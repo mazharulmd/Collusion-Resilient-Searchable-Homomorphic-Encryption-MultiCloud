@@ -12,16 +12,16 @@
 #   bench/run_all.sh data/telemetry.crshe bench/results/telemetry Figures/telemetry
 #   bench/run_all.sh data/beijing.crshe   bench/results/beijing   Figures/beijing
 #
-# Each experiment writes one CSV into bench/results/, and one CSV feeds one
-# figure.  Nothing here writes to the manuscript: the numbers go into CSVs, the
+# Each experiment writes one CSV into the results directory, and one CSV feeds
+# one figure.  Nothing here writes to the manuscript: the numbers go into CSVs, the
 # figures are regenerated from the CSVs, and you copy values into the LaTeX by
 # hand so that every number in the paper is one you have looked at.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
 DATA="${1:-data/telemetry.crshe}"
-OUT="${2:-bench/results}"
-FIGS="${3:-Figures}"
+OUT="${2:-bench/results/telemetry}"
+FIGS="${3:-Figures/telemetry}"
 CORES="$(nproc)"
 mkdir -p "$OUT"
 
@@ -34,15 +34,44 @@ if [ ! -f "$DATA" ]; then
     exit 1
 fi
 
+# The sweeps are sized from the corpus, not hard-coded: the tag domain and the
+# record count differ between corpora, and a sweep that stops at another
+# corpus's numbers measures the wrong domain and never reaches full scale.
+CORPUS_INFO="$(python3 - "$DATA" <<'PY'
+import struct, sys
+with open(sys.argv[1], "rb") as f:
+    if f.read(8) != b"CRSHEDS1":
+        sys.exit("%s is not a CR-SHE corpus" % sys.argv[1])
+    nrec, ntag = struct.unpack("<QQ", f.read(16))
+print(nrec, ntag)
+PY
+)"
+NREC="${CORPUS_INFO%% *}"
+NTAG="${CORPUS_INFO##* }"
+
 # Thread sweep: 1, then powers of two up to the core count.
 THREADS=1
 t=2
 while [ "$t" -le "$CORES" ]; do THREADS="$THREADS,$t"; t=$((t * 2)); done
 [ "$THREADS" = "${THREADS%,$CORES}" ] && THREADS="$THREADS,$CORES"
 
+# Sorted, de-duplicated comma list from the arguments.
+sweep() { printf '%s\n' "$@" | sort -n -u | paste -sd, -; }
+
+# Domain sweep: decades, with the corpus's own tag count in its place.
+NSWEEP="$(sweep 1000 10000 100000 1000000 "$NTAG")"
+
+# Record sweep: the standard points that fit, then the whole corpus.
+NDPOINTS=""
+for nd in 1000 5000 10000 20000 50000 100000 200000; do
+    if [ "$nd" -lt "$NREC" ]; then NDPOINTS="$NDPOINTS $nd"; fi
+done
+NDSWEEP="$(sweep $NDPOINTS "$NREC")"
+
 echo "=================================================================="
 echo " CR-SHE full evaluation"
 echo "   dataset : $DATA"
+echo "   corpus  : $NTAG tags, $NREC records"
 echo "   cores   : $CORES   (thread sweep: $THREADS)"
 echo "   results : $OUT"
 echo "   figures : $FIGS"
@@ -63,16 +92,15 @@ run "correctness: end-to-end" \
     ./build/test_e2e --data="$DATA" --nd=5000 --trials=200 --gen-trials=20
 
 run "E1  selection latency vs N" \
-    ./build/bench_dpf --N=1000,10000,11580,100000,1000000 \
+    ./build/bench_dpf --N="$NSWEEP" \
         --threads="$THREADS" --reps=11 --out="$OUT/e1_dpf.csv"
 
 run "E4  key size and communication" \
-    ./build/bench_comm --N=1000,10000,11580,100000,1000000 --n=2,3,4 \
+    ./build/bench_comm --N="$NSWEEP" --n=2,3,4 \
         --nd=100000 --out="$OUT/e4_comm.csv"
 
 run "E2  oblivious aggregation, fast vs general" \
-    ./build/bench_agg --data="$DATA" \
-        --nd=1000,5000,10000,20000,50000,100000,200000,405184 \
+    ./build/bench_agg --data="$DATA" --nd="$NDSWEEP" \
         --reps=11 --out="$OUT/e2_agg.csv"
 
 run "E5  baselines" \
@@ -119,6 +147,8 @@ run "VI-F malformed-key extraction" \
 run "E3-local  single-host multi-provider deployment" \
     bench/run_local_deployment.sh "$DATA" "$OUT"
 
+# Corpus-aware: the manuscript reports different tables for each corpus, and a
+# corpus it does not report at all is printed but not checked.
 run "check: manuscript vs CSVs" \
     python3 python/paper_numbers.py --results "$OUT" --check paper/CRSHE_v2_full.tex \
     || echo "  (tables need re-syncing from the rows above)"
@@ -132,5 +162,4 @@ echo
 echo " Still to run, and they cannot be faked:"
 echo "   E3  real multi-cloud WAN      -> docs/RUNBOOK.md, phase 6"
 echo "   E8b Raspberry Pi edge cost    -> docs/RUNBOOK.md, phase 7"
-echo "   second corpus                 -> python/prepare_dataset.py beijing ..."
 echo "=================================================================="

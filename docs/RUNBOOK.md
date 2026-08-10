@@ -1,11 +1,13 @@
 # CR-SHE runbook
 
-Everything the paper marks `\TODO` maps to a command here. Work top to bottom:
+Every number in the manuscript maps to a command here. Work top to bottom:
 phases 1–3 decide whether the paper exists, and everything after is
 measurement. Do not touch the manuscript prose until phase 3 passes on the
 real corpus.
 
-Target machine for the timings quoted below: 32 cores, 64 GB, Ubuntu 24.04.
+Phases 0–5 and 8–10 have been run on an AMD EPYC 7J13 (64 cores, 64 GB,
+Ubuntu 24.04) for both corpora, and their CSVs are in the repository. Phases 6
+and 7 have not, and cannot be run from one machine.
 
 ---
 
@@ -40,8 +42,13 @@ n ∈ {2,3,4,5}, plus the truncated non-power-of-two domain the real tag index
 uses. If this does not pass, nothing downstream means anything.
 
 ```bash
-./build/bench_dpf --N=1000,10000,15347,100000,1000000 --threads=1,8,16,32
+./build/bench_dpf --N=1000,10000,11580,100000,1000000 --threads=1,8,16,32
 ```
+
+Put the corpus's own tag count in that list. `bench/run_all.sh` does it for you:
+it reads `N` and `N_d` out of the `.crshe` header and sizes both sweeps from
+them, so the domain sweep hits the real tag domain (11,580 for telemetry,
+35,162 for Beijing) and the record sweep ends at the whole corpus.
 
 ## Phase 2 — BFV go/no-go (minutes)
 
@@ -64,12 +71,15 @@ python3 python/prepare_dataset.py telemetry path/to/iot_telemetry_data.csv \
         --out data/telemetry.crshe
 
 # second corpus, for the device-diversity concern (12 sites, not 3 devices).
-# The UCI download contains an inner zip; extract both.
-unzip beijing+multi+site+air+quality+data.zip
-unzip PRSA2017_Data_20130301-20170228.zip
-python3 python/prepare_dataset.py beijing PRSA_Data_20130301-20170228 \
-        --out data/beijing.crshe
+# The UCI download contains an inner zip which contains the twelve CSVs; the
+# builder reads the nested archive directly, so nothing needs extracting.
+curl -L -o data/beijing.zip \
+  "https://archive.ics.uci.edu/static/public/501/beijing+multi+site+air+quality+data.zip"
+python3 python/prepare_dataset.py beijing data/beijing.zip --out data/beijing.crshe
 ```
+
+The outer zip, the inner zip, an extracted directory at either depth, and a
+single CSV all produce a byte-identical corpus.
 
 `prepare_dataset.py` prints the tag count, posting-list median/mean/max, and
 the Lemma 1 magnitude check. Those are the corpus numbers the paper quotes —
@@ -89,20 +99,23 @@ lists, and what the MAC does and does not detect.
 ## Phases 4–5, 7–9 — everything measurable on one machine
 
 ```bash
-bench/run_all.sh data/telemetry.crshe
+bench/run_all.sh data/telemetry.crshe bench/results/telemetry Figures/telemetry
+bench/run_all.sh data/beijing.crshe   bench/results/beijing   Figures/beijing
 ```
 
-Roughly two to four hours on 32 cores, dominated by E7 (the Θ(N·N_d)
+Roughly two to four hours per corpus on 32 cores, dominated by E7 (the Θ(N·N_d)
 precomputation) and E5 (the homomorphic-scan baseline, which builds a
-depth-heavy BFV context on purpose). Then re-run against the second corpus with
-a different results directory and compare.
+depth-heavy BFV context on purpose). Each corpus needs its own results and
+figures directory or the second run overwrites the first.
 
 The general path is skipped automatically at any N_d whose masked index does
 not fit in RAM, and the skip is recorded in the CSV with the size that would
 have been needed. **That refusal is a result.** At full scale the masked index
-is 15,347 × 405,184 × 8 B ≈ 50 GB per provider, replicated n times. Report it
-as the measured storage cost of a fully general oblivious selection, and as the
-reason the fast path exists — not as a gap in the evaluation.
+is 11,580 × 405,184 × 8 B = 37.5 GB per provider on the telemetry corpus and
+118.2 GB on Beijing, replicated n times; on the latter the last two sweep points
+are refused on a 64 GB machine. Report it as the measured storage cost of a
+fully general oblivious selection, and as the reason the fast path exists — not
+as a gap in the evaluation.
 
 ## Phase 6 — real multi-cloud deployment (E3)
 
@@ -126,7 +139,7 @@ scp -r deploy/public  azure-ap:~/deploy/
 ./build/crshe_client --bundle=deploy \
     --providers=aws-eu.example:9101,gcp-us.example:9101,azure-ap.example:9101 \
     --queries=200 --label="aws eu-west-1 / gcp us-central1 / azure ap-southeast-1" \
-    --out=bench/results/e3_wan.csv
+    --out=bench/results/telemetry/e3_wan.csv
 ```
 
 The client reports end-to-end latency decomposed into provider compute
@@ -154,8 +167,8 @@ weak substitute.
 ```bash
 # on the Pi, same build
 ./build/bench_setup --data=data/telemetry.crshe --nd=10000 \
-    --out=bench/results/e8b_edge.csv
-./build/bench_dpf --N=15347 --threads=1,4 --out=bench/results/e8b_edge_dpf.csv
+    --out=bench/results/telemetry/e8b_edge.csv
+./build/bench_dpf --N=11580 --threads=1,4 --out=bench/results/telemetry/e8b_edge_dpf.csv
 ```
 
 `bench_setup` reports the corpus encryption throughput, which is the ingest
@@ -166,15 +179,27 @@ throughput.
 ## Phase 10 — figures and the manuscript
 
 ```bash
-python3 python/plot_all.py --results bench/results --figs Figures
+python3 python/plot_all.py --results bench/results/telemetry --figs Figures/telemetry
+
+# the manuscript must still agree with the CSVs, per corpus
+python3 python/paper_numbers.py --results bench/results/telemetry \
+        --check paper/CRSHE_v2_full.tex
+python3 python/paper_numbers.py --results bench/results/beijing \
+        --check paper/CRSHE_v2_full.tex
 ```
 
-Then replace the `\TODO` markers. The mapping:
+`run_all.sh` runs both of those for you at the end of a sweep. The check knows
+which tables the paper carries for which corpus: telemetry drives the selection
+and aggregate tables, Beijing drives the second-corpus table, and any other
+corpus is printed but not checked. When it fails, the fix is to paste the rows
+it printed into the tables — never to adjust the CSV.
 
-| Paper marker | Source |
+Where each part of the manuscript comes from:
+
+| Paper section | Source |
 |---|---|
 | §III DPF key growth for n>2 | `e4_comm.csv`, and `docs/DESIGN.md` on which construction is used |
-| Fig. 1 (architecture) | redraw by hand: one ciphertext per provider, no second round |
+| Fig. 1 (architecture) | `python3 python/fig_architecture.py` |
 | §VIII implementation params | banner of any binary + `he_params` column in every CSV |
 | §VIII datasets | `prepare_dataset.py` output for both corpora |
 | E1 Fig. 2, Table V | `e1_dpf.csv` |
@@ -190,12 +215,13 @@ Then replace the `\TODO` markers. The mapping:
 | E11 verification | `e11_verify.csv` |
 | §VI-F authorisation | `e12_malformed_key.csv` |
 | Fig. 5 posting CDF | `e6_index_stats.csv` |
+| §IX second corpus | rerun everything under `bench/results/beijing/` |
 
 Two results you should report even though they are not flattering, because a
 reviewer will find them anyway and they are load-bearing for the argument:
 
-* the general path's 50 GB-per-provider masked index at full scale, which is
-  what motivates the fast path;
+* the general path's masked index at full scale — 37.5 GB per provider on the
+  telemetry corpus, 118.2 GB on Beijing — which is what motivates the fast path;
 * `e12_malformed_key.csv`, which shows that the well-formedness check the paper
   cites does not exist in this artefact and that 2N queries recover the index
   without it. Section VI-F should say what is required, not that it is done.

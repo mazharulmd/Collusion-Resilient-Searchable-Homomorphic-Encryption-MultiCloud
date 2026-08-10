@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
-"""Turn bench/results/*.csv into the paper's figures.
+"""Turn one corpus's results CSVs into the paper's figures.
 
 One function per figure, each reading exactly one CSV.  When a reviewer asks
 how a figure was produced, the answer is a single file and a single command.
 
-  python3 python/plot_all.py --results bench/results --figs Figures
+  python3 python/plot_all.py --results bench/results/telemetry \\
+      --figs Figures/telemetry
 """
 
 import argparse
@@ -233,8 +234,8 @@ def fig_wan(rows, figs):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--results", default="bench/results")
-    ap.add_argument("--figs", default="Figures")
+    ap.add_argument("--results", default="bench/results/telemetry")
+    ap.add_argument("--figs", default="Figures/telemetry")
     a = ap.parse_args()
 
     jobs = [

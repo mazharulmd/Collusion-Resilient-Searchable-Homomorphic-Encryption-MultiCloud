@@ -151,12 +151,27 @@ second corpus. See `docs/RUNBOOK.md` phases 6–7.
 * **Primary** — Environmental Sensor Telemetry, 405,184 MQTT messages from
   three Raspberry-Pi sensor arrays.
   <https://www.kaggle.com/datasets/garystafford/environmental-sensor-data-132k>
-* **Second** — UCI Beijing Multi-Site Air-Quality, ~420k rows across 12 sites.
-  `prepare_dataset.py beijing` supports it, but the reported results do not use
-  it: it could not be fetched in the environment the measurements were taken in.
-  Running it is the cheapest way to answer the "only three physical devices"
-  objection.
+* **Second** — UCI Beijing Multi-Site Air-Quality, 420,768 hourly rows across
+  **12 monitoring sites**, which is what answers the "only three physical
+  devices" objection.
   <https://archive.ics.uci.edu/dataset/501/beijing+multi+site+air+quality+data>
+
+  ```bash
+  unzip beijing+multi+site+air+quality+data.zip      # contains an inner zip
+  unzip PRSA2017_Data_20130301-20170228.zip
+  python3 python/prepare_dataset.py beijing PRSA_Data_20130301-20170228 \
+          --out data/beijing.crshe
+  ```
+
+  Yields **35,162 tags** over 4,624,070 postings (posting lengths: median 12,
+  mean 131.5, max 102,344), 3x the tag domain of the primary corpus, and a
+  **118.2 GB** masked index at full scale. This corpus has missing values, and
+  they are handled explicitly rather than silently: a channel reading `NA` gets
+  its own `<chan>:na` tag instead of being folded into the lowest quantile band
+  (CO is NA in 4.9% of rows, so band-0 folding would have merged "sensor down"
+  with "clean air"), and the 398 rows with a missing TEMP are dropped, because
+  TEMP is the computable field and an aggregate must not sum an invented
+  value.
 
 `prepare_dataset.py` prints the tag count, posting-length distribution and the
 Lemma 1 magnitude check for whichever corpus you build; those are the numbers

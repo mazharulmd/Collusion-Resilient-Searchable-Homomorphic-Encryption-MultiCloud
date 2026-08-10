@@ -63,8 +63,11 @@ Build the corpus first.
 python3 python/prepare_dataset.py telemetry path/to/iot_telemetry_data.csv \
         --out data/telemetry.crshe
 
-# second corpus, for the device-diversity concern
-python3 python/prepare_dataset.py beijing path/to/PRSA_Data_dir \
+# second corpus, for the device-diversity concern (12 sites, not 3 devices).
+# The UCI download contains an inner zip; extract both.
+unzip beijing+multi+site+air+quality+data.zip
+unzip PRSA2017_Data_20130301-20170228.zip
+python3 python/prepare_dataset.py beijing PRSA_Data_20130301-20170228 \
         --out data/beijing.crshe
 ```
 

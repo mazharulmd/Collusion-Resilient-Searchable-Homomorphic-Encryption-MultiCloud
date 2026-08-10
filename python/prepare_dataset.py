@@ -164,40 +164,86 @@ def build_beijing(src, out, scale, bands, p):
     if not files:
         sys.exit("no PRSA_Data_*.csv found in " + src)
 
-    rows = []
+    raw = []
     for path in files:
         with open(path, newline="") as f:
             for r in csv.DictReader(f):
-                rows.append(r)
+                raw.append(r)
 
-    def num(r, k, default=0.0):
+    # This corpus has missing values (UCI flags it), and they must not be
+    # confused with real readings:
+    #
+    #   * A sensor channel reading "NA" is given its own tag, `<chan>:na`, not
+    #     folded into the lowest quantile band. CO alone is NA in 4.9% of rows;
+    #     mapping those to band 0 would put "sensor down" and "clean air" under
+    #     the same tag, which would corrupt both the posting-length distribution
+    #     and the per-class leakage analysis that depends on tag semantics.
+    #   * A row whose TEMP is missing is dropped entirely (398 rows, 0.09%),
+    #     because TEMP is the computable field and an aggregate must never sum
+    #     an invented value.
+    numeric = ["PM2.5", "PM10", "SO2", "NO2", "CO", "O3", "PRES", "DEWP"]
+
+    def val(r, k):
+        """Reading as a float, or None when absent."""
         v = r.get(k, "")
+        if v in ("NA", "", None):
+            return None
         try:
             return float(v)
         except ValueError:
-            return default
+            return None
 
-    numeric = ["PM2.5", "PM10", "SO2", "NO2", "CO", "O3", "PRES", "DEWP"]
-    cols = {c: [num(r, c) for r in rows] for c in numeric}
-    edges = {c: quantile_edges(cols[c], bands) for c in numeric}
+    rows = [r for r in raw if val(r, "TEMP") is not None]
+    dropped = len(raw) - len(rows)
+
+    # Quantile edges from observed readings only, so the bands describe the
+    # data rather than the missingness.
+    edges = {}
+    for c in numeric:
+        obs = [v for v in (val(r, c) for r in rows) if v is not None]
+        edges[c] = quantile_edges(obs, bands) if obs else []
 
     values = []
     postings = defaultdict(list)
     names = {}
+    na_counts = defaultdict(int)
     for i, r in enumerate(rows):
-        t = num(r, "TEMP")
+        t = val(r, "TEMP")
         values.append(int(round((t + 50.0) * scale)))   # TEMP can be negative
-        add = lambda tag: (postings[tag].append(i), names.setdefault(tag, tag))
+
+        def add(tag):
+            postings[tag].append(i)
+            names.setdefault(tag, tag)
+
         add("site:" + r.get("station", "?"))
         add("hour:%s-%s-%s-%s" % (r.get("year"), r.get("month"), r.get("day"),
                                   r.get("hour")))
-        add("wd:" + str(r.get("wd", "NA")))
+        wd = r.get("wd", "NA")
+        add("wd:" + (wd if wd not in ("NA", "", None) else "na"))
         for c in numeric:
-            add("%s:b%d" % (c, band(num(r, c), edges[c])))
+            v = val(r, c)
+            if v is None:
+                add("%s:na" % c)
+                na_counts[c] += 1
+            else:
+                add("%s:b%d" % (c, band(v, edges[c])))
+
+    if min(values) < 0:
+        sys.exit("negative computable field after the +50C shift; widen it")
+
+    print(f"  dropped {dropped} row(s) with a missing TEMP "
+          f"({100.0 * dropped / max(1, len(raw)):.2f}%)")
+    if na_counts:
+        print("  missing readings given an explicit ':na' tag rather than "
+              "band 0:")
+        for c, k in sorted(na_counts.items(), key=lambda kv: -kv[1]):
+            print(f"    {c:<7} {k:>6} ({100.0 * k / len(rows):.2f}%)")
 
     o, off, flat = write_dataset(out, len(values), values, postings, names,
                                  "uci-beijing-multi-site-air-quality"
-                                 " (TEMP shifted by +50C before scaling)")
+                                 " (TEMP shifted by +50C before scaling; rows "
+                                 "with missing TEMP dropped; missing sensor "
+                                 "readings tagged ':na')")
     report(out, o, off, flat, values, p)
 
 

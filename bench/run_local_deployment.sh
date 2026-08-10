@@ -28,11 +28,30 @@ for p in 9401 9402 9403 9404; do
 done
 # Providers warm the homomorphic path before serving; wait for that, not a
 # fixed sleep, or the first client pays one-off initialisation.
-for _ in $(seq 1 120); do
-    ready=$(grep -l 'listening' "${BUNDLE}".p*.log 2>/dev/null | wc -l)
+#
+# NOTE: `grep -l ... | wc -l` exits non-zero while no log matches yet, and under
+# `set -o pipefail` that killed the whole script on the first iteration -- the
+# run died silently right after crshe_setup. Count with a loop instead, and
+# never let a not-yet-ready probe look like a failure.
+ready=0
+for _ in $(seq 1 180); do
+    ready=0
+    for p in 9401 9402 9403 9404; do
+        if grep -q 'listening' "${BUNDLE}.p$p.log" 2>/dev/null; then
+            ready=$((ready + 1))
+        fi
+    done
     [ "$ready" -ge 4 ] && break
     sleep 1
 done
+if [ "$ready" -lt 4 ]; then
+    echo "only $ready/4 providers came up; their logs:" >&2
+    tail -n 20 "${BUNDLE}".p*.log >&2 || true
+    pkill -x crshe_provider 2>/dev/null || true
+    exit 1
+fi
+echo "all 4 providers listening and warmed"
+
 
 for n in 2 3 4; do
     case $n in

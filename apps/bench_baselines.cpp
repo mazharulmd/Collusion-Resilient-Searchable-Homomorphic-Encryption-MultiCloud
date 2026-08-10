@@ -148,7 +148,7 @@ int main(int argc, char** argv) {
         const auto templates = default_templates(ds, 7);
         const unsigned __int128 need = masked_index_bytes(ds.n_tags, ds.n_records);
         const uint64_t avail = available_ram_bytes();
-        if (avail && need > (unsigned __int128)avail / 2) {
+        if (avail && (double)need > args.f64("mem-fraction", 0.75) * (double)avail) {
             char note[256];
             std::snprintf(note, sizeof note,
                           "SKIPPED: replicated index would need %.1f GB",

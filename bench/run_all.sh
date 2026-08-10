@@ -64,7 +64,8 @@ run "E4  key size and communication" \
         --nd=100000 --out="$OUT/e4_comm.csv"
 
 run "E2  oblivious aggregation, fast vs general" \
-    ./build/bench_agg --data="$DATA" --nd=1000,10000,100000,405184 \
+    ./build/bench_agg --data="$DATA" \
+        --nd=1000,5000,10000,20000,50000,100000,200000,405184 \
         --reps=11 --out="$OUT/e2_agg.csv"
 
 run "E5  baselines" \

@@ -35,6 +35,11 @@ int main(int argc, char** argv) {
     const std::string out = args.str("out", "bench/results/e2_agg.csv");
     const bool skip_general = args.flag("fast-only");
     const int threads = args.i32("threads", 0);
+    // Fraction of free RAM the masked index may occupy. The general path also
+    // needs per-thread accumulators and the encrypted columns, so this is not
+    // 1.0; but a guard at 0.5 refused a 37.5 GB index on a machine with 63.7 GB
+    // free, which threw away the most valuable data point in the sweep.
+    const double mem_fraction = args.f64("mem-fraction", 0.75);
 
     auto he = he_from_args(args);
     Modulus mod(he->plaintext_modulus());
@@ -107,11 +112,13 @@ int main(int argc, char** argv) {
         if (!skip_general) {
             const unsigned __int128 need = masked_index_bytes(ds.n_tags, nd);
             const uint64_t avail = available_ram_bytes();
-            if (avail && (need > (unsigned __int128)avail / 2)) {
+            if (avail && (double)need > mem_fraction * (double)avail) {
                 char note[256];
                 std::snprintf(note, sizeof note,
-                              "SKIPPED: I' would need %.1f GB, %.1f GB available",
-                              (double)need / 1e9, (double)avail / 1e9);
+                              "SKIPPED: I' would need %.1f GB, %.1f GB available "
+                              "(budget %.0f%%; raise --mem-fraction to attempt it)",
+                              (double)need / 1e9, (double)avail / 1e9,
+                              mem_fraction * 100.0);
                 csv.row("general", ds.n_tags, nd, (uint64_t)n_parties, tmpl,
                         (uint64_t)(threads ? threads : max_threads()),
                         0.0, 0.0, 0.0, 0.0, 0, (uint64_t)0, (uint64_t)0, (uint64_t)0,

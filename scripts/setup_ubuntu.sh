@@ -13,11 +13,22 @@ sudo apt-get install -y \
     build-essential cmake git pkg-config \
     libomp-dev \
     python3 python3-pip python3-venv \
+    python3-matplotlib \
     iproute2
 
 echo
 echo "== python packages =="
-python3 -m pip install --user --upgrade matplotlib
+# Ubuntu 24.04 marks the system Python as externally managed (PEP 668), so
+# `pip install --user` fails outright. The apt package above is the supported
+# route; these fallbacks only run if it was unavailable.
+if python3 -c 'import matplotlib' 2>/dev/null; then
+    echo "  matplotlib: OK ($(python3 -c 'import matplotlib; print(matplotlib.__version__)'))"
+else
+    python3 -m pip install --user --upgrade matplotlib \
+        || python3 -m pip install --user --break-system-packages --upgrade matplotlib \
+        || echo "  matplotlib: INSTALL FAILED -- figures will not render. Try:
+      sudo apt-get install -y python3-matplotlib"
+fi
 
 echo
 echo "== machine report =="

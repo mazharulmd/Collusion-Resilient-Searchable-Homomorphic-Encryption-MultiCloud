@@ -276,18 +276,37 @@ void DpfN::eval_full(const DpfNKey& k, uint64_t* out, size_t n, int threads) con
         return;
     }
     CtrPrf prf(k.seed);
-    const size_t kChunk = 1 << 16;
+
+    // Chunk so that every thread gets exactly one chunk, and never spawn more
+    // threads than there are chunks.
+    //
+    // The previous version used a fixed 64 Ki chunk, so at N = 10^6 there were
+    // 16 chunks; asking for 64 threads then created a 64-wide team in which 48
+    // threads had no work, and each of the 64 still allocated and first-touched
+    // its own 512 KiB scratch buffer. On a multi-socket part that cost ~9 ms
+    // against 0.28 ms at 32 threads -- a 32x regression that was an artefact of
+    // the benchmark harness, not of the construction.
+    const size_t kMinChunk = 1 << 16;
+    int nt = 1;
 #ifdef _OPENMP
-#pragma omp parallel num_threads(threads > 0 ? threads : omp_get_max_threads()) if (n > kChunk)
+    nt = threads > 0 ? threads : omp_get_max_threads();
+#endif
+    size_t chunk = (n + (size_t)nt - 1) / (size_t)nt;
+    if (chunk < kMinChunk) chunk = kMinChunk;
+    const size_t nchunks = (n + chunk - 1) / chunk;
+    if ((size_t)nt > nchunks) nt = (int)nchunks;
+
+#ifdef _OPENMP
+#pragma omp parallel num_threads(nt) if (nchunks > 1)
 #endif
     {
-        std::vector<uint64_t> buf(kChunk);
+        std::vector<uint64_t> buf(chunk);
 #ifdef _OPENMP
 #pragma omp for schedule(static)
 #endif
-        for (long long c = 0; c < (long long)((n + kChunk - 1) / kChunk); ++c) {
-            const size_t start = (size_t)c * kChunk;
-            const size_t len = (start + kChunk <= n) ? kChunk : (n - start);
+        for (long long c = 0; c < (long long)nchunks; ++c) {
+            const size_t start = (size_t)c * chunk;
+            const size_t len = (start + chunk <= n) ? chunk : (n - start);
             prf.stream(start, buf.data(), len);
             for (size_t i = 0; i < len; ++i)
                 out[start + i] = mod_.from_u64(buf[i]);

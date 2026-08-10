@@ -8,7 +8,7 @@ rather than left for a reviewer to find.
 
 | Choice | Value | Why |
 |---|---|---|
-| plaintext modulus `p` | 68724326401 (prime, ≈2^36.0) | `p ≡ 1 (mod 131072)`, so BFV batching works at every ring dimension up to 65536. Leaves ~33× headroom over the largest admissible aggregate of the primary corpus (max posting list 404,702 × max scaled reading ≈ 2.02×10^9). |
+| plaintext modulus `p` | 68724326401 (prime, ≈2^36.0) | `p ≡ 1 (mod 131072)`, so BFV batching works at every ring dimension up to 65536. Measured 75.6× headroom over the largest admissible aggregate of the primary corpus (908,575,470). |
 | DPF output group | `Z_p`, the *same* `p` | Lemma 1. See below. |
 | BFV depth | 1 | One plaintext–ciphertext product. `test_he` checks the worst case. |
 | ring dimension | chosen by OpenFHE for 128-bit classical security | Overridable with `--ringdim`, which bypasses the library's security check; `security_bits` is then reported negated in the CSVs so a forced run is visible. |
@@ -37,9 +37,11 @@ of any `n−1` parties is missing at least one seed expansion, which masks α),
 and its uplink is *measured* rather than asserted: `N⌈log p⌉` bits for the
 heavy party, 16 bytes for each of the others.
 
-At `N = 15,347` that is about 123 KB for one provider and 16 B for the rest.
-Which party is heavy is public and query-independent, so rotating it across
-queries balances uplink without affecting privacy.
+Measured on the real corpus (`N = 11,580`): 92,656 B for the heavy provider and
+32 B for each of the others, so total uplink is 92,688 B at n=2 against 532 B
+for the succinct two-party tree — a factor of 174. Which party is heavy is
+public and query-independent, so rotating it across queries balances uplink
+without affecting privacy.
 
 **What the paper should say:** report the measured key sizes from
 `e4_comm.csv`, state which construction produced them, and note that a succinct

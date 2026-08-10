@@ -112,6 +112,10 @@ run "VI-F malformed-key extraction" \
 run "E3-local  single-host multi-provider deployment" \
     bench/run_local_deployment.sh "$DATA" "$OUT"
 
+run "check: manuscript vs CSVs" \
+    python3 python/paper_numbers.py --results "$OUT" --check paper/CRSHE_v2_full.tex \
+    || echo "  (tables need re-syncing from the rows above)"
+
 run "figures" python3 python/plot_all.py --results "$OUT" --figs Figures
 
 echo

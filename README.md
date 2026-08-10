@@ -73,8 +73,11 @@ python3 python/prepare_dataset.py telemetry path/to/iot_telemetry_data.csv \
         --out data/telemetry.crshe
 python3 python/prepare_dataset.py synthetic --out data/syn.crshe   # dry run
 
-# everything measurable on one machine (~2-4 h on 32 cores)
-bench/run_all.sh data/telemetry.crshe
+# everything measurable on one machine (~2-4 h on 32 cores).
+# Give each corpus its own results and figures directory, or the second run
+# overwrites the first.
+bench/run_all.sh data/telemetry.crshe bench/results/telemetry Figures/telemetry
+bench/run_all.sh data/beijing.crshe   bench/results/beijing   Figures/beijing
 ```
 
 The real multi-cloud deployment (E3) and the Raspberry Pi edge measurement are
@@ -157,11 +160,16 @@ second corpus. See `docs/RUNBOOK.md` phases 6–7.
   <https://archive.ics.uci.edu/dataset/501/beijing+multi+site+air+quality+data>
 
   ```bash
-  unzip beijing+multi+site+air+quality+data.zip      # contains an inner zip
-  unzip PRSA2017_Data_20130301-20170228.zip
-  python3 python/prepare_dataset.py beijing PRSA_Data_20130301-20170228 \
-          --out data/beijing.crshe
+  # Point the builder at the UCI zip directly -- it handles the nested archive.
+  curl -L -o data/beijing.zip \
+    "https://archive.ics.uci.edu/static/public/501/beijing+multi+site+air+quality+data.zip"
+  python3 python/prepare_dataset.py beijing data/beijing.zip --out data/beijing.crshe
   ```
+
+  The outer zip contains an inner zip which contains the twelve CSVs; the
+  builder accepts the outer zip, the inner zip, an extracted directory at
+  either depth, or a single CSV, and all forms produce a byte-identical
+  corpus.
 
   Yields **35,162 tags** over 4,624,070 postings (posting lengths: median 12,
   mean 131.5, max 102,344), 3x the tag domain of the primary corpus, and a

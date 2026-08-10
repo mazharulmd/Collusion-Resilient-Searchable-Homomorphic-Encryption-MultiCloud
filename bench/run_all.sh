@@ -5,7 +5,12 @@
 # machine: E3 (real multi-cloud WAN) and the Raspberry Pi edge measurement.
 # Both are driven separately -- see docs/RUNBOOK.md.
 #
-#   bench/run_all.sh [dataset.crshe]
+#   bench/run_all.sh [dataset.crshe] [results-dir] [figures-dir]
+#
+# Pass a distinct results directory per corpus, or the second corpus will
+# overwrite the first:
+#   bench/run_all.sh data/telemetry.crshe bench/results/telemetry Figures/telemetry
+#   bench/run_all.sh data/beijing.crshe   bench/results/beijing   Figures/beijing
 #
 # Each experiment writes one CSV into bench/results/, and one CSV feeds one
 # figure.  Nothing here writes to the manuscript: the numbers go into CSVs, the
@@ -15,7 +20,8 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 DATA="${1:-data/telemetry.crshe}"
-OUT=bench/results
+OUT="${2:-bench/results}"
+FIGS="${3:-Figures}"
 CORES="$(nproc)"
 mkdir -p "$OUT"
 
@@ -39,6 +45,7 @@ echo " CR-SHE full evaluation"
 echo "   dataset : $DATA"
 echo "   cores   : $CORES   (thread sweep: $THREADS)"
 echo "   results : $OUT"
+echo "   figures : $FIGS"
 echo "=================================================================="
 
 run() {
@@ -116,11 +123,11 @@ run "check: manuscript vs CSVs" \
     python3 python/paper_numbers.py --results "$OUT" --check paper/CRSHE_v2_full.tex \
     || echo "  (tables need re-syncing from the rows above)"
 
-run "figures" python3 python/plot_all.py --results "$OUT" --figs Figures
+run "figures" python3 python/plot_all.py --results "$OUT" --figs "$FIGS"
 
 echo
 echo "=================================================================="
-echo " Done. CSVs in $OUT, figures in Figures/."
+echo " Done. CSVs in $OUT, figures in $FIGS/."
 echo
 echo " Still to run, and they cannot be faked:"
 echo "   E3  real multi-cloud WAN      -> docs/RUNBOOK.md, phase 6"

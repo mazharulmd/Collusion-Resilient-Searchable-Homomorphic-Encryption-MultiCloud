@@ -158,17 +158,62 @@ def build_telemetry(src, out, scale, bands, p):
     report(out, o, off, flat, values, p)
 
 
-def build_beijing(src, out, scale, bands, p):
-    files = sorted(glob.glob(os.path.join(src, "PRSA_Data_*.csv"))) \
-        if os.path.isdir(src) else [src]
-    if not files:
-        sys.exit("no PRSA_Data_*.csv found in " + src)
+def _beijing_rows(src):
+    """Yield CSV rows from whatever form of the UCI download was passed.
 
-    raw = []
+    The archive nests: the outer zip contains PRSA2017_Data_*.zip, which
+    contains the twelve PRSA_Data_*.csv files. Accept any level -- the outer
+    zip, the inner zip, the extracted directory (at either depth), or a single
+    CSV -- so that the two-step unzip is not a silent trap.
+    """
+    import io
+    import zipfile
+
+    def from_zip(zf, depth=0):
+        rows = []
+        for name in zf.namelist():
+            if name.endswith(".zip") and depth < 2:
+                with zf.open(name) as inner:
+                    with zipfile.ZipFile(io.BytesIO(inner.read())) as izf:
+                        rows.extend(from_zip(izf, depth + 1))
+            elif os.path.basename(name).startswith("PRSA_Data_") \
+                    and name.endswith(".csv"):
+                with zf.open(name) as f:
+                    text = io.TextIOWrapper(f, encoding="utf-8", newline="")
+                    rows.extend(csv.DictReader(text))
+        return rows
+
+    if os.path.isfile(src) and src.lower().endswith(".zip"):
+        import zipfile
+        with zipfile.ZipFile(src) as zf:
+            rows = from_zip(zf)
+        if not rows:
+            sys.exit(f"no PRSA_Data_*.csv inside {src}")
+        return rows
+
+    if os.path.isdir(src):
+        files = sorted(glob.glob(os.path.join(src, "PRSA_Data_*.csv"))) \
+            or sorted(glob.glob(os.path.join(src, "*", "PRSA_Data_*.csv")))
+        if not files:
+            sys.exit(
+                f"no PRSA_Data_*.csv under {src}.\n"
+                "Pass the UCI zip directly, or the directory holding the "
+                "twelve PRSA_Data_*.csv files.")
+    elif os.path.isfile(src):
+        files = [src]
+    else:
+        sys.exit(f"{src} does not exist")
+
+    rows = []
     for path in files:
         with open(path, newline="") as f:
-            for r in csv.DictReader(f):
-                raw.append(r)
+            rows.extend(csv.DictReader(f))
+    return rows
+
+
+def build_beijing(src, out, scale, bands, p):
+    raw = _beijing_rows(src)
+    print(f"  read {len(raw)} rows from {src}")
 
     # This corpus has missing values (UCI flags it), and they must not be
     # confused with real readings:

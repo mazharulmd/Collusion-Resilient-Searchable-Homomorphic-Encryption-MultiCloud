@@ -1,7 +1,7 @@
 metric,N,Nd,trials,value,unit,note,he_params,cpu
-agg_latency_with_mac_ms,11580,50000,11,35.7447,ms,value and MAC columns contracted,"bfv-openfhe,p=68724326401,ringdim=8192,slots=8192,sec=128",Intel(R) Xeon(R) Processor @ 2.10GHz
-downlink_with_mac_bytes,11580,50000,1,525950,bytes,aggregate + MAC ciphertext,"bfv-openfhe,p=68724326401,ringdim=8192,slots=8192,sec=128",Intel(R) Xeon(R) Processor @ 2.10GHz
-downlink_without_mac_bytes,11580,50000,1,262975,bytes,aggregate ciphertext only,"bfv-openfhe,p=68724326401,ringdim=8192,slots=8192,sec=128",Intel(R) Xeon(R) Processor @ 2.10GHz
-mac_downlink_overhead_x,11580,50000,1,2,x,MAC column doubles the response,"bfv-openfhe,p=68724326401,ringdim=8192,slots=8192,sec=128",Intel(R) Xeon(R) Processor @ 2.10GHz
-detection_rate_inconsistent_aggregate,11580,50000,200,100,percent,"theory: 1 - 1/p, i.e. indistinguishable from 100% at this p","bfv-openfhe,p=68724326401,ringdim=8192,slots=8192,sec=128",Intel(R) Xeon(R) Processor @ 2.10GHz
-detection_rate_wrong_selection_vector,11580,50000,200,0,percent,expected 0: a consistent contraction against a different selection vector satisfies the MAC. Closing this needs verifiable FSS.,"bfv-openfhe,p=68724326401,ringdim=8192,slots=8192,sec=128",Intel(R) Xeon(R) Processor @ 2.10GHz
+agg_latency_with_mac_ms,11580,100000,11,33.6421,ms,value and MAC columns contracted,"bfv-openfhe,p=68724326401,ringdim=8192,slots=8192,sec=128",AMD EPYC 7J13 64-Core Processor
+downlink_with_mac_bytes,11580,100000,1,525950,bytes,aggregate + MAC ciphertext,"bfv-openfhe,p=68724326401,ringdim=8192,slots=8192,sec=128",AMD EPYC 7J13 64-Core Processor
+downlink_without_mac_bytes,11580,100000,1,262975,bytes,aggregate ciphertext only,"bfv-openfhe,p=68724326401,ringdim=8192,slots=8192,sec=128",AMD EPYC 7J13 64-Core Processor
+mac_downlink_overhead_x,11580,100000,1,2,x,MAC column doubles the response,"bfv-openfhe,p=68724326401,ringdim=8192,slots=8192,sec=128",AMD EPYC 7J13 64-Core Processor
+detection_rate_inconsistent_aggregate,11580,100000,200,100,percent,"theory: 1 - 1/p, i.e. indistinguishable from 100% at this p","bfv-openfhe,p=68724326401,ringdim=8192,slots=8192,sec=128",AMD EPYC 7J13 64-Core Processor
+detection_rate_wrong_selection_vector,11580,100000,200,0,percent,expected 0: a consistent contraction against a different selection vector satisfies the MAC. Closing this needs verifiable FSS.,"bfv-openfhe,p=68724326401,ringdim=8192,slots=8192,sec=128",AMD EPYC 7J13 64-Core Processor

@@ -1,0 +1,9 @@
+path,N,Nd,n_parties,template,threads,provider_ms_median,provider_ms_p25,provider_ms_p75,client_ms_median,reps,downlink_bytes_per_provider,downlink_bytes_total,uplink_bytes_total,index_bytes_per_provider,he_params,cpu,note
+fast,11580,405184,2,sum,64,38.8071,38.7035,39.0285,1.36652,11,525950,1051900,532,0,"bfv-openfhe,p=68724326401,ringdim=8192,slots=8192,sec=128",AMD EPYC 7J13 64-Core Processor,A_f is O(N/l) ciphertexts; independent of Nd
+fast,11580,200000,2,sum,64,39.0606,38.9934,39.1642,1.3529,11,525950,1051900,532,0,"bfv-openfhe,p=68724326401,ringdim=8192,slots=8192,sec=128",AMD EPYC 7J13 64-Core Processor,A_f is O(N/l) ciphertexts; independent of Nd
+fast,11580,100000,2,sum,64,39.1639,39.0838,39.2811,1.34373,11,525950,1051900,532,0,"bfv-openfhe,p=68724326401,ringdim=8192,slots=8192,sec=128",AMD EPYC 7J13 64-Core Processor,A_f is O(N/l) ciphertexts; independent of Nd
+fast,11580,50000,2,sum,64,39.0723,38.7921,39.2294,1.34683,11,525950,1051900,532,0,"bfv-openfhe,p=68724326401,ringdim=8192,slots=8192,sec=128",AMD EPYC 7J13 64-Core Processor,A_f is O(N/l) ciphertexts; independent of Nd
+fast,11580,20000,2,sum,64,38.7989,38.7139,38.9352,1.3382,11,525950,1051900,532,0,"bfv-openfhe,p=68724326401,ringdim=8192,slots=8192,sec=128",AMD EPYC 7J13 64-Core Processor,A_f is O(N/l) ciphertexts; independent of Nd
+fast,11580,10000,2,sum,64,38.7935,38.6783,38.847,1.34577,11,525950,1051900,532,0,"bfv-openfhe,p=68724326401,ringdim=8192,slots=8192,sec=128",AMD EPYC 7J13 64-Core Processor,A_f is O(N/l) ciphertexts; independent of Nd
+fast,11580,5000,2,sum,64,38.9561,38.8926,39.0873,1.37286,11,525950,1051900,532,0,"bfv-openfhe,p=68724326401,ringdim=8192,slots=8192,sec=128",AMD EPYC 7J13 64-Core Processor,A_f is O(N/l) ciphertexts; independent of Nd
+fast,11580,1000,2,sum,64,38.7968,38.6702,38.9015,1.3595,11,525950,1051900,532,0,"bfv-openfhe,p=68724326401,ringdim=8192,slots=8192,sec=128",AMD EPYC 7J13 64-Core Processor,A_f is O(N/l) ciphertexts; independent of Nd

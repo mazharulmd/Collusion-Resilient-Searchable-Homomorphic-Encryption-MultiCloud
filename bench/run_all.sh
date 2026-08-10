@@ -56,11 +56,11 @@ run "correctness: end-to-end" \
     ./build/test_e2e --data="$DATA" --nd=5000 --trials=200 --gen-trials=20
 
 run "E1  selection latency vs N" \
-    ./build/bench_dpf --N=1000,10000,15347,100000,1000000 \
+    ./build/bench_dpf --N=1000,10000,11580,100000,1000000 \
         --threads="$THREADS" --reps=11 --out="$OUT/e1_dpf.csv"
 
 run "E4  key size and communication" \
-    ./build/bench_comm --N=1000,10000,15347,100000,1000000 --n=2,3,4 \
+    ./build/bench_comm --N=1000,10000,11580,100000,1000000 --n=2,3,4 \
         --nd=100000 --out="$OUT/e4_comm.csv"
 
 run "E2  oblivious aggregation, fast vs general" \
@@ -108,6 +108,9 @@ run "E6b leakage-abuse attack" \
 run "VI-F malformed-key extraction" \
     ./build/attack_malformed_key --ntags=512 --nd=1024 \
         --out="$OUT/e12_malformed_key.csv"
+
+run "E3-local  single-host multi-provider deployment" \
+    bench/run_local_deployment.sh "$DATA" "$OUT"
 
 run "figures" python3 python/plot_all.py --results "$OUT" --figs Figures
 

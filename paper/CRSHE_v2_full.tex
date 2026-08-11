@@ -869,9 +869,9 @@ counterpart of Theorem~\ref{thm:mask}---evidence for it, not a proof of it. We
 note that this experiment is deterministic given the corpus and the key seed,
 and reproduced to the digit on two different machines and microarchitectures.
 Section~\ref{sec:secondcorpus} repeats the attack on a twelve-site corpus with
-three times the tag domain and obtains the same per-class picture, so neither
-the $100\%$ unmasked recovery nor the $0\%$ masked recovery is an artefact of
-this corpus's three devices.
+three times the tag domain and obtains the same per-class picture
+(Table~\ref{tab:leakagebeijing}), so neither the $100\%$ unmasked recovery nor
+the $0\%$ masked recovery is an artefact of this corpus's three devices.
 
 \begin{table}[t]
 \centering
@@ -989,8 +989,8 @@ aggregated field and an aggregate must not sum an imputed value. The result is
 $N_d=420{,}370$ records and $N=35{,}162$ tags over $4{,}624{,}070$ postings,
 with posting lengths of median $12$, mean $131.5$ and maximum $102{,}344$:
 three times the tag domain of the primary corpus, and a much flatter posting
-distribution. The largest admissible single-tag aggregate is $698{,}963{,}226$,
-leaving $98.3\times$ headroom below $p$.
+distribution (Fig.~\ref{fig:postcdfbeijing}). The largest admissible single-tag
+aggregate is $698{,}963{,}226$, leaving $98.3\times$ headroom below $p$.
 
 Every correctness check passes unchanged: exact agreement with the plaintext
 ground truth on both paths for $n\in\{2,3,4\}$ and all four templates, exact
@@ -1025,9 +1025,10 @@ sense that matters---while the $35{,}046$ hour-bucket tags yield $0.31\%$.
 Against the masked index the same attack recovers $0.00\%$ in every class and at
 every level of auxiliary knowledge, and the masked row sums remain
 indistinguishable from uniform over $\mathbb{Z}_p$ under the same $64$-bin
-chi-square test ($\chi^2=62.38$ on $63$ degrees of freedom, $p=0.4986$). The
-per-class structure of Table~\ref{tab:leakage} therefore reproduces on a corpus
-with four times as many devices.
+chi-square test ($\chi^2=62.38$ on $63$ degrees of freedom, $p=0.4986$).
+Table~\ref{tab:leakagebeijing} gives the breakdown: the per-class structure of
+Table~\ref{tab:leakage} reproduces exactly on a corpus with four times as many
+devices.
 
 The remaining measurements track the primary corpus with no change of
 conclusion. Provider compute in the single-host deployment is flat in $n$
@@ -1041,10 +1042,27 @@ scales with the record count and the Fermat depth rather than with $N$;
 that is $592\times$ the fast path. Verification detects $200/200$ inconsistent
 aggregates and $0/200$ well-formed contractions against a different selection
 vector, and the malformed-key attack again recovers $512/512$ index rows in $2N$
-queries. Throughput plateaus at $117$--$124$ queries/s. The one cost that grows
-materially is setup: building the masked index at $N_d=10^5$ takes $16.6$\,s
-against $5.6$\,s, linear in $N$ as expected, while the fast-path column $A_f$
-remains $5$ ciphertexts ($1.3$\,MB) independent of $N_d$.
+queries. Throughput plateaus at $117$--$124$ queries/s. Dynamic ingest is
+likewise unchanged in character: insertion into the hot buffer runs at
+$4.5$--$11.1$ million records per second, a static-tier rebuild costs
+$28.7$--$29.1$\,ms---twice the primary corpus, again linear in $N$---and the
+buffer scan adds $99\%$ to $100\%$ to a query at every buffer size, as before.
+The one cost that grows materially is setup: building the masked index at
+$N_d=10^5$ takes $16.6$\,s against $5.6$\,s, linear in $N$ as expected, while
+the fast-path column $A_f$ remains $5$ ciphertexts ($1.3$\,MB) independent of
+$N_d$.
+
+Two quantities are deliberately \emph{not} restated for this corpus. Selection
+latency is a function of the tag domain alone and not of the records, so it is
+governed by Table~\ref{tab:search}, whose $10^4$ and $10^5$ rows bracket
+$N=35{,}162$; we do not quote a figure at that domain because our sweep
+measured the primary corpus's $N$. Uplink is likewise a property of $N$: the
+two-party tree key lies between the measured $266$ and $317$\,B, and the
+$n$-party heavy key is exactly $8N+16=281{,}312$\,B, computed from the
+construction rather than measured, which is a further $3\times$ on the factor
+of $174$ discussed in Section~\ref{sec:commresult} and sharpens the same
+conclusion---a succinct multi-party DPF is the artefact's most valuable missing
+piece.
 
 \begin{table}[t]
 \centering
@@ -1075,6 +1093,47 @@ $4.05\times10^5$   & $40.9$ & ---     & $113.98$ & $525{,}950$ \\
 \bottomrule
 \end{tabular*}
 \end{table}
+
+\begin{table}[t]
+\centering
+\caption{Tag re-identification by class on the second corpus, under perfect
+auxiliary knowledge. Every class that names a site or a sensor condition is
+recovered completely from the unmasked index and not at all from the masked
+one, reproducing Table~\ref{tab:leakage} on a corpus with twelve devices
+instead of three.}
+\label{tab:leakagebeijing}
+\footnotesize
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}lccc@{}}
+\toprule
+Tag class & Tags & Unmasked & Masked (CR-SHE) \\
+\midrule
+Monitoring site        & $12$       & $100\%$   & $0\%$ \\
+Wind direction         & $17$       & $100\%$   & $0\%$ \\
+CO band                & $11$       & $100\%$   & $0\%$ \\
+NO$_2$ band            & $11$       & $100\%$   & $0\%$ \\
+O$_3$ band             & $11$       & $100\%$   & $0\%$ \\
+PM$_{2.5}$ band        & $11$       & $100\%$   & $0\%$ \\
+PM$_{10}$ band         & $11$       & $100\%$   & $0\%$ \\
+SO$_2$ band            & $10$       & $100\%$   & $0\%$ \\
+Pressure band          & $11$       & $100\%$   & $0\%$ \\
+Dew-point band         & $11$       & $100\%$   & $0\%$ \\
+One-hour window        & $35{,}046$ & $0.31\%$  & $0\%$ \\
+\midrule
+Random guessing        & ---        & \multicolumn{2}{c}{$0.0028\%$} \\
+\bottomrule
+\end{tabular*}
+\end{table}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{Figures/beijing/fig_posting_cdf.pdf}
+\caption{CDF of metadata-tag posting-list sizes in the second corpus. The
+distribution is much flatter than the primary corpus's (Fig.~\ref{fig:postcdf}):
+median $12$ against $35$, and a maximum of $102{,}344$ against $404{,}702$,
+because the tag domain is three times larger over a comparable record count.}
+\label{fig:postcdfbeijing}
+\end{figure}
 
 \begin{figure}[t]
 \centering

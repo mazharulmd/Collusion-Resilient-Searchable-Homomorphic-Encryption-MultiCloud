@@ -194,6 +194,35 @@ and aggregate tables, Beijing drives the second-corpus table, and any other
 corpus is printed but not checked. When it fails, the fix is to paste the rows
 it printed into the tables — never to adjust the CSV.
 
+### Which figure goes where
+
+`plot_all.py` writes eight figures per corpus, and `fig_architecture.py` writes
+one that belongs to no corpus. The manuscript uses eight floats in total. Put
+them here and nowhere else:
+
+| Float | File | Section it belongs to |
+|---|---|---|
+| Fig. 1 architecture | `Figures/fig_architecture.pdf` | §V, one ciphertext per provider, single round |
+| Fig. 2 `fig:searchlat` | `Figures/telemetry/fig_selection_latency.pdf` | §IX-A, selection latency vs N |
+| Fig. 3 `fig:comm` | `Figures/telemetry/fig_key_size.pdf` | §IX-F, key size vs N |
+| Fig. 4 `fig:complat` | `Figures/telemetry/fig_aggregate_latency.pdf` | §IX-B, fast vs general path |
+| Fig. 5 `fig:leakage` | `Figures/telemetry/fig_leakage_attack.pdf` | §IX-G, leakage vs auxiliary knowledge |
+| Fig. 6 `fig:scaling` | `Figures/telemetry/fig_scaling.pdf` | §IX-I, speed-up and throughput |
+| Fig. 7 `fig:postcdf` | `Figures/telemetry/fig_posting_cdf.pdf` | §IX, posting-list CDF, primary corpus |
+| Fig. 8 `fig:postcdfbeijing` | `Figures/beijing/fig_posting_cdf.pdf` | §IX-K, posting-list CDF, second corpus |
+
+Two generated figures are deliberately **not** in the paper, because a table
+already carries the same numbers more precisely and float space is the scarcest
+thing in an IEEE two-column layout:
+
+* `fig_baselines.pdf` — duplicated by `tab:baselines`;
+* `fig_wan_breakdown.pdf` — duplicated by `tab:wan`.
+
+Use one or the other, never both. The remaining `Figures/beijing/*` are released
+as artefact evidence, not printed: the second corpus is reported through
+`tab:beijing` and `tab:leakagebeijing`, which are exact where a log-scale plot
+is not.
+
 Where each part of the manuscript comes from:
 
 | Paper section | Source |

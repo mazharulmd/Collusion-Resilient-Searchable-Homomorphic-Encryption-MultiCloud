@@ -97,7 +97,7 @@ We propose CR-SHE (Collusion-Resilient Searchable Homomorphic Encryption). The d
 \item \textbf{End-to-end obliviousness under $t=n-1$ collusion.} We give a construction in which the analytics phase inherits the access-pattern hiding of the selection phase, over data encrypted at rest under a single owner's key, with no server-to-server communication. Section~\ref{sec:oha} presents the mechanism and Remark~\ref{rem:v1} explains why the two-round alternative admits no simulator with empty per-query leakage.
 \item \textbf{Oblivious homomorphic aggregation, and a precomputed-column fast path.} We state and prove the algebraic compatibility condition (Lemma~\ref{lem:compat}) under which DPF shares and the homomorphic plaintext ring compose without wraparound, and give a variant (Section~\ref{sec:fast}) in which single-keyword aggregates over pre-registered templates cost a symmetric full-domain pass plus $O(N/\ell)$ packed ciphertext operations, independent of the record count.
 \item \textbf{Index masking compatible with oblivious aggregation.} A one-time-pad mask makes the stored index perfectly hiding, and the resulting mask term is cancelled inside the ciphertext using an encrypted correction column retrieved by the same DPF, so no provider ever sees an unmasked row or a mask value (Section~\ref{sec:mask}, Theorem~\ref{thm:mask}).
-\item \textbf{Detection of deviating providers, query authorisation, and streaming ingest.} A MAC'd ciphertext column lets the client reject an incorrectly evaluated aggregate except with probability $1/p$; DPF key well-formedness checks close a malformed-key extraction attack the semi-honest model does not cover; and an append-only two-tier index supports IoT streams, with forward and backward privacy immediate because the coalition's per-query view is query-independent.
+\item \textbf{Detection of deviating providers, query authorisation, and streaming ingest.} A MAC'd ciphertext column lets the client reject an incorrectly evaluated aggregate except with probability $1/p$; we identify a malformed-key extraction attack that the semi-honest model does not cover, measure it against our own prototype, and state the query-authorisation mechanism it requires; and an append-only two-tier index supports IoT streams, with forward and backward privacy immediate because the coalition's per-query view is query-independent.
 \item \textbf{Evaluation} on two real IoT corpora---environmental sensor telemetry, and a twelve-site air-quality corpus with three times the tag domain---against ORAM, single-server searchable encryption, distributed-trust search, and a faithful homomorphic equality scan, together with an empirical leakage-abuse attack quantifying what index masking removes.
 \end{itemize}
 
@@ -114,7 +114,7 @@ DORY~\cite{dory} moves to encrypted data. It masks each bit of a Bloom-filter se
 
 Waldo~\cite{waldo} adds rich functionality for time-series data, supporting multi-predicate filtering while protecting contents, filter values and access patterns, with malicious security. It does so in a three-party honest-majority setting with secret-shared data and server-to-server interaction, i.e.\ a collusion bound of $t=1$ rather than $t=n-1$, and without a single-owner key under which the data remains encrypted at rest. CR-SHE trades Waldo's predicate expressiveness and full malicious security for a stronger collusion bound, no inter-provider communication, and owner-keyed encryption at rest; Table~\ref{tab:compare} makes the comparison precise.
 
-Adjacent FSS systems target different problems: metadata-hiding communication~\cite{express}, and private access control for FSS dealers~\cite{pacl}, which we adopt in Section~\ref{sec:auth} to prevent malformed-key extraction. The underlying primitives are due to Gilboa and Ishai~\cite{gilboa2014distributed} and Boyle, Gilboa and Ishai~\cite{boyle2015function,boyle2016function}.
+Adjacent FSS systems target different problems: metadata-hiding communication~\cite{express}, and private access control for FSS dealers~\cite{pacl}, which Section~\ref{sec:auth} identifies as the mechanism a deployment needs to prevent malformed-key extraction. The underlying primitives are due to Gilboa and Ishai~\cite{gilboa2014distributed} and Boyle, Gilboa and Ishai~\cite{boyle2015function,boyle2016function}.
 
 \subsection{Encrypted search and its leakage}
 Symmetric searchable encryption gives sublinear search at the cost of search- and access-pattern leakage, which leakage-abuse attacks convert into query and plaintext recovery given modest auxiliary information~\cite{islam2012access,cash2015leakage,grubbs2017leakage}. The standard mitigations are padding, ORAM~\cite{goldreich1996software}, or distributed trust. Multi-cloud SSE variants~\cite{xu2021privacy,xu2023symmetric} reduce leakage but scale their hiding overhead with the number of clouds and keep the index within a single trust domain; other work broadens expressiveness or adds committee-based authorisation~\cite{zhang2024secure,yang2023dynamic,du2022lightweight}. Rather than asserting that our residual leakage is benign, Section~\ref{sec:leakeval} reproduces a frequency-based attack against the unmasked variant of our own index and measures what masking removes.
@@ -231,7 +231,7 @@ Data Users & query; combine; decrypt & authorised & queries, $K,K'$, delegated $
 \end{tabular}
 \end{table}
 
-The workflow (Fig.~\ref{fig:arch}) has four stages. In \emph{setup}, the DO derives keys, builds the pseudonymous membership index and masks it, encrypts the computable field of every record and its MAC counterpart, precomputes the aggregate and correction columns for each registered template, and replicates everything to the $n$ providers. To \emph{query}, an authorised DU derives the keyword address and sends one DPF key per provider together with the template identifier. Each provider performs a full-domain evaluation and, without ever assembling the matched set, returns a single ciphertext. The DU \emph{combines} the $n$ ciphertexts and \emph{decrypts} once. Because the per-provider keys are individually meaningless and every response is a fixed-size ciphertext, no network-visible message depends on the queried keyword, the matched set, or its size.
+The workflow (Fig.~\ref{fig:arch}) has four stages. In \emph{setup} (Algorithm~\ref{alg:outsource}), the DO derives keys, builds the pseudonymous membership index and masks it, encrypts the computable field of every record and its MAC counterpart, precomputes the aggregate and correction columns for each registered template, and replicates everything to the $n$ providers. To \emph{query}, an authorised DU derives the keyword address and sends one DPF key per provider together with the template identifier. Each provider performs a full-domain evaluation and, without ever assembling the matched set, returns a single ciphertext. The DU \emph{combines} the $n$ ciphertexts and \emph{decrypts} once. Because the per-provider keys are individually meaningless and every response is a fixed-size ciphertext, no network-visible message depends on the queried keyword, the matched set, or its size.
 
 \begin{figure}[t]
 \centering
@@ -292,7 +292,7 @@ Lemma~\ref{lem:compat} is what makes the two primitives compose. Instantiating t
 \label{sec:mask}
 Because $\sum_j b_j = b + P[\alpha_w]$, the contraction above yields $\sum_{i} w_f[i]\,b[i]\,m_i + u_f(\alpha_w)$ where the mask term is
 $u_f(x)=\sum_{i} w_f[i]\,P[x][i]\,m_i$.
-The DO can compute $u_f(x)$ for every $x\in[N]$ at setup, since it holds both $K'$ and the plaintext records, and publishes the \emph{encrypted} correction column $U_f = \big(\Enc_{pk}(u_f(x))\big)_{x\in[N]}$, packed into $\lceil N/\ell\rceil$ ciphertexts. Providers retrieve the shared correction at $\alpha_w$ using the \emph{same} evaluation vector $e_j$ they already computed, so the mask is cancelled inside the ciphertext and no provider learns either a mask value or which correction was used.
+The DO can compute $u_f(x)$ for every $x\in[N]$ at setup, since it holds both $K'$ and the plaintext records, and publishes the \emph{encrypted} correction column $U_f = \big(\Enc_{pk}(u_f(x))\big)_{x\in[N]}$, packed into $\lceil N/\ell\rceil$ ciphertexts. Providers retrieve the shared correction at $\alpha_w$ using the \emph{same} evaluation vector $e_j$ they already computed, so the mask is cancelled inside the ciphertext and no provider learns either a mask value or which correction was used. The count correction $G_f$ is stored the same way; Remark~\ref{rem:whyenc} shows that publishing it in the clear would hand back exactly the leakage the mask removes.
 
 \begin{theorem}[Index hiding]
 \label{thm:mask}
@@ -373,7 +373,7 @@ IoT streams are append-only. CR-SHE keeps a static tier rebuilt every $B$ insert
 \EndProcedure
 \Statex
 \Procedure{$\mathsf{FastAgg}$}{$\kappa_j,f,A_f,\widehat{A}_f$} \Comment{at $\text{CP}_j$; single keyword}
-  \State verify $\kappa_j$ well-formed and authorised \Comment{\S\ref{sec:auth}}
+  \State verify $\kappa_j$ well-formed and authorised \Comment{required; \S\ref{sec:auth}}
   \State $e_j[x]\gets\Eval(j,\kappa_j,x)$ for all $x\in[N]$ \Comment{$O(N)$ PRG}
   \State $\text{ct}_j\gets\bplus_{x\in[N]} e_j[x]\bdot A_f[x]$ \Comment{$O(N/\ell)$ HE ops}
   \State $\widehat{\text{ct}}_j\gets\bplus_{x\in[N]} e_j[x]\bdot \widehat{A}_f[x]$
@@ -438,7 +438,7 @@ Two distinct keywords share an address only if $F_K(w)=F_K(w')$, which occurs wi
 
 \begin{theorem}[$t$-collusion leakage security]
 \label{thm:sec}
-If $F$ and $F'$ are secure PRFs, $(\Gen,\Eval)$ is an $(n{-}1)$-private DPF, and the homomorphic and symmetric schemes are IND-CPA, then CR-SHE is $\Leak$-adaptively-secure against $t$-collusion for $t=n-1$ with $\Leak^{\text{CP}}_{\mathrm{Query}}=\mathrm{class}(f)$. Concretely, for every $\PPT$ $\Adv$ there exist $\PPT$ $\Sim$ and $B_1,\dots,B_3$ with
+If $F$ and $F'$ are secure PRFs, $(\Gen,\Eval)$ is an $(n{-}1)$-private DPF, and the homomorphic and symmetric schemes are IND-CPA, then CR-SHE is $\Leak$-adaptively-secure against $t$-collusion in the sense of Definition~\ref{def:sec}, for $t=n-1$ and $\Leak^{\text{CP}}_{\mathrm{Query}}=\mathrm{class}(f)$. Concretely, for every $\PPT$ $\Adv$ there exist $\PPT$ $\Sim$ and $B_1,\dots,B_3$ with
 \begin{align*}
 \big|\Pr[\Real{=}1]-\Pr[\Ideal{=}1]\big| \le{} & 2\,\mathrm{Adv}^{\mathrm{PRF}}_{B_1} + Q\cdot\mathrm{Adv}^{\mathrm{DPF}}_{B_2} \\
 & + m\cdot\mathrm{Adv}^{\mathrm{CPA}}_{B_3},
@@ -542,8 +542,8 @@ wrapped.
 
 \emph{Selection arithmetic.} The general-path contraction accumulates in $128$
 bits and reduces once per output: each product is below $p^2<2^{74}$ and at most
-$N\approx 2^{14}$ of them are summed, so the accumulator cannot overflow and the
-inner loop is a single multiply--add. The pass is parallelised over tag blocks
+$N\le 2^{16}$ of them are summed on either corpus, so the accumulator cannot
+overflow and the inner loop is a single multiply--add. The pass is parallelised over tag blocks
 with per-thread accumulators.
 
 \emph{Deployment.} The artefact separates a deployment bundle along the trust
@@ -610,12 +610,26 @@ this section can be separated from the machine that produced it.
 \section{Results Analysis and Discussion}
 \label{sec:resultsdisc}
 
+\subsection{Correctness}
+Every measurement below is taken against an implementation that first has to
+compute the right answer, so we report that check first. On the primary corpus,
+for $1{,}000$ randomly drawn tags, on both the fast and the general path, for
+$n\in\{2,3,4\}$ and for all four registered templates, the decrypted aggregate
+equals the plaintext ground truth exactly and the MAC verifies; retrieval
+returns exactly the posting list; and the aggregate downlink is byte-identical
+for an empty and a full matched set. This is Theorem~\ref{thm:correct} in
+practice, including the mask cancellation of Section~\ref{sec:mask}, which is
+the step most likely to fail silently. Section~\ref{sec:secondcorpus} repeats
+the same battery on the second corpus.
+
 \subsection{Selection latency and key size}
 Table~\ref{tab:search} and Fig.~\ref{fig:searchlat} report the per-provider
-full-domain evaluation, which is the whole of the selection phase. At the corpus
-size $N=11{,}580$ it costs $0.336$\,ms on one thread and $0.177$\,ms at sixteen;
-at $N=10^6$ it costs $45.7$\,ms on one thread and $18.8$\,ms at thirty-two. The
-two-party key is $266$\,B at the corpus size, growing to $368$\,B at $N=10^6$,
+full-domain evaluation, which is the whole of the selection phase. Selection
+depends on the tag domain alone, so one table covers both corpora. At the
+primary corpus's $N=11{,}580$ it costs $0.336$\,ms on one thread and
+$0.177$\,ms at sixteen; at $N=10^6$ it costs $45.7$\,ms on one thread and
+$18.8$\,ms at thirty-two. The two-party key is $266$\,B at that domain,
+growing to $368$\,B at $N=10^6$,
 consistent with the $O(\lambda\log N)$ bound.
 
 Selection does not scale past about sixteen to thirty-two threads and then
@@ -631,14 +645,14 @@ correspondingly loose error bars: repeated runs of the identical binary differ
 by up to $25\%$ at $N\approx10^4$, while the $N=10^6$ figures---where each
 measurement is tens of milliseconds---repeat to within $1\%$. The table gives
 medians of $21$ runs and the released CSVs carry the interquartile range for
-every cell. Conclusions in this subsection are drawn only at the order-of-
-magnitude level, which is robust to that variation; the like-for-like comparison
+every cell. Conclusions in this subsection are drawn only at the
+order-of-magnitude level, which is robust to that variation; the like-for-like comparison
 that matters is made in Section~\ref{sec:aggresult}, where the quantities are
 tens of milliseconds.
 
-The comparison that matters, though, is against the homomorphic half of the same
-query: selection is under $0.2$\,ms while the packed contraction that follows it
-is tens of milliseconds (Section~\ref{sec:aggresult}). The symmetric-key half of
+Set against the homomorphic half of the same query, the scale is what matters:
+selection is under $0.2$\,ms while the packed contraction that follows it is
+tens of milliseconds (Section~\ref{sec:aggresult}). The symmetric-key half of
 CR-SHE is not the bottleneck, which is the design's intent---symmetric work on
 the selection path, homomorphic operations only on the aggregate.
 
@@ -680,11 +694,11 @@ run ordering and not a dependence on $N_d$, and Table~\ref{tab:compute} quotes
 the order-controlled run. Both sweeps are released.
 
 On the general path the same aggregate costs $103.7$\,ms at $N_d=10^3$ and
-$1{,}378.2$\,ms at the full corpus: $35.8\times$ the fast path. The growth is
+$1{,}378.2$\,ms at the full corpus: $35.5\times$ the fast path. The growth is
 mild up to $N_d\approx5\times10^4$, where the fixed homomorphic cost still
 dominates, and then tracks the $\Theta(N N_d)$ contraction---$196.8$, $539.5$
-and $1{,}378.2$\,ms at $10^5$, $2\times10^5$ and $4.05\times10^5$, i.e.\ a
-factor of $2.74$ and then $2.55$ for each doubling of $N_d$. The slight
+and $1{,}378.2$\,ms at $10^5$, $2\times10^5$ and $4.05\times10^5$: a factor of
+$2.74$ for the doubling and $2.55$ for the $2.03\times$ step that follows. The slight
 superlinearity is memory bandwidth: at full scale the masked index is
 $37.5$\,GB and every query streams all of it.
 
@@ -697,17 +711,19 @@ the reason the fast path exists.
 
 Per-query downlink is $525{,}950$\,B per provider---two ciphertexts, the
 aggregate and its MAC---and is byte-identical for every $N_d$ and, more
-importantly, for every $|S|$. We verify this directly by querying the tag with
-the shortest posting list and the tag with the longest and comparing the
-serialised responses. A design that returned the selection vector instead would
-send $O(N_d\log p)$ bits, $800{,}000$\,B at $N_d=10^5$, and would leak $|S|$
-through the response size itself.
+importantly, for every $|S|$. We verify this directly by querying a tag whose
+posting list is empty and one that matches every record in the subsample, and
+comparing the serialised responses byte for byte. A design that returned the
+selection vector instead would send $O(N_d\log p)$ bits, $800{,}000$\,B at
+$N_d=10^5$, and would leak $|S|$ through the response size itself.
 
 \begin{table}[t]
 \centering
 \caption{Oblivious aggregate latency and storage, fast vs.\ general path,
 $N=11{,}580$, template \textsc{sum}. Fast-path figures are from the
-order-controlled (decreasing $N_d$) sweep.}
+order-controlled (decreasing $N_d$) sweep and are medians of $11$ runs; the
+general path, which is minutes per sweep point at the larger $N_d$, is the
+median of $3$.}
 \label{tab:compute}
 \footnotesize
 \renewcommand{\arraystretch}{1.2}
@@ -729,16 +745,16 @@ $4.05\times10^5$   & $38.8$ & $1{,}378.2$ & $37.54$ & $525{,}950$ \\
 \end{table}
 
 \subsection{Comparison against baselines}
-Table~\ref{tab:baselines} places CR-SHE against the five baselines on the same
-corpus, the same machine and the same probe tag, whose posting list has the
-corpus median length $|S|=35$.
+Table~\ref{tab:baselines} places CR-SHE against the five baselines on the
+primary corpus, the same machine and the same probe tag, whose posting list has
+that corpus's median length $|S|=35$.
 
 The ordering is the expected one and the magnitudes are the point. A plaintext
 scan is free and private against nobody. Single-server searchable encryption is
 also essentially free and leaks the search pattern, the access pattern and
 $|S|$; its downlink grows with the result set. Path ORAM hides the access
 pattern from one server at $1.6\,\mu$s per access, but pays per matched record,
-so its cost and its $328$\,kB downlink both scale with $|S|$ while CR-SHE's do
+so its cost and its $365$\,kB downlink both scale with $|S|$ while CR-SHE's do
 not. The DORY-style distributed-trust baseline---our own selection path, stopped
 before aggregation---costs $130.4$\,ms against $39.2$\,ms for the full CR-SHE
 fast path including the aggregate at the same $N_d$. Adding oblivious analytics
@@ -758,7 +774,9 @@ and inverted the conclusion.
 \begin{table}[t]
 \centering
 \caption{Baselines on the same corpus and machine, $N_d=10^5$, probe tag with
-the corpus median $|S|=35$. Extrapolated quantities are marked $\dagger$.}
+the corpus median $|S|=35$. Extrapolated quantities are marked $\dagger$.
+Repetition counts differ by baseline ($3$ to $25$) and are recorded per row in
+the released CSV.}
 \label{tab:baselines}
 \footnotesize
 \renewcommand{\arraystretch}{1.2}
@@ -769,7 +787,7 @@ System & Server & Downlink & Leakage to the server(s) \\
 \midrule
 Plaintext scan        & $<0.001$ & $8$              & everything \\
 SSE, single server    & $<0.001$ & $560$            & search + access pattern, $|S|$ \\
-Path ORAM             & $0.056^{\dagger}$ & $328{,}320$ & $|S|$, via access count \\
+Path ORAM             & $0.059^{\dagger}$ & $373{,}248$ & $|S|$, via access count \\
 DORY-style search     & $130.4$  & $800{,}000$      & none (no analytics) \\
 FHE equality scan     & $24{,}157^{\dagger}$ & --- & none (single server) \\
 \midrule
@@ -784,13 +802,13 @@ We ran the full protocol between independent provider processes and a client,
 in the deployment split described in Section~\ref{sec:impl}, for
 $n\in\{2,3,4\}$, $100$ queries each.
 
-\emph{Provider compute is flat in $n$}: $34.82$, $34.85$ and $35.48$\,ms for
-$n=2,3,4$. This is the measurement that supports the central structural claim
+\emph{Provider compute is flat in $n$} (Table~\ref{tab:wan}): $34.82$, $34.85$
+and $35.48$\,ms for $n=2,3,4$. This is the measurement that supports the central structural claim
 about cost, namely that the client waits on the slowest provider and not on
 their sum. End-to-end latency rises only from $44.1$\,ms to $52.5$\,ms across
-the same range, and the increase is transport---$8.3$, $9.1$ and $15.5$\,ms---
-because the client receives $n$ responses of $525{,}950$\,B each and
-deserialises them. Client-side combine, MAC verification and decryption cost
+the same range, and the increase is
+transport---$8.3$, $9.1$ and $15.5$\,ms---because the client receives $n$
+responses of $525{,}950$\,B each and deserialises them. Client-side combine, MAC verification and decryption cost
 $1.37$--$1.63$\,ms and are essentially independent of everything else, which is
 what makes the design viable for a thin data user.
 

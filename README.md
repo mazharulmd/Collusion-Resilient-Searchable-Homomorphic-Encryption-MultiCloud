@@ -133,7 +133,7 @@ into 11,580 tags (posting lists: median 35, mean 314.9, max 404,702).
 | Result | Measured |
 |---|---|
 | Fast-path aggregate, N_d = 10^3 … 4.05×10^5 | **38.8 – 39.2 ms, flat to ±0.5%** |
-| General path, same range | 103.7 → **1378.2 ms** (35.8× the fast path) |
+| General path, same range | 103.7 → **1378.2 ms** (35.5× the fast path) |
 | Aggregate downlink | 525,950 B/provider, identical for every \|S\| |
 | Selection (DPF), N = 11,580 | 0.336 ms (1 thread) → 0.177 ms (16) |
 | DPF key, n = 2 | 266 B per provider; 532 B uplink |

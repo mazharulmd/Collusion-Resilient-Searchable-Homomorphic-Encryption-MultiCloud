@@ -180,6 +180,12 @@ The whole suite was re-run on the Beijing corpus below
 | Deployment, n = 2 → 4 | 34.8 → 35.5 ms | **38.67 → 38.47 ms**, flat |
 | Masked-index build, N_d = 10^5 | 5.6 s | 16.6 s (linear in N) |
 
+One caveat on the released `bench/results/beijing/e1_dpf.csv` and `e4_comm.csv`:
+they were measured before the sweep was derived from the corpus, so they cover
+N = 11,580 -- the *primary* corpus's tag domain -- not Beijing's 35,162. The
+paper therefore quotes no selection latency for this corpus. Re-running
+`run_all.sh` now measures the right domain.
+
 The point of the second corpus is the twelve monitoring sites: the primary
 corpus has three physical devices, so a reader can reasonably ask whether the
 leakage result depends on that. It does not — the site identifiers and the

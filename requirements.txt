@@ -1,0 +1,6 @@
+# Python 3.12 (the openfhe wheel below is built for CPython 3.12, Linux x86-64)
+openfhe==1.5.1.0.24.4
+numpy>=1.26
+cryptography>=42
+matplotlib>=3.8
+pytest>=8

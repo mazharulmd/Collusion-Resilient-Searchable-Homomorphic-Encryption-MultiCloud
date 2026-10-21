@@ -1,7 +1,9 @@
 # Submission package: Elsevier *Internet of Things* (ISSN 2542-6605)
 
 Checked against the journal's Guide for Authors and the Editorial Manager upload
-screen (October 2026). The guide page was blocked from the build environment, so
+screen (October 2026). Layout: **single column** (`cas-sc`). The guide says Word files must
+be single-column and double-column is only permitted for LaTeX, so single column is
+the journal's default and what reviewers expect. The guide page was blocked from the build environment, so
 the guide's requirements come from search excerpts. The upload screen is quoted
 from what the author saw.
 
@@ -10,7 +12,7 @@ from what the author saw.
 | Editorial Manager item | Upload | Notes |
 |---|---|---|
 | **Manuscript without author details** (required) | `CRSHE_IoT_Manuscript_Anonymized.pdf` | LaTeX papers upload a PDF; the source is not needed until revision. No names, affiliations, ORCIDs, e-mails, CRediT or repository link; PDF metadata has no author |
-| **Title page with author details** (required) | `CRSHE_IoT_TitlePage.docx` | Title, authors, affiliation, corresponding author e-mail, ORCIDs, acknowledgements, funding, CRediT, repository link. **Fill in the two yellow fields** |
+| **Title page with author details** (required) | `CRSHE_IoT_TitlePage.docx` | Title, authors, affiliation, corresponding author e-mail, ORCIDs, acknowledgements (no-funding statement), CRediT |
 | **Declaration of competing interests** (required) | Tick the confirmation box, **or** upload `CRSHE_IoT_DeclarationOfInterest.docx`, **or** generate the official file with the [declarations tool](https://declarations.elsevier.com/home?journalAcronym=IOT) | Tick the box only if it is true for every author, including the editorial-board clause. Confirm the yellow line in the Word file |
 | Highlights (optional) | `CRSHE_IoT_Highlights.docx` | 5 bullets, 63–83 characters |
 | Cover letter (optional) | `CRSHE_IoT_CoverLetter.docx` | Fill in **[DATE]** |
@@ -49,13 +51,12 @@ the manuscript source, so the two cannot disagree.
 | Highlights 3–5, ≤ 85 characters, separate file | 5, 63–83 characters |
 | Title page: title, authors, affiliations, acknowledgements, corresponding e-mail | Yes (acknowledgements are yours to write) |
 | CRediT | On the title page |
-| Research data, Option C | Data and code availability section; datasets cited with `[dataset]` tags; repository link on the title page |
+| Research data | "Data will be made available on request." (authors' choice); the public datasets are still cited in §9 with `[dataset]` tags |
 | AI declaration directly before the references | Yes |
 | No generative-AI images | Fig. 1 is drawn by a matplotlib script; the declaration says so |
 
 ## Before you press submit
 
-1. **Title page:** fill in acknowledgements and funding (yellow).
 2. **Declaration:** confirm the editorial-board statement, or adjust it.
 3. **AI declaration:** make it describe exactly what you did. You must check
    every proof and number yourself.

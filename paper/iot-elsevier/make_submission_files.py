@@ -64,8 +64,7 @@ letter = [
     "We believe the paper suits Internet of Things because its central trade-off is an IoT "
     "one: measured against a single-server design, the multi-cloud trust split saves a "
     "modest factor in server work but more than three orders of magnitude in uplink and "
-    "client cost, which is what thin, metered IoT clients need. The reference "
-    "implementation, benchmark scripts and raw results are publicly available.",
+    "client cost, which is what thin, metered IoT clients need.",
     "",
     "This manuscript is original, has not been published, and is not under consideration "
     "elsewhere. A version of the manuscript and the code are publicly available in the "
@@ -98,7 +97,6 @@ AUTHORS = [
 ]
 AFFIL = ("Department of Electrical and Computer Engineering, North South University, "
          "Dhaka, Bangladesh")
-REPO = "https://github.com/mazharulmd/Collusion-Resilient-Searchable-Homomorphic-Encryption-MultiCloud"
 
 # CRediT roles are taken from the manuscript source, so the two cannot drift.
 credits = re.findall(r"\\author\[1\]\{([^}]*)\}.*?\\credit\{(.*?)\}", src, re.S)
@@ -133,12 +131,8 @@ for name, mail, orcid, _ in AUTHORS:
     d.add_paragraph(f"{name}: {mail}" + (f"; ORCID {orcid}" if orcid else ""), style="List Bullet")
 
 d.add_heading("Acknowledgements", level=2)
-todo(d.add_paragraph(), "[Add acknowledgements, or write \u201cNone.\u201d]")
-
-d.add_heading("Funding", level=2)
-todo(d.add_paragraph(), "[State the funding source(s) with grant numbers, or, if there was none, "
-     "use Elsevier\u2019s standard sentence: \u201cThis research did not receive any specific grant "
-     "from funding agencies in the public, commercial, or not-for-profit sectors.\u201d]")
+d.add_paragraph("This research did not receive any specific grant from funding agencies in the "
+                "public, commercial, or not-for-profit sectors.")
 
 d.add_heading("CRediT authorship contribution statement", level=2)
 for name, roles in credits:
@@ -146,10 +140,6 @@ for name, roles in credits:
     p.add_run(name + ": ").bold = True
     p.add_run(roles + ".")
 
-d.add_heading("Code availability", level=2)
-d.add_paragraph("The reference implementation, benchmark scripts and raw results referred to "
-                f"in the Data and code availability section of the manuscript are at {REPO}. "
-                "The link is withheld from the anonymized manuscript.")
 d.save("CRSHE_IoT_TitlePage.docx")
 
 d = Document()

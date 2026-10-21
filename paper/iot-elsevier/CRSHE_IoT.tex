@@ -133,20 +133,20 @@ Writing -- review and editing}
 %% Abstract
 %% ===========================================================================
 \begin{abstract}
-Internet of Things deployments replicate telemetry across independent clouds
-for availability, and the data must stay encrypted once it leaves the device
-domain. Distributed-trust systems already hide which records a query selects,
-but they operate on plaintext, stop at retrieval, or need server-to-server
+Internet of Things deployments replicate telemetry across independent clouds,
+and the data must stay encrypted once it leaves the device
+domain. Distributed-trust systems hide which records a query selects,
+but they operate on plaintext, stop at retrieval, or need server
 interaction. We present CR-SHE, in
 which retrieval and analytics are both oblivious to a coalition of up to
 $t=n-1$ colluding providers, over data encrypted under one owner's key, with no
 communication between providers. We show that a homomorphic layer is then
-necessary: an additively shared store cannot answer such queries locally. In CR-SHE each provider folds its share of the selection
-vector into encrypted columns and returns a single ciphertext, so neither the
-matched set nor its size leaves the client. A precomputed-column fast path
-makes registered aggregates independent of the record count, a two-round
+necessary: an additively shared store cannot answer such queries locally. Each provider folds its share of the selection vector into
+encrypted columns and returns one ciphertext, so neither the matched set nor
+its size leaves the client. A precomputed fast path
+makes registered aggregates independent of record count, a two-round
 flexible path serves conjunctions and ad-hoc weights by dealing fresh shares,
-and a one-time-pad mask removes posting-list leakage from the stored index. We
+and a one-time-pad mask removes posting-list leakage at rest. We
 prove correctness and adaptive security against $t=n-1$ collusion and evaluate
 on two real IoT corpora. On $405{,}184$ sensor records a registered aggregate
 costs $39$\,ms per provider regardless of record count, and four aggregates

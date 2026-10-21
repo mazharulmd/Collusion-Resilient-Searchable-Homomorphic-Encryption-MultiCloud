@@ -1,5 +1,6 @@
-# Python Environments
+# Python environments
 venv/
+.venv/
 env/
 
 # Python cache files
@@ -7,3 +8,18 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
+.pytest_cache/
+
+# Raw datasets are downloaded by the user (see data/README.md)
+data/raw/
+
+# LaTeX build products
+*.aux
+*.bbl
+*.blg
+*.log
+*.out
+*.spl
+*.synctex.gz
+*.fls
+*.fdb_latexmk

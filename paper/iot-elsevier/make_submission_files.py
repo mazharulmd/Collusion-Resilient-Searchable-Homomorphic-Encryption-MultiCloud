@@ -82,3 +82,86 @@ for line in letter:
         r.font.size = Pt(11)
 d.save("CRSHE_IoT_CoverLetter.docx")
 print("highlights:", [len(t) for t in items])
+
+
+# ---------------------------------------------------------------------------
+# Title page and declaration of competing interests (Word, as Editorial
+# Manager asks). Bracketed, highlighted text is for the authors to complete;
+# nothing there is filled in on their behalf.
+# ---------------------------------------------------------------------------
+from docx.enum.text import WD_COLOR_INDEX
+
+AUTHORS = [
+    ("Md Mazharul Islam", "mazharul.islam1@northsouth.edu", "0000-0001-6225-1487", True),
+    ("Mubasshir Ahmed", "mubasshir.ahmed@northsouth.edu", "0000-0002-7502-3835", False),
+    ("Md Redowan Zaman Anik", "redowan.anik@northsouth.edu", None, False),
+]
+AFFIL = ("Department of Electrical and Computer Engineering, North South University, "
+         "Dhaka, Bangladesh")
+REPO = "https://github.com/mazharulmd/Collusion-Resilient-Searchable-Homomorphic-Encryption-MultiCloud"
+
+# CRediT roles are taken from the manuscript source, so the two cannot drift.
+credits = re.findall(r"\\author\[1\]\{([^}]*)\}.*?\\credit\{(.*?)\}", src, re.S)
+credits = [(n, " ".join(c.replace("--", "\u2013").split())) for n, c in credits]
+assert len(credits) == 3
+
+
+def todo(par, text):
+    run = par.add_run(text)
+    run.font.highlight_color = WD_COLOR_INDEX.YELLOW
+    return run
+
+
+d = Document()
+d.add_heading(TITLE, level=1)
+p = d.add_paragraph()
+for k, (name, _, _, corr) in enumerate(AUTHORS):
+    p.add_run(name)
+    sup = p.add_run("a" + (",*" if corr else ""))
+    sup.font.superscript = True
+    if k < len(AUTHORS) - 1:
+        p.add_run(", ")
+p = d.add_paragraph()
+p.add_run("a").font.superscript = True
+p.add_run(AFFIL)
+p = d.add_paragraph()
+p.add_run("*").font.superscript = True
+p.add_run(f"Corresponding author: {AUTHORS[0][0]}, {AUTHORS[0][1]}")
+
+d.add_heading("Author e-mail addresses and ORCID iDs", level=2)
+for name, mail, orcid, _ in AUTHORS:
+    d.add_paragraph(f"{name}: {mail}" + (f"; ORCID {orcid}" if orcid else ""), style="List Bullet")
+
+d.add_heading("Acknowledgements", level=2)
+todo(d.add_paragraph(), "[Add acknowledgements, or write \u201cNone.\u201d]")
+
+d.add_heading("Funding", level=2)
+todo(d.add_paragraph(), "[State the funding source(s) with grant numbers, or, if there was none, "
+     "use Elsevier\u2019s standard sentence: \u201cThis research did not receive any specific grant "
+     "from funding agencies in the public, commercial, or not-for-profit sectors.\u201d]")
+
+d.add_heading("CRediT authorship contribution statement", level=2)
+for name, roles in credits:
+    p = d.add_paragraph()
+    p.add_run(name + ": ").bold = True
+    p.add_run(roles + ".")
+
+d.add_heading("Code availability", level=2)
+d.add_paragraph("The reference implementation, benchmark scripts and raw results referred to "
+                f"in the Data and code availability section of the manuscript are at {REPO}. "
+                "The link is withheld from the anonymized manuscript.")
+d.save("CRSHE_IoT_TitlePage.docx")
+
+d = Document()
+d.add_heading("Declaration of interests", level=1)
+d.add_paragraph(f"Manuscript title: {TITLE}")
+d.add_paragraph("\u2612 The authors declare that they have no known competing financial interests "
+                "or personal relationships that could have appeared to influence the work "
+                "reported in this paper.")
+p = d.add_paragraph()
+todo(p, "[Confirm before uploading:] ")
+p.add_run("No author currently serves, or has previously served, as an editor or editorial "
+          "board member of Internet of Things.")
+d.add_paragraph("On behalf of all authors: " + AUTHORS[0][0])
+d.save("CRSHE_IoT_DeclarationOfInterest.docx")
+print("title page and declaration written")

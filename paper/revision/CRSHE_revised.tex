@@ -591,7 +591,7 @@ multi-server PIR, so our key-size claims are for $n=2$, and we use
 $n\in\{3,4\}$ only to show that provider compute is flat in $n$; the uplink it
 costs is reported separately (Section~\ref{sec:commresult}).
 
-\emph{Leveled homomorphic encryption.} $(\mathsf{KGen},\Enc,\Eval,\Dec)$ is
+\emph{Leveled homomorphic encryption.} $(\mathsf{KGen},\allowbreak\Enc,\allowbreak\Eval,\allowbreak\Dec)$ is
 correct for arithmetic circuits of multiplicative depth $\le L_{\mathrm{HE}}$
 over plaintext ring $\mathbb{Z}_p$ and IND-CPA secure with advantage
 $\advCPA$ \citep{fan2012somewhat,cryptoeprint:2016/421}. We write
@@ -767,7 +767,7 @@ queries over the shares, with no homomorphic encryption at all. Under our
 constraints it does not work, and the reason fixes what any design here must
 contain.
 
-\begin{proposition}[Local answers over shares do not compose]
+\begin{proposition}[No local answers over shares]
 \label{prop:nolocal}
 Let a column $A\in\mathbb{Z}_p^N$ be dealt as $A=\sum_{k\in[n]}S_k$, with
 $S_1,\dots,S_{n-1}$ uniform and $\text{CP}_k$ holding $S_k$, and let $e_j$ be
@@ -911,7 +911,7 @@ words per mask value. \authorcheck{The C++ prototype still reduces 64-bit
 words; port the rejection sampler of the reference implementation
 (crshe/prg.py) before re-running Section~\ref{sec:leakeval}.}
 
-\begin{remark}[Why the flexible path strips the mask first]
+\begin{remark}[Stripping the mask first]
 \label{rem:whyenc}
 An alternative contracts the masked shares $b_j$ directly against the record
 column and cancels the resulting term
@@ -1020,7 +1020,7 @@ provider that deviates on purpose; per-row keys (Remark~\ref{rem:rowmac})
 narrow the gap on the fast path, and Section~\ref{sec:verifyresult} measures
 all of these cases.
 
-\begin{remark}[Per-row MAC keys on the fast path]
+\begin{remark}[Per-row MAC keys]
 \label{rem:rowmac}
 Replacing the single $\delta$ by per-row keys $\delta_x=F''_{K''}(x)$, storing
 $\widehat{A}_f[x]=\delta_x A_f[x]$ and checking $\hat y=\delta_{\alpha_w}y$,
@@ -1405,7 +1405,7 @@ $\Ideal_{\Adv,\Sim,\Leak}$ matches $H_3$; summing the terms proves the
 theorem. \qed
 \end{pf}
 
-\begin{remark}[Two rounds leak only if the second is in the clear]
+\begin{remark}[Rounds and leakage]
 \label{rem:v1}
 Suppose the client recovers $S$ and then requests
 $\Compute(pk,\{\text{CT}_i\}_{i\in S},f)$ from the providers. The coalition's
@@ -1419,7 +1419,7 @@ Theorem~\ref{thm:sec} true is contracting a share at the provider, not the
 number of rounds.
 \end{remark}
 
-\begin{remark}[Content confidentiality and graceful degradation]
+\begin{remark}[Confidentiality and degradation]
 For two databases of equal public dimensions differing only in contents,
 Theorem~\ref{thm:sec} makes each coalition view indistinguishable from a
 distribution depending only on $\Leak_{\mathrm{Setup}}$, which is identical
@@ -1897,7 +1897,7 @@ DORY-style search     & $130.4$  & $800{,}000$      & none; no analytics \\
 FHE equality scan     & $24{,}157^{\dagger}$ & n/a & none; 1 server \\
 \midrule
 \textbf{CR-SHE, fast} & $\mathbf{39.2}$ & $\mathbf{525{,}950}$ &
-$\mathrm{class}(f)$ only \\
+$\mathrm{class}(q)$ only \\
 \bottomrule
 \end{tabular}
 \end{table}

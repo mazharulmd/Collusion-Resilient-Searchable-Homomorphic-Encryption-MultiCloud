@@ -329,7 +329,7 @@ def render(outdir):
     ax.plot([CX + 0.030, CX + CW - 0.030], [0.238] * 2, color=USER, lw=0.5,
             alpha=0.4, zorder=5)
     txt(ax, CX + CW / 2 - 0.014, 0.194,
-        r"the coalition learns only $\mathrm{class}(f)$", fs=4.9,
+        r"the coalition learns only $\mathrm{class}(q)$", fs=4.9,
         color=UNTRUSTED, ha="center", style="italic")
     step(ax, CX + 0.014, 0.524, 5)
 

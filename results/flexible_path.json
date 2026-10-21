@@ -1,0 +1,188 @@
+{
+  "environment": {
+    "cpu": "Intel(R) Xeon(R) Processor @ 2.10GHz",
+    "cores": 4,
+    "python": "3.12.3",
+    "openfhe_python": "1.5.1",
+    "omp_threads": "1",
+    "implementation": "crshe reference (Python driver, OpenFHE C++ kernels)"
+  },
+  "rows": [
+    {
+      "Nd": 20000,
+      "N": 11580,
+      "masked_index_bytes": 1852800000,
+      "build_masked_index": {
+        "median_ms": 21519.272938000086,
+        "q1_ms": 21519.272938000086,
+        "q3_ms": 21519.272938000086,
+        "reps": 1
+      },
+      "retrieve": {
+        "median_ms": 757.9666110000289,
+        "q1_ms": 723.6890460001177,
+        "q3_ms": 843.0076189999909,
+        "reps": 7
+      },
+      "deal_shares": {
+        "median_ms": 1.7614440000670584,
+        "q1_ms": 1.649380999879213,
+        "q3_ms": 2.4024089998420095,
+        "reps": 7
+      },
+      "contract": {
+        "median_ms": 26.395606000050975,
+        "q1_ms": 25.671575999922425,
+        "q3_ms": 27.3604610001712,
+        "reps": 7
+      },
+      "contract_compressed": {
+        "median_ms": 35.43980599988572,
+        "q1_ms": 31.281185999887384,
+        "q3_ms": 46.60636899984638,
+        "reps": 7
+      },
+      "retrieve_downlink_bytes": 160000,
+      "round2_uplink_bytes": [
+        16,
+        160000
+      ],
+      "round2_downlink_bytes": 263011,
+      "round2_downlink_bytes_compressed": 132081,
+      "record_ciphertexts": 5,
+      "matched": 20000
+    },
+    {
+      "Nd": 10000,
+      "N": 11580,
+      "masked_index_bytes": 926400000,
+      "build_masked_index": {
+        "median_ms": 2846.0153759999685,
+        "q1_ms": 2846.0153759999685,
+        "q3_ms": 2846.0153759999685,
+        "reps": 1
+      },
+      "retrieve": {
+        "median_ms": 399.44117499999265,
+        "q1_ms": 378.432359000044,
+        "q3_ms": 439.4221649999963,
+        "reps": 7
+      },
+      "deal_shares": {
+        "median_ms": 0.61541600007331,
+        "q1_ms": 0.5500389997905586,
+        "q3_ms": 0.700113999982932,
+        "reps": 7
+      },
+      "contract": {
+        "median_ms": 21.896579999975074,
+        "q1_ms": 20.77647999999499,
+        "q3_ms": 37.579714999992575,
+        "reps": 7
+      },
+      "contract_compressed": {
+        "median_ms": 28.997478000064802,
+        "q1_ms": 28.228289000026052,
+        "q3_ms": 34.30923299993083,
+        "reps": 7
+      },
+      "retrieve_downlink_bytes": 80000,
+      "round2_uplink_bytes": [
+        16,
+        80000
+      ],
+      "round2_downlink_bytes": 263011,
+      "round2_downlink_bytes_compressed": 132081,
+      "record_ciphertexts": 3,
+      "matched": 10000
+    },
+    {
+      "Nd": 5000,
+      "N": 11580,
+      "masked_index_bytes": 463200000,
+      "build_masked_index": {
+        "median_ms": 1495.9022329999243,
+        "q1_ms": 1495.9022329999243,
+        "q3_ms": 1495.9022329999243,
+        "reps": 1
+      },
+      "retrieve": {
+        "median_ms": 247.33755700003712,
+        "q1_ms": 231.37446000009732,
+        "q3_ms": 274.95735200000126,
+        "reps": 7
+      },
+      "deal_shares": {
+        "median_ms": 0.2786659999856056,
+        "q1_ms": 0.2684179999050684,
+        "q3_ms": 0.33926699984476727,
+        "reps": 7
+      },
+      "contract": {
+        "median_ms": 35.647705999963364,
+        "q1_ms": 27.317094999943947,
+        "q3_ms": 42.992827000034595,
+        "reps": 7
+      },
+      "contract_compressed": {
+        "median_ms": 24.733424000032755,
+        "q1_ms": 23.188153000091916,
+        "q3_ms": 32.06506600008652,
+        "reps": 7
+      },
+      "retrieve_downlink_bytes": 40000,
+      "round2_uplink_bytes": [
+        16,
+        40000
+      ],
+      "round2_downlink_bytes": 263011,
+      "round2_downlink_bytes_compressed": 132081,
+      "record_ciphertexts": 2,
+      "matched": 5000
+    },
+    {
+      "Nd": 1000,
+      "N": 11580,
+      "masked_index_bytes": 92640000,
+      "build_masked_index": {
+        "median_ms": 696.1343159998705,
+        "q1_ms": 696.1343159998705,
+        "q3_ms": 696.1343159998705,
+        "reps": 1
+      },
+      "retrieve": {
+        "median_ms": 41.24829500005944,
+        "q1_ms": 40.89684700011276,
+        "q3_ms": 57.1037200002138,
+        "reps": 7
+      },
+      "deal_shares": {
+        "median_ms": 0.11524699993969989,
+        "q1_ms": 0.09999600001719955,
+        "q3_ms": 0.18681200003811682,
+        "reps": 7
+      },
+      "contract": {
+        "median_ms": 20.073000999900614,
+        "q1_ms": 19.970981000142274,
+        "q3_ms": 20.523150999906647,
+        "reps": 7
+      },
+      "contract_compressed": {
+        "median_ms": 20.99660500016398,
+        "q1_ms": 20.80233399988174,
+        "q3_ms": 21.295563999956357,
+        "reps": 7
+      },
+      "retrieve_downlink_bytes": 8000,
+      "round2_uplink_bytes": [
+        16,
+        8000
+      ],
+      "round2_downlink_bytes": 263011,
+      "round2_downlink_bytes_compressed": 132081,
+      "record_ciphertexts": 1,
+      "matched": 1000
+    }
+  ]
+}

@@ -215,7 +215,7 @@ class Provider:
     @staticmethod
     def check_key(key, N):
         # Shape check only: a provider cannot check which row a hidden query
-        # reads (Section 6.7 of the manuscript).
+        # reads (Section 6.8 of the revised manuscript).
         if key.N != N:
             raise ValueError("key domain does not match the deployment")
 

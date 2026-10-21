@@ -1,0 +1,210 @@
+{
+  "environment": {
+    "cpu": "Intel(R) Xeon(R) Processor @ 2.10GHz",
+    "cores": 4,
+    "python": "3.12.3",
+    "openfhe_python": "1.5.1",
+    "omp_threads": "1",
+    "implementation": "crshe reference (Python driver, OpenFHE C++ kernels)"
+  },
+  "rows": [
+    {
+      "N": 11580,
+      "dpf_key_bytes": 260,
+      "dpf_eval": {
+        "median_ms": 2.5410069999907137,
+        "q1_ms": 2.4595979999730844,
+        "q3_ms": 2.7852840000832657,
+        "reps": 21
+      },
+      "chunks_packed_1tpl": 3,
+      "chunks_packed_4tpl": 12,
+      "chunks_submitted_per_column": 2,
+      "configs": {
+        "submitted_2ct_1tpl": {
+          "provider": {
+            "median_ms": 52.99234099993555,
+            "q1_ms": 49.38972850004575,
+            "q3_ms": 55.819169999949736,
+            "reps": 21
+          },
+          "downlink_bytes_per_provider": 526022
+        },
+        "packed_1ct_1tpl": {
+          "provider": {
+            "median_ms": 23.539302000017415,
+            "q1_ms": 22.734558500019375,
+            "q3_ms": 28.875694500015925,
+            "reps": 21
+          },
+          "downlink_bytes_per_provider": 263011
+        },
+        "packed_1ct_1tpl_compressed": {
+          "provider": {
+            "median_ms": 27.038607999884334,
+            "q1_ms": 26.74462700008462,
+            "q3_ms": 27.339413000049717,
+            "reps": 21
+          },
+          "downlink_bytes_per_provider": 132081
+        },
+        "submitted_2ct_x4_4tpl": {
+          "provider": {
+            "median_ms": 194.92002599986336,
+            "q1_ms": 186.28770949999307,
+            "q3_ms": 215.43007150000903,
+            "reps": 21
+          },
+          "downlink_bytes_per_provider": 2104088
+        },
+        "packed_1ct_4tpl": {
+          "provider": {
+            "median_ms": 35.379746999979034,
+            "q1_ms": 32.61533549994056,
+            "q3_ms": 43.49984250006855,
+            "reps": 21
+          },
+          "downlink_bytes_per_provider": 263011
+        },
+        "packed_1ct_4tpl_compressed": {
+          "provider": {
+            "median_ms": 32.67455500008509,
+            "q1_ms": 32.08757000004425,
+            "q3_ms": 35.818414999994275,
+            "reps": 21
+          },
+          "downlink_bytes_per_provider": 132081
+        }
+      },
+      "client_finish_4tpl": {
+        "median_ms": 0.9555700000873912,
+        "q1_ms": 0.9383584999795858,
+        "q3_ms": 1.0233565000135059,
+        "reps": 21
+      },
+      "single_server": {
+        "server": {
+          "median_ms": 42.55666399990332,
+          "q1_ms": 41.78648399999929,
+          "q3_ms": 52.60866650007756,
+          "reps": 21
+        },
+        "server_compressed": {
+          "median_ms": 46.60417700006292,
+          "q1_ms": 45.79710149994298,
+          "q3_ms": 47.2326565000003,
+          "reps": 21
+        },
+        "client_query_encrypt": {
+          "median_ms": 14.572959000133778,
+          "q1_ms": 14.443962999848736,
+          "q3_ms": 14.780889000121533,
+          "reps": 7
+        },
+        "uplink_bytes": 789033,
+        "query_ciphertexts": 3,
+        "downlink_bytes": 263211,
+        "downlink_bytes_compressed": 132121
+      }
+    },
+    {
+      "N": 35162,
+      "dpf_key_bytes": 294,
+      "dpf_eval": {
+        "median_ms": 5.69390900000144,
+        "q1_ms": 5.636943500007874,
+        "q3_ms": 5.8577910000394695,
+        "reps": 21
+      },
+      "chunks_packed_1tpl": 9,
+      "chunks_packed_4tpl": 35,
+      "chunks_submitted_per_column": 5,
+      "configs": {
+        "submitted_2ct_1tpl": {
+          "provider": {
+            "median_ms": 55.76167800018084,
+            "q1_ms": 52.308589499830305,
+            "q3_ms": 60.4096170000048,
+            "reps": 21
+          },
+          "downlink_bytes_per_provider": 526022
+        },
+        "packed_1ct_1tpl": {
+          "provider": {
+            "median_ms": 31.43669599990062,
+            "q1_ms": 30.945547500095927,
+            "q3_ms": 32.30805849989338,
+            "reps": 21
+          },
+          "downlink_bytes_per_provider": 263011
+        },
+        "packed_1ct_1tpl_compressed": {
+          "provider": {
+            "median_ms": 36.38532799982386,
+            "q1_ms": 34.42238799993902,
+            "q3_ms": 39.4146454998463,
+            "reps": 21
+          },
+          "downlink_bytes_per_provider": 132081
+        },
+        "submitted_2ct_x4_4tpl": {
+          "provider": {
+            "median_ms": 245.64759800000502,
+            "q1_ms": 225.7160005000287,
+            "q3_ms": 269.3884079999407,
+            "reps": 21
+          },
+          "downlink_bytes_per_provider": 2104088
+        },
+        "packed_1ct_4tpl": {
+          "provider": {
+            "median_ms": 74.16656899999907,
+            "q1_ms": 72.04886700003499,
+            "q3_ms": 83.39729099998294,
+            "reps": 21
+          },
+          "downlink_bytes_per_provider": 263011
+        },
+        "packed_1ct_4tpl_compressed": {
+          "provider": {
+            "median_ms": 92.26382999986527,
+            "q1_ms": 80.28658349985562,
+            "q3_ms": 102.78880950011171,
+            "reps": 21
+          },
+          "downlink_bytes_per_provider": 132081
+        }
+      },
+      "client_finish_4tpl": {
+        "median_ms": 1.64635700002691,
+        "q1_ms": 1.5830844999982219,
+        "q3_ms": 1.7153069999267245,
+        "reps": 21
+      },
+      "single_server": {
+        "server": {
+          "median_ms": 92.46100800010026,
+          "q1_ms": 87.1258195001019,
+          "q3_ms": 151.61611000007724,
+          "reps": 21
+        },
+        "server_compressed": {
+          "median_ms": 116.5163670000311,
+          "q1_ms": 93.15629550007998,
+          "q3_ms": 125.19456150005226,
+          "reps": 21
+        },
+        "client_query_encrypt": {
+          "median_ms": 67.53714999990734,
+          "q1_ms": 65.24597999987236,
+          "q3_ms": 70.14307700001154,
+          "reps": 7
+        },
+        "uplink_bytes": 2367099,
+        "query_ciphertexts": 9,
+        "downlink_bytes": 263211,
+        "downlink_bytes_compressed": 132121
+      }
+    }
+  ]
+}

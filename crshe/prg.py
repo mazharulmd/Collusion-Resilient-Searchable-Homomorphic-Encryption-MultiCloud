@@ -10,7 +10,7 @@ PRF streams (index mask, per-row MAC keys, n-party share expansion) are
 AES-CTR under a secret key, with a 64-bit domain label and a 64-bit index in
 the nonce. `uniform_zp` turns a stream into exactly uniform Z_p elements by
 rejection sampling, which removes the N*N_d*2^-omega statistical term that
-Theorem 2 of the submitted manuscript carried.
+Theorem 1 of the submitted manuscript carried.
 """
 import hashlib
 import numpy as np

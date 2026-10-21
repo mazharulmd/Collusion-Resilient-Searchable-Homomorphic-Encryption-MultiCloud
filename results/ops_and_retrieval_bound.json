@@ -1,0 +1,102 @@
+{
+  "environment": {
+    "cpu": "Intel(R) Xeon(R) Processor @ 2.10GHz",
+    "cores": 4,
+    "python": "3.12.3",
+    "openfhe_python": "1.5.1",
+    "omp_threads": "1",
+    "implementation": "crshe reference (Python driver, OpenFHE C++ kernels)"
+  },
+  "ops": {
+    "encrypt": {
+      "median_ms": 4.7978330001114955,
+      "q1_ms": 4.710628999873734,
+      "q3_ms": 5.142691999935778,
+      "reps": 51
+    },
+    "decrypt": {
+      "median_ms": 1.2401470000895642,
+      "q1_ms": 1.2177899998278008,
+      "q3_ms": 1.2610429998858308,
+      "reps": 51
+    },
+    "mul_plain": {
+      "median_ms": 0.09232399997927132,
+      "q1_ms": 0.08656699992570793,
+      "q3_ms": 0.11141199979647354,
+      "reps": 51
+    },
+    "mul_ct": {
+      "median_ms": 6.5129609999985405,
+      "q1_ms": 6.450652000012269,
+      "q3_ms": 6.617050999921048,
+      "reps": 51
+    },
+    "rotate": {
+      "median_ms": 1.642696000089927,
+      "q1_ms": 1.5973639999629086,
+      "q3_ms": 1.702209000086441,
+      "reps": 51
+    },
+    "add": {
+      "median_ms": 0.02796900002977054,
+      "q1_ms": 0.027590999934545835,
+      "q3_ms": 0.03163399992445193,
+      "reps": 51
+    },
+    "compress": {
+      "median_ms": 0.45655000008082425,
+      "q1_ms": 0.44465500013757264,
+      "q3_ms": 0.46927600010349124,
+      "reps": 51
+    },
+    "dpf_gen2_N11580": {
+      "median_ms": 0.5421169998953701,
+      "q1_ms": 0.524048999977822,
+      "q3_ms": 0.5674029998772312,
+      "reps": 51
+    },
+    "dpf_gen2_N35162": {
+      "median_ms": 0.6239310000637488,
+      "q1_ms": 0.5921120000493829,
+      "q3_ms": 0.6975619999138871,
+      "reps": 51
+    },
+    "word_muladd_ns": 3.461279418942587,
+    "slot_op_ns": 11.270019528719644
+  },
+  "retrieval_bound": [
+    {
+      "N": 11580,
+      "Nd": 20000,
+      "products_lower_bound": 28272,
+      "single_server_lower_bound_ms": 2610.184127413959,
+      "crshe_retrieve_ms": 757.9666110000289,
+      "ratio_at_least": 3.4436663693802987
+    },
+    {
+      "N": 11580,
+      "Nd": 10000,
+      "products_lower_bound": 14136,
+      "single_server_lower_bound_ms": 1305.0920637069794,
+      "crshe_retrieve_ms": 399.44117499999265,
+      "ratio_at_least": 3.2672947742730916
+    },
+    {
+      "N": 11580,
+      "Nd": 5000,
+      "products_lower_bound": 7068,
+      "single_server_lower_bound_ms": 652.5460318534897,
+      "crshe_retrieve_ms": 247.33755700003712,
+      "ratio_at_least": 2.638281220887905
+    },
+    {
+      "N": 11580,
+      "Nd": 1000,
+      "products_lower_bound": 1414,
+      "single_server_lower_bound_ms": 130.54613597068965,
+      "crshe_retrieve_ms": 41.24829500005944,
+      "ratio_at_least": 3.1648856266786667
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+Highlights
+
+- Oblivious homomorphic aggregation hides the matched record set from every provider.
+- Search and analytics stay oblivious under t = n-1 collusion, with no server link.
+- Without server interaction, sharing the data cannot replace the homomorphic layer.
+- A two-round flexible path serves conjunctions and ad-hoc weights obliviously.
+- Four aggregates and their MACs return in one 132 kB ciphertext.

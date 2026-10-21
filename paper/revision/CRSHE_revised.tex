@@ -1699,8 +1699,10 @@ cancellation of Section~\ref{sec:mask}, which is the step most likely to fail
 silently. Section~\ref{sec:secondcorpus} repeats the same battery on the
 second corpus. The $50$ general-path checks exercised the submitted
 single-round design; the reference implementation runs the same battery on
-the revised paths, with $1{,}000$-tag fast-path, retrieval and flexible-path
-checks under ad-hoc weights (\texttt{bench/correctness.py}).
+the revised paths, fast path, retrieval and the flexible path under ad-hoc
+weights (\texttt{bench/correctness.py}); on a synthetic corpus it agrees
+exactly with the plaintext ground truth for $200$ random tags at each
+$n\in\{2,3,4\}$.
 \authorcheck{Run bench/correctness.py on both real corpora (it needs the raw
 files, see data/README.md) and report the counts here.}
 

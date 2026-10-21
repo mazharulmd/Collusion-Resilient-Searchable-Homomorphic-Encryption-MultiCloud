@@ -1,0 +1,37 @@
+Internet of Things deployments increasingly replicate telemetry across
+independent clouds for availability and vendor independence, and it must stay
+encrypted once it leaves the device domain. Replication buys privacy only if
+the providers cannot pool what they observe. Systems that split trust across
+providers to hide search access patterns exist, but they operate on plaintext,
+stop at retrieval, or need an honest majority and server-to-server
+interaction. The unsolved step is composition: selecting the matching records
+privately is worthless if aggregating over them hands the matched set back to
+the providers. We present CR-SHE, in which retrieval and analytics are both
+oblivious to a coalition of up to $t=n-1$ colluding providers, over data
+encrypted at rest under one owner's key and with no communication between
+providers. \DIFaddbegin \DIFadd{We first show that under these constraints a homomorphic layer is
+necessary: an additively shared store cannot answer such queries locally, and
+any scheme that lets it do so yields single-server private information
+retrieval. }\DIFaddend The core construction is oblivious homomorphic aggregation: each
+provider folds its \DIFdelbegin \DIFdel{distributed point function share into the encrypted record
+column }\DIFdelend \DIFaddbegin \DIFadd{share of the selection vector into encrypted columns }\DIFaddend and
+returns one ciphertext, so the matched set is never materialised and its
+cardinality never leaves the client. A precomputed-column fast path removes the
+dependence on record count, \DIFaddbegin \DIFadd{a two-round flexible path serves conjunctions and
+ad-hoc weights by dealing fresh shares of any selection vector, }\DIFaddend and a
+one-time-pad index mask \DIFdelbegin \DIFdel{,
+cancelled inside the ciphertext, removes posting-list-length }\DIFdelend \DIFaddbegin \DIFadd{removes posting-list }\DIFaddend leakage at rest. We prove
+correctness and adaptive leakage security against $t=n-1$ collusion \DIFdelbegin \DIFdel{,
+and
+evaluate a prototype }\DIFdelend \DIFaddbegin \DIFadd{and
+evaluate }\DIFaddend on two real IoT corpora. On $405{,}184$ sensor records a registered
+aggregate costs $39$\,ms per provider irrespective of record count\DIFdelbegin \DIFdel{, with a fixed $526$}\DIFdelend \DIFaddbegin \DIFadd{; carrying
+the value and its MAC in the two rows of one BFV ciphertext returns four
+aggregates in a fixed $132$}\DIFaddend \,kB response \DIFdelbegin \DIFdel{and $617\times$ less workthan a
+faithful homomorphic equality scan; a }\DIFdelend \DIFaddbegin \DIFadd{instead of $2.1$\,MB. Against one
+server holding the same encrypted columns, the trust split saves only
+$1.8$--$2.9\times$ in server work, but over $3{,}000\times$ in uplink and
+$27$--$108\times$ in client-side query cost, which is what a thin IoT client
+pays for. A }\DIFaddend frequency
+attack recovering every non-temporal metadata tag from an unmasked index
+recovers none from the masked one.

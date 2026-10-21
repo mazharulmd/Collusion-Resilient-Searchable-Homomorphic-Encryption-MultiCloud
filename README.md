@@ -1,52 +1,107 @@
-# CR-SHE: Collusion-Resilient Searchable Homomorphic Encryption
+# CR-SHE: oblivious homomorphic aggregation over encrypted multi-cloud IoT data
 
-> Official implementation of **"Collusion-Resilient Searchable Homomorphic Encryption for Multi-Cloud IoT Data Sharing"** (IEEE Internet of Things Journal).
+CR-SHE lets a data user search and aggregate IoT records that are replicated, encrypted
+under one owner's key, across *n* independent clouds. No coalition of up to *n − 1*
+providers learns which records matched, how many matched, or the result. The providers
+never communicate with each other.
 
-**CR-SHE** is a hybrid cryptographic framework designed for privacy-preserving, multi-cloud IoT data sharing. It addresses the unique threat of *cross-cloud collusion* by distributing a replicated, pseudonymous keyword index through a Distributed Point Function (DPF) and storing computable record fields under Leveled Homomorphic Encryption (HE, via Paillier). 
+* A query is one distributed point function (DPF) key per provider.
+* Each provider folds its share of the selection into encrypted columns and returns
+  **one** BFV ciphertext.
+* The user adds the *n* ciphertexts, checks a MAC, and decrypts once.
 
-This architecture allows an authorized user to perform keyword retrievals and homomorphic analytics on retrieved ciphertexts without any decryption by—or at—the cloud providers, ensuring that a colluding coalition of up to `n-1` providers learns nothing about the queried keyword or access pattern.
+This repository holds the reference implementation, the experiments, the FGCS
+submission and its revision.
 
----
+## Status
 
-## Repository Structure
+| | |
+|---|---|
+| FGCS submission (FGCS-D-26-05016) | Rejected 27 Sep 2026, "results too premature". Package archived in [`paper/fgcs-2026-submission/`](paper/fgcs-2026-submission/) |
+| Why, and what to do next | [`docs/REJECTION_ANALYSIS.md`](docs/REJECTION_ANALYSIS.md) |
+| Revised manuscript | [`paper/revision/CRSHE_revised.pdf`](paper/revision/CRSHE_revised.pdf), tracked changes in [`CRSHE_diff.pdf`](paper/revision/CRSHE_diff.pdf), list of changes and open items in [`CHANGES.md`](paper/revision/CHANGES.md) |
+| Reference implementation | [`crshe/`](crshe/), 34 tests in [`tests/`](tests/) |
+| Experiments | [`bench/`](bench/) scripts → [`results/`](results/) JSON → tables generated into the manuscript |
+| First Paillier prototype | [`legacy/`](legacy/). Superseded, kept for history, with its defects listed |
 
-*   **`crshe.py`**: The core logic. Handles indexing, PRF-pseudonymous address generation, and Paillier homomorphic aggregations (sum, mean, inner product).
-*   **`dpf.py`**: Implementation of the Two-Party Distributed Point Function (BGI16 GGM-tree construction) using a SHA-256-based pseudorandom generator.
-*   **`dataset_bench.py`**: Evaluates keyword search latency and communication overhead (DPF key size) against the real Reuters-21578 text corpus.
-*   **`sensor_bench.py`**: Evaluates homomorphic compute latency across varying telemetry window sizes using real Mauna Loa atmospheric CO2 sensor data.
-*   **`bench.py`**: General benchmarking scripts for base search and compute evaluations.
-*   **`requirements.txt`**: Standard Python dependencies required to run the environment.
-*   **`Figures/`**: Output directory where all generated `.pdf` and `.png` plots are securely saved.
+## Repository layout
 
----
+```
+crshe/            reference implementation (Python driving OpenFHE's C++ kernels)
+  field.py        the single Z_p shared by DPF, mask and BFV (Lemma 1 by construction)
+  prg.py          fixed-key AES-MMO generator; AES-CTR PRF with exact rejection sampling
+  dpf.py          two-party BGI tree DPF over Z_p; non-succinct n-party sharing
+  he.py           BFV at p = 68,724,326,401, ring 8,192, depth 1, 128-bit security
+  protocol.py     owner / provider / data user: fast path, retrieval, flexible path
+  baselines.py    single-server encrypted-selection baseline; (n,n)-sharing counterexample
+  attack.py       frequency attack vs unmasked, padded, volume-hiding and masked index
+  corpus.py       loaders for the two public IoT corpora, plus a synthetic corpus
+tests/            pytest suite
+bench/            one script per experiment; make_tables.py renders results into LaTeX
+results/          JSON outputs, each stamped with the machine and library versions
+data/             where the raw corpora go (not redistributed; see data/README.md)
+paper/            FGCS submission (as submitted) and the revision
+docs/             rejection analysis and revision plan
+legacy/           superseded Paillier prototype
+```
 
-## Quick Start (Windows PowerShell)
+## Quick start
 
-To set up the environment and run all benchmarks from scratch, open your PowerShell terminal in the project directory and execute the following commands in order:
+The OpenFHE wheel used here is built for **CPython 3.12 on Linux x86-64**.
 
-```powershell
-# 1. (Optional) Remove any existing virtual environment for a clean slate
-Remove-Item -Recurse -Force .\venv
-
-# 2. Create a new virtual environment named 'venv'
-python -m venv venv
-
-# 3. Activate the virtual environment
-.\venv\Scripts\activate
-
-# 4. Upgrade pip to the latest version
-python -m pip install --upgrade pip
-
-# 5. Install all project dependencies
+```bash
+python3.12 -m venv .venv && . .venv/bin/activate
 pip install -r requirements.txt
+pytest -q                                   # 34 tests
 
-# 6. Download the required NLTK 'reuters' dataset 
-python -c "import nltk; nltk.download('reuters')"
+cd bench
+OMP_NUM_THREADS=1 python bench_response.py  # packing, compression, single-server baseline
+python bench_mac.py                         # MAC detection, global vs per-row keys
+OMP_NUM_THREADS=1 python bench_flexible.py --nd 20000 10000 5000 1000
+OMP_NUM_THREADS=1 python bench_ops.py       # per-op costs, single-server retrieval bound
+python make_tables.py                       # regenerate paper/revision/tables/*.tex
 
-# 7. Run the core cryptographic unit tests
-python .\dpf.py
-python .\crshe.py
+# these need the raw corpora in data/raw/ (see data/README.md)
+python corpus_stats.py
+python correctness.py --corpus telemetry
+python bench_leakage.py --corpus telemetry
+```
 
-# 8. Run the evaluation benchmarks
-python sensor_bench.py
-python dataset_bench.py
+A minimal end-to-end query:
+
+```python
+import numpy as np
+from crshe import Owner, Provider
+
+values = np.array([2150, 2230, 1990, 2410])           # e.g. temperature x 100
+postings = [np.array([0, 2]), np.array([1, 2, 3])]    # records carrying each tag
+owner = Owner(["device:a", "device:b"], postings, values,
+              {"count": np.ones(4, int), "sum": values}, n=2)
+layout = owner.fast_layout(["count", "sum"])
+bundle = owner.bundle(layouts=[("stats", layout)])    # replicated to every provider
+providers = [Provider(j, bundle) for j in range(2)]
+user = owner.user()
+
+keys = user.token("device:b")
+print(user.finish_fast("device:b", layout, [p.fast(k, "stats", compress=True)
+                                            for p, k in zip(providers, keys)]))
+# {'count': 3, 'sum': 6630}: one 132 kB ciphertext per provider
+```
+
+## Headline numbers (reference implementation, one thread, 4-vCPU Xeon VM)
+
+| | Submitted layout | Revised (packed + compressed) |
+|---|---:|---:|
+| Fast path, 1 template, N = 11,580 tags | 53.0 ms, 526,022 B | 27.0 ms, 132,081 B |
+| Fast path, 4 templates | 194.9 ms, 2,104,088 B | 32.7 ms, 132,081 B |
+| Single server on the same columns (no non-collusion assumption) | | 42.6 ms server, 789,033 B uplink |
+
+The trust split's advantage over a single server is a small constant factor in server
+work. It is large in uplink and client cost: a 260 B DPF key against 3–9 fresh
+ciphertexts. See §10.5 of the revised manuscript. The C++ prototype the manuscript's
+other tables come from is not yet in this repository.
+
+## Licence
+
+No licence has been chosen yet. Until one is added, all rights are reserved by the
+authors.

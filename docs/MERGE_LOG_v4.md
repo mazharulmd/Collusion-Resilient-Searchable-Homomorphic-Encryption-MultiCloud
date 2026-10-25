@@ -1,5 +1,9 @@
 # How v4 was assembled from three drafts (2026-10-25)
 
+> **Superseded in part by `docs/DRAFT_AUDIT_v4.md`**, which found that several draft-B numbers
+> marked "no measurement found" below are in fact the authors' C++ results from the revision,
+> and restored them (from the revision, not from draft B). Corrected rows are marked.
+
 Inputs
 
 | Draft | File | Origin (as stated by the author) | Basis |
@@ -40,15 +44,15 @@ out. Nothing below says B or C is wrong merely because it differs from A.
 | HE-QAuth: per-role blinded columns, role-scoped mask keys | not implemented in B | **Idea adopted in corrected form** (role-filtered columns, tables and record column; mask keys per role over record words). B's per-tag key scoping cannot keep a role from reading other roles' records in an authorised tag's posting row, and B left the flexible path's record oracle open. Implemented, tested, measured (`bench/bench_roles.py`) |
 | "0/512 unauthorised rows recovered" under HE-QAuth | no such run; the earlier measurement was **512/512 recovered without** a policy | **Replaced** by our own measurement |
 | Z_{2^16} "modulus-decoupled" retrieval ring, 4× smaller index | not implemented; dominated by the 32-bit packing (32×) already in A | **Not adopted** |
-| Corpus-2 general-path latencies (68.4–498.5 ms), OOM rows | no measurement found | **Not adopted** |
+| Corpus-2 general-path latencies (68.4–498.5 ms), OOM rows | **Correction (audit):** the real values are in the revision (106.3 … 382.0 ms; last two points refused by the harness). Draft B's values differ from them | **Measured values restored from the revision**; draft B's not used |
 | BGI15 tensor keys for n > 2, 5,216 / 9,056 B, "18–31× less uplink" | not implemented; sizes from an unchecked formula | **Not adopted**; v4 keeps "succinct constructions exist; ours is non-succinct" |
 | Emulated WAN, 25 ms RTT, 68.4–72.1 ms end to end | no run | **Not adopted** |
 | Power-of-two and volume-hiding padding results (50–75 %, 2.27–9.11 %, inflation 1,272× / 465×) | `bench_leakage.py` exists but was never run on the real corpora (the proxy blocks the downloads); no result file | **Not adopted**; remains an author action |
 | Canonical-embedding noise bound (Lemma "dual-ring") | formula not derived or checked here | **Not adopted**; v4 keeps the empirical worst-case check |
 | LSM tiering with an O((τ/B) log(N_d/B)) amortised bound | not implemented | **Not adopted** |
-| "24–108× client CPU" | from 14.6/0.54 and 67.5/0.62 the ratios are 27 and 109 | Not used |
-| "64-core engine: packing cuts 33.6 → 17.4 ms" | no measurement found | **Not adopted** |
-| Corpus-2 throughput 117–124 q/s | no measurement found | **Not adopted** |
+| "24–108× client CPU" | from 14.6/0.54 and 67.5/0.62 the ratios are 27 and 109 | **Adopted as 27–109×** (audit) |
+| "64-core engine: packing cuts 33.6 → 17.4 ms" | 33.6 ms is the C++ contraction alone (revision); 17.4 ms has no source | **Not adopted** |
+| Corpus-2 throughput 117–124 q/s | **Correction (audit):** in the revision (C++) | **Adopted** |
 | AI declaration "solely for language polishing" | inaccurate: AI tools wrote code, analysis and text | **Not adopted**; v4 names Claude, ChatGPT and Gemini and what each did, as far as the repository records it |
 
 ## New in v4 (this session)

@@ -152,7 +152,7 @@ its own role's records. In a
 Python reference implementation on a synthetic, telemetry-shaped cube
 of $345{,}690$ cells over $405{,}184$ records, per-provider cost and the
 $132$\,kB response stay flat from a one-minute window to the whole timeline,
-and every injected deviation that changed an answer was detected. A verified
+and every injected deviation that changed an answer was caught by this check. A verified
 query uploads $5.5$\,kB per provider, against a computed $44$\,MB for a plain
 single-server baseline.
 \end{abstract}
@@ -370,7 +370,10 @@ registered cubes. The primitives are due to Gilboa and Ishai
 \citep{boyle2015function,boyle2016function}; FSS also serves metadata-hiding
 messaging \citep{express}, robust private statistics
 \citep{corrigan2017prio,boneh2021lightweight}, access control for dealers
-\citep{pacl} and verifiable keys \citep{decastro2022lightweight}. At bottom,
+\citep{pacl} and verifiable keys \citep{decastro2022lightweight}; fast
+FSS-based secure computation \citep{storrier2023grotto} and DPF-based ORAM for
+secure computation \citep{doerner2017scaling} are complementary to the
+ciphertext-side contraction below. At bottom,
 DPF-based selection is multi-server PIR \citep{chor1998private}, and its linear
 server work is the price of PIR without preprocessing
 \citep{beimel2000reducing}; what CR-SHE adds is the ciphertext-side
@@ -430,9 +433,10 @@ removes the non-collusion assumption altogether
 \citep{kushilevitz1997replication}. For the fast path in isolation it is a
 genuine alternative, being a PIR query into a table of owner-encrypted
 aggregates, and we measure it directly as baseline~(vi)
-(Section~\ref{sec:packing}): on that path the trust split saves a constant
-factor in server work and three to four orders of magnitude in uplink, not
-asymptotic work. On retrieval and the flexible path a single server must
+(Section~\ref{sec:packing}): on that path one CR-SHE provider does less work
+than the single server but two providers together do not, and the trust split
+saves three to four orders of magnitude in uplink and $27$--$109$ times in
+client computation, not asymptotic work. On retrieval and the flexible path a single server must
 multiply an encrypted selection vector by the whole $N\times N_d$ index, at
 least $N\lceil N_d/32\rceil/\ell$ homomorphic products with the same bit
 packing, which we bound at $1.5$--$3.1$ times CR-SHE's retrieval in the same
@@ -443,7 +447,11 @@ Searchable encryption leaks search and access patterns, which leakage-abuse
 attacks turn into plaintext recovery
 \citep{islam2012access,cash2015leakage,grubbs2017leakage}; mitigations include
 ORAM \citep{goldreich1996software}, volume-hiding structured encryption
-\citep{kamara2019computationally,patel2019mitigating}, multi-cloud variants
+\citep{kamara2019computationally,patel2019mitigating}, which on heavy-tailed
+IoT postings is costly when it pads every list to the longest (by
+$N\max_x|I[x]|$ over the total postings, $1{,}285\times$ for our primary corpus
+and $778\times$ for the second, computed from the corpus statistics of
+Section~\ref{sec:impl}), multi-cloud variants
 \citep{xu2021privacy,xu2023symmetric} and richer or committee-authorised
 search \citep{zhang2024secure,yang2023dynamic,du2022lightweight}. Leveled
 homomorphic encryption \citep{fan2012somewhat,cryptoeprint:2016/421} underpins
@@ -492,6 +500,10 @@ ARQ \citep{espiritu2022arq} & encrypted, 1 server & range & $\times$ &
 $\checkmark$ (leaky) & n/a & n/a & $\times$ & $\times$ \\
 Multi-cloud SSE \citep{xu2021privacy} & encrypted & $\checkmark$ & $\times$ &
 $\times$ & $\times$ & no & $\times$ & $\times$ \\
+Pattern-hiding SSE \citep{xu2023symmetric} & encrypted & $\checkmark$ &
+$\times$ & $\times$ & $\circ$ & no & $\times$ & $\circ$ \\
+SHAMC \citep{wang2020shamc} & encrypted & $\circ$ & $\checkmark$ & ? &
+$\times$ & yes & $\times$ & $\times$ \\
 \midrule
 $(n,n)$-shared, local (\S\ref{sec:whyrep}) & secret-shared & $\checkmark$ &
 $\times^{\ddagger}$ & n/a & $n-1$ & no & n/a & n/a \\
@@ -563,6 +575,8 @@ $m_i,\ \text{CT}_i$ & computable field of record $i$; its ciphertext \\
 $\delta,\ \widehat{\text{CT}}_i$ & MAC scalar; MAC column $\Enc(\delta m_i)$,
 in slot row 1 \\
 $\delta_x,\ K''$ & per-row (per-cell) MAC key $F''_{K''}(x)$; its key \\
+$\delta_s$ & per-query secret of the session check, uniform on $\mathbb{Z}_p^{*}$ \\
+$\rho,\ R,\ K'_\rho$ & a role; number of roles; role $\rho$'s mask key \\
 $f,\ w_f$ & aggregate template; its public weight vector \\
 $A_f,\ \widehat{A}_f$ & precomputed aggregate column; its MAC column \\
 $v,\ v_j$ & flexible selection vector over records; $\text{CP}_j$'s share \\
@@ -666,11 +680,17 @@ view be simulatable from data-independent leakage revealing neither the
 keyword or range, the access pattern, the result-set size, nor the result. The
 DO and authorised DUs are honest, channels are authenticated and confidential,
 and side channels beyond the message sizes accounted for here are out of scope.
-Malicious providers are handled only to the extent of the MAC checks of
-Section~\ref{sec:verify}; collusion between a DU and a provider is excluded,
-since a DU already holds decryption capability, but a DU exceeding its
-authority is discussed in Section~\ref{sec:auth}; and a compromised DU exposes
-all data, since decryption is delegated in full.
+Beyond this semi-honest goal we address two active threats. \emph{Deviating
+providers} may return any response at all; the session check of
+Section~\ref{sec:verify} makes every deviation that changes an answer evident
+to the DU except with probability about $2^{-36}$ (Theorem~\ref{thm:tamper}),
+without guaranteeing output delivery. \emph{Users exceeding their authority}
+may send malformed keys or arbitrary share vectors; role-scoped columns and
+mask keys confine a user to its own role's records
+(Section~\ref{sec:auth}, Proposition~\ref{prop:role}). Collusion between a DU
+and a provider is excluded, since a DU already holds decryption capability,
+and a compromised DU exposes everything its role covers, since decryption is
+delegated in full.
 
 \section{The CR-SHE construction}
 \label{sec:construction}
@@ -939,7 +959,16 @@ Several templates share that ciphertext. For $k$ templates, $k$ a power of
 two, each row is cut into $k$ segments of $s=\ell/(2k)$ slots, template $r$
 occupying segment $r$ of both rows, with $\lceil N/s\rceil$ chunks. Rotating
 and summing by $1,2,\dots,s/2$ leaves the sum of segment $r$ in its first slot,
-so slot $rs$ of each row carries template $r$'s value or MAC share. The
+so slot $rs$ of each row carries template $r$'s value or MAC share.
+Explicitly, chunk $c$ holds, at offset $z<s$ of segment $r$,
+\[
+\text{row }0:\ A_{f_r}[cs+z],\qquad
+\text{row }1:\ \begin{cases}A_{f_r}[cs+z] & \text{session check},\\
+\delta_{cs+z}\,A_{f_r}[cs+z] & \text{per-row keys},\end{cases}
+\]
+zero beyond $N$, and the provider's plaintext for chunk $c$ repeats its
+evaluation share $e_j[cs+z]$ in every segment of row~$0$ and the
+$\delta_s$-carrying share $\hat e_j[cs+z]$ in every segment of row~$1$. The
 response is one ciphertext for any $k\le\ell/2$; what grows with $k$ is the
 number of chunks, $\lceil kN/(\ell/2)\rceil$ plaintext-ciphertext products,
 while the rotations fall from $\log_2(\ell/2)$ to $\log_2 s$. The worked
@@ -1087,8 +1116,8 @@ answer. The DU accepts an output $y'\neq y$ with probability at most
 \frac{1}{p-1}+\varepsilon,
 \]
 where $\varepsilon=\kappa\,\advDPF$ for a query whose $\delta_s$-carrying set
-has $\kappa$ DPF keys per provider ($\kappa=1$ on the fast path, $2^d$ for a
-range) and $\varepsilon=\advPRF$ for a flexible round. Over $Q$ queries the
+has $\kappa$ DPF keys per provider ($\kappa=1$ on the fast path and for a
+retrieval, $2^d$ for a range) and $\varepsilon=\advPRF$ for a flexible round. Over $Q$ queries the
 bounds add, whether or not the coalition learns which queries were accepted.
 \end{theorem}
 \begin{pf}
@@ -1187,8 +1216,10 @@ The mechanism costs storage, not interaction: columns, tables and record
 columns are replicated per role, while the large masked index is shared. It
 reveals each query's role to the providers and each role's size, rounded up to
 a word, in the public layout. It does not express policies finer than a record
-partition, such as per-tag rights within a role, and revoking a user of a role
-means re-keying that role and re-masking its words.
+partition, such as per-tag rights within a role; revoking a user of a role
+means re-keying that role and re-masking its words; and a streaming deployment
+must keep one hot buffer per role, so that every packed word stays within one
+role.
 
 \subsection{The flexible path: conjunctions and ad-hoc weights}
 \label{sec:flex}
@@ -1298,7 +1329,9 @@ not, and neither implements the summed-area-table update.
   \State $\alpha_w\gets D(w)$
   \State $(\kappa_1,\dots,\kappa_n)\gets\Gen(1^\lambda,\alpha_w,1)$
          over $\mathbb{Z}_p$
-  \State \Return $(\kappa_j,f)\to\text{CP}_j$
+  \State verified: $\delta_s\gets\mathbb{Z}_p^{*}$;
+         $(\hat\kappa_1,\dots,\hat\kappa_n)\gets\Gen(1^\lambda,\alpha_w,\delta_s)$
+  \State \Return $(\kappa_j,\hat\kappa_j,f)\to\text{CP}_j$
 \EndProcedure
 \Statex
 \Procedure{$\mathsf{FastAgg}$}{$\kappa_j,f,A_f,\widehat{A}_f$}
@@ -1337,8 +1370,8 @@ not, and neither implements the summed-area-table update.
   \Comment{at the DU}
   \State $(y,\hat y)\gets$ slots $(0,\ell/2)$ of
          $\Dec(sk,\bplus_j\text{ct}_j)$
-  \State \textbf{abort} if $\hat{y}\neq\delta_{\alpha_w} y$
-         (fast) or $\delta y$ (flexible)
+  \State \textbf{abort} if $\hat{y}\neq\delta_s y$ (session), or
+         $\delta_{\alpha_w}y$, $\delta y$ (stored keys)
   \State retrieval: $b\gets\mathrm{unpack}\big((\sum_j b_j)-P[\alpha_w]\big)$
   \State \hskip2em $S\gets\{i: b[i]=1\}$
   \State \Return $y$, and $S$ if retrieving
@@ -1687,11 +1720,13 @@ dataset of $405{,}184$ MQTT messages from three sensor arrays
 \citep{stafford_2020_environmental}, indexed under the device, a one-minute
 window, decile bands of five sensor channels and two boolean flags:
 $N=11{,}580$ tags over $3{,}646{,}656$ postings (median $35$, mean $314.9$,
-maximum $404{,}702$), aggregating temperature in hundredths of a degree. The
-second is the UCI Beijing Multi-Site Air-Quality dataset
-\citep{zhang2017cautionary,chen2019beijing}: $420{,}370$ hourly records from
-twelve sites after dropping $398$ with a missing temperature, $N=35{,}162$
-tags. The range experiments use a synthetic cube with the primary corpus's
+maximum $404{,}702$), aggregating temperature in hundredths of a degree;
+the largest single-tag aggregate, $908{,}575{,}470$, leaves $75.6\times$
+headroom below $p$. The second is the UCI Beijing Multi-Site Air-Quality
+dataset \citep{zhang2017cautionary,chen2019beijing}: $420{,}370$ hourly records
+from twelve sites after dropping $398$ with a missing temperature, $N=35{,}162$
+tags over $4{,}624{,}070$ postings, with $98.3\times$ headroom. Together the two
+corpora hold $825{,}554$ records and $46{,}742$ tags. The range experiments use a synthetic cube with the primary corpus's
 dimensions (Section~\ref{sec:rangeresult}).
 
 \emph{Baselines.} (i) a plaintext scan; (ii) single-server searchable
@@ -1704,7 +1739,8 @@ queried with an encrypted one-hot vector, which needs no non-collusion
 assumption and so isolates what that assumption buys.
 
 \emph{Machines.} C++ measurements: one AMD EPYC~7J13, $64$ cores, $64$\,GB,
-medians of $11$ runs unless stated. Reference implementation: a cloud VM with
+Ubuntu~24.04, GCC~13 with OpenMP and AES-NI, medians of $11$ runs unless
+stated. Reference implementation: a cloud VM with
 four vCPUs of an Intel Xeon at $2.1$\,GHz with AES-NI, $16$\,GB, one OpenMP
 thread, medians of $5$--$21$ runs; every JSON output carries this environment
 stamp, and every table built from them is generated by a script rather than
@@ -2121,8 +2157,9 @@ host (Table~\ref{tab:wan}), provider compute is flat in $n$, at $34.82$,
 $34.85$ and $35.48$\,ms, so the client waits on the slowest provider, not on
 their sum. End-to-end latency rises from $44.1$ to $52.5$\,ms, all of it
 transport of the $n$ responses; the client's combine, verify and decrypt cost
-$1.37$--$1.63$\,ms. The transport figures exclude wide-area latency, which a
-deployment across regions adds unchanged.
+$1.37$--$1.63$\,ms. The transport covers loopback only: wide-area latency,
+bandwidth variation, stragglers and recovery were not measured, so no fixed
+cross-region increment can be inferred from these figures.
 
 \begin{table}[pos=htbp]
 \caption{Single-host deployment over loopback, medians of 100 queries.
@@ -2250,8 +2287,9 @@ Random guessing        & n/a      & \multicolumn{2}{c}{$0.0086\%$} \\
 Unpacked, the mask costs a factor of $64$ in index storage over a plaintext
 bitmap; packed, a factor of $2$. In the C++ prototype the unpacked masked index
 at $N_d=10^5$ took $5.6$\,s to build, the fast-path column $A_f$ $1.2$--$12$\,ms
-per template, and a complete provider bundle for the full corpus (context,
-evaluation keys, $pk$ and eight columns) was $12$\,MB. Insertion into the hot
+per template, occupying $2$ ciphertexts ($0.53$\,MB) whatever $N_d$, and a
+complete provider bundle for the full corpus (context, evaluation keys, $pk$
+and eight columns) was $12$\,MB and took $0.8$\,s to produce. Insertion into the hot
 buffer ran at $4.5$--$14.1$ million records per second; a fast-path static-tier
 rebuild cost $14.7$--$14.9$\,ms per template, $58.0\,\mu$s per insertion at
 $B=256$ and $0.91\,\mu$s at $B=16{,}384$, while the buffer scan added
@@ -2266,8 +2304,10 @@ packing in C++.}
 In the C++ prototype a single fast-path query does not speed up with cores
 ($34.3$, $34.4$ and $38.4$\,ms at $1$, $8$ and $64$ threads), because the
 homomorphic contraction dominates, but throughput does: $29.1$ queries/s with
-one client, $110.2$ with four, and a plateau of $121.6$--$127.7$ from sixteen
-to sixty-four clients, with median latency rising from $34.4$ to $516$\,ms.
+one client, $56.9$ with two, $110.2$ with four, and a plateau of
+$121.6$--$127.7$ from sixteen to sixty-four clients, with median latency rising
+from $34.4$ to $516$\,ms; between four and sixteen clients throughput is within
+$15\%$ of its maximum and median latency stays under $135$\,ms.
 
 \subsection{Tamper evidence}
 \label{sec:verifyresult}
@@ -2356,15 +2396,93 @@ Beijing corpus, whose twelve sites give three times the tag domain
 Missing readings get their own \texttt{:na} tag rather than falling into the
 lowest band, since CO is missing in $4.92\%$ of records, and temperature is
 shifted by $+50\,^\circ$C so that it stays non-negative. Every correctness
-check passed unchanged. The fast path cost $40.2$--$41.2$\,ms from
-$N_d=5\times10^3$ to $4.05\times10^5$, $5\%$ more than on the primary corpus for
-$3.04\times$ the tags. The unmasked index again gave up every one of the ten
-non-temporal tag classes at $100\%$, including the twelve sites and seventeen
-wind directions, and the hour buckets at $0.31\%$; the masked index gave up
-$0.00\%$ in every class, its row sums indistinguishable from uniform
-($\chi^2=62.38$ on $63$ degrees of freedom, $p_{\chi^2}=0.4986$). The unpacked
-masked index needed $28.13$\,GB at $N_d=10^5$ and would need $118.2$\,GB at
-full scale, which the packed layout of Section~\ref{sec:mask} divides by $32$.
+check passed unchanged, including a byte-identical $525{,}950$\,B downlink for
+$|S|=0$ and $|S|=5{,}000$.
+
+\emph{The fast path is unaffected by the larger tag domain.} It cost
+$40.2$--$41.2$\,ms from $N_d=5\times10^3$ to $4.05\times10^5$
+(Table~\ref{tab:beijing}), $5\%$ more than on the primary corpus for
+$3.04\times$ the tags: the packed products grow from $2$ ciphertexts to $5$,
+but the fixed rotate-and-sum, encryption and serialisation dominate. The first
+point, $54.6$\,ms at $N_d=10^3$, carries the warm-up artefact of
+Section~\ref{sec:aggresult}, since this sweep ran in increasing $N_d$.
+\emph{The unpacked masked index is storage-bound.} The general path cost
+$382.0$\,ms at $N_d=10^5$ against $196.8$\,ms on the primary corpus, and its
+unpacked index grew to $28.13$\,GB; the harness refused the last two points,
+which needed $56.26$ and $113.98$\,GB, against a $47.5$\,GB budget. Packing
+(Section~\ref{sec:mask}) divides all of these by $32$, to $3.6$\,GB at
+$N_d=4.05\times10^5$ (computed).
+
+\begin{table}[pos=htbp]
+\caption{Second corpus ($N=35{,}162$, $N_d$ up to $420{,}370$): aggregate
+latency and unpacked index size, template \textsc{sum}, C++ prototype,
+two-ciphertext layout. Sweep in increasing $N_d$; ``n/a'' marks a point the
+harness refused on its memory budget.}
+\label{tab:beijing}
+\centering
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular*}{\tblwidth}{@{\extracolsep{\fill}}lcccc@{}}
+\toprule
+$N_d$ & Fast (ms) & General (ms) & $I'$ (GB) & Downlink (B) \\
+\midrule
+$10^3$             & $54.6$ & $106.3$ & $0.28$   & $525{,}950$ \\
+$5\times10^3$      & $40.4$ & $86.9$  & $1.41$   & $525{,}950$ \\
+$10^4$             & $40.2$ & $99.7$  & $2.81$   & $525{,}950$ \\
+$2\times10^4$      & $40.5$ & $145.5$ & $5.63$   & $525{,}950$ \\
+$5\times10^4$      & $40.7$ & $220.8$ & $14.06$  & $525{,}950$ \\
+$10^5$             & $41.2$ & $382.0$ & $28.13$  & $525{,}950$ \\
+$2\times10^5$      & $40.9$ & n/a     & $56.26$  & $525{,}950$ \\
+$4.05\times10^5$   & $40.9$ & n/a     & $113.98$ & $525{,}950$ \\
+\bottomrule
+\end{tabular*}
+\end{table}
+
+\emph{The leakage conclusion is not an artefact of three devices.} The
+unmasked index again gave up every one of the ten non-temporal tag classes at
+$100\%$, including the twelve sites and seventeen wind directions, and the
+hour buckets at $0.31\%$; the masked index gave up $0.00\%$ in every class,
+its row sums indistinguishable from uniform ($\chi^2=62.38$ on $63$ degrees of
+freedom, $p_{\chi^2}=0.4986$; Table~\ref{tab:leakagebeijing}).
+
+\begin{table}[pos=htbp]
+\caption{Tag re-identification by class, second corpus, perfect auxiliary
+knowledge.}
+\label{tab:leakagebeijing}
+\centering
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular*}{\tblwidth}{@{\extracolsep{\fill}}lccc@{}}
+\toprule
+Tag class & Tags & Unmasked & Masked \\
+\midrule
+Monitoring site        & $12$       & $100\%$   & $0\%$ \\
+Wind direction         & $17$       & $100\%$   & $0\%$ \\
+CO, NO$_2$, O$_3$ bands & $33$      & $100\%$   & $0\%$ \\
+PM$_{2.5}$, PM$_{10}$ bands & $22$  & $100\%$   & $0\%$ \\
+SO$_2$ band            & $10$       & $100\%$   & $0\%$ \\
+Pressure, dew-point bands & $22$    & $100\%$   & $0\%$ \\
+One-hour window        & $35{,}046$ & $0.31\%$  & $0\%$ \\
+\midrule
+Random guessing        & n/a        & \multicolumn{2}{c}{$0.0028\%$} \\
+\bottomrule
+\end{tabular*}
+\end{table}
+
+\emph{The remaining measurements track the primary corpus.} Provider compute
+in the single-host deployment was flat in $n$ ($38.67$, $37.65$ and
+$38.47$\,ms for $n=2,3,4$), with end-to-end latency rising from $48.17$ to
+$56.04$\,ms in transport alone. The DORY-style search-only baseline cost
+$305.6$\,ms against $41.2$\,ms for the complete fast path, so the gap widens to
+$7.4\times$ as $N$ grows; the homomorphic equality scan, $24.4$\,s, is
+essentially unchanged, $592\times$ the fast path. Throughput plateaued at
+$117$--$124$ queries/s; insertion into the hot buffer ran at $4.5$--$11.1$
+million records per second; a fast-path static-tier rebuild cost
+$28.7$--$29.1$\,ms, twice the primary corpus and linear in $N$; and building
+the unpacked masked index at $N_d=10^5$ took $16.6$\,s against $5.6$\,s, while
+$A_f$ stays $5$ ciphertexts ($1.3$\,MB). Selection latency and keys depend on
+$N$ alone and were not re-measured: the two-party key is $300$\,B and the
+$n$-party heavy key $8N+16=281{,}312$\,B, both computed.
 
 \subsection{Discussion}
 \emph{Ranges are where the design pays.} A registered range aggregate costs the
@@ -2493,10 +2611,14 @@ the text and analysis, including the range construction, the tamper-evidence
 mechanism with Theorem~\ref{thm:tamper}, role-scoped access with
 Proposition~\ref{prop:role}, and Sections~\ref{sec:whyrep}, \ref{sec:flex},
 \ref{sec:packing}, \ref{sec:resultsdisc} and~\ref{sec:conclusion}. ChatGPT
-(OpenAI) and Gemini (Google) were used to edit intermediate drafts; ideas from
-those drafts that entered this version, the per-record coupled MAC that led to
-the tamper-evidence mechanism and the role-blinded columns that led to
-role-scoped access, were reimplemented and measured before inclusion. No image
+(OpenAI) and Gemini (Google) were used to edit intermediate drafts. From
+those drafts this version adopts, after checking, the framing of the
+composition leak and the operational constraints, the structure of the threat
+model, an explicit packing equation, two citations, and corrections to our
+own figures; the per-record coupled MAC and the role-blinded columns they
+proposed were reimplemented and measured, becoming the tamper-evidence
+mechanism and role-scoped access. Their numerical claims were used only where
+they matched the authors' measurements. No image
 was generated or altered by a generative AI tool. After using these tools, the
 authors reviewed and edited the content as needed and take full responsibility
 for the content of the publication.

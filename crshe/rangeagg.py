@@ -23,6 +23,12 @@ Two layouts:
   combined    the provider adds the corner shares first and contracts once;
               the user checks one global MAC, which (as on the flexible path)
               does not catch a consistent linear substitution.
+  session     the combined layout with row 1 holding a COPY of the table. The
+              user sends a second set of 2^d keys whose outputs are the corner
+              signs times a fresh secret delta_s, and checks yhat == delta_s*y.
+              Any response that changes the answer is accepted with
+              probability at most 1/p plus the DPF advantage. Combined cost
+              and storage, twice the keys and DPF evaluation.
 
 Cost per provider: 2^d full-domain DPF evaluations over the M = prod(dims)
 cells and ceil(k M / (ell/2)) plaintext-ciphertext products, with k segments,
@@ -43,9 +49,10 @@ class CubeLayout:
     name: str
     dims: tuple
     templates: list
-    mode: str               # "per_corner" or "combined"
+    mode: str               # "per_corner", "combined" or "session"
     seg: int
     chunks: int
+    role: object = None
 
     @property
     def d(self):
@@ -104,7 +111,12 @@ class CubeOwner:
         self.mac_keys = {}
         self.sat = {}
 
-    def register(self, name, dims, cells, templates, mode="per_corner", cube_id=1):
+    def register(self, name, dims, cells, templates, mode="per_corner", cube_id=1, role=None):
+        """With a role, only that role's records enter the table, so any box
+        a role-r user asks for aggregates role-r records only."""
+        if mode not in ("per_corner", "combined", "session"):
+            raise ValueError(f"unknown layout {mode}")
+        templates = {t: self.owner.role_coeff(c, role) for t, c in templates.items()}
         dims = tuple(int(x) for x in dims)
         names = list(templates)
         k = len(names) * ((1 << len(dims)) if mode == "per_corner" else 1)
@@ -113,7 +125,7 @@ class CubeOwner:
         if seg < 1:
             raise ValueError("too many segments for one ciphertext")
         M = int(np.prod(dims))
-        layout = CubeLayout(name, dims, names, mode, seg, -(-M // seg))
+        layout = CubeLayout(name, dims, names, mode, seg, -(-M // seg), role)
         sats = {}
         for t in names:
             s = summed_area(cells, dims, templates[t])
@@ -131,8 +143,11 @@ class CubeOwner:
     def _encrypt(self, layout, sats, keys):
         H, seg = self.bfv.half, layout.seg
         reps = layout.corners if layout.mode == "per_corner" else 1
-        macs = {t: field.mul(s, keys) if keys is not None else field.mul(s, np.uint64(self.owner.delta))
-                for t, s in sats.items()}
+        if layout.mode == "session":
+            macs = sats             # row 1 is a copy; the key rides in the query
+        else:
+            macs = {t: field.mul(s, keys) if keys is not None else field.mul(s, np.uint64(self.owner.delta))
+                    for t, s in sats.items()}
         cts = []
         for c in range(layout.chunks):
             lo, hi = c * seg, min((c + 1) * seg, layout.M)
@@ -152,7 +167,10 @@ class CubeOwner:
 def range_token(layout, box, n):
     """User side: 2^d corner keys per provider, plus the user's record of
     which corners are real. Every query to a cube sends the same number of
-    keys, real or dummy."""
+    keys, real or dummy. In the session layout each provider's list holds
+    2^d keys for the signs followed by 2^d keys for delta_s times the signs,
+    and meta ends with ("session", delta_s)."""
+    from .protocol import fresh_unit
     keys = [[] for _ in range(n)]
     meta = []
     for mask, x, beta in corners(box, layout.dims):
@@ -160,33 +178,48 @@ def range_token(layout, box, n):
         for j, k in enumerate(dpf.gen(alpha, layout.M, n, beta=beta)):
             keys[j].append(k)
         meta.append((mask, x, beta, alpha))
+    if layout.mode == "session":
+        ds = fresh_unit()
+        for mask, x, beta, alpha in meta:
+            for j, k in enumerate(dpf.gen(alpha, layout.M, n, beta=beta * ds % field.P)):
+                keys[j].append(k)
+        meta.append(("session", ds))
     return keys, meta
 
 
 def range_answer(public_he, layout, cts, corner_keys, compress=False):
     """Provider side: evaluate every corner key over the whole cube and
     contract against the encrypted SAT. Returns one ciphertext."""
-    if len(corner_keys) != layout.corners:
+    want = layout.corners * (2 if layout.mode == "session" else 1)
+    if len(corner_keys) != want:
         raise ValueError("a query must carry one key per corner")
     for k in corner_keys:
         if k.N != layout.M:
             raise ValueError("key domain does not match the cube")
     cc, H, seg = public_he.cc, public_he.half, layout.seg
-    evals = [k.eval_full() for k in corner_keys]
-    if layout.mode == "combined":
-        e = evals[0]
-        for x in evals[1:]:
-            e = field.add(e, x)
-        evals = [e]
+
+    def total(ks):
+        e = ks[0].eval_full()
+        for k in ks[1:]:
+            e = field.add(e, k.eval_full())
+        return e
+
+    if layout.mode == "per_corner":
+        evals = [(k.eval_full(),) * 2 for k in corner_keys]
+    elif layout.mode == "combined":
+        e = total(corner_keys)
+        evals = [(e, e)]
+    else:                                   # session: row 0 signs, row 1 delta_s * signs
+        evals = [(total(corner_keys[:layout.corners]), total(corner_keys[layout.corners:]))]
     acc = None
     for c, ct in enumerate(cts):
         lo, hi = c * seg, min((c + 1) * seg, layout.M)
         v = np.zeros(public_he.slots, dtype=np.uint64)
-        for r, e in enumerate(evals):
+        for r, (e, eh) in enumerate(evals):
             for ti in range(len(layout.templates)):
                 g = layout.segment(r, ti) * seg
                 v[g:g + hi - lo] = e[lo:hi]
-                v[H + g:H + g + hi - lo] = e[lo:hi]
+                v[H + g:H + g + hi - lo] = eh[lo:hi]
         acc = he.add(cc, acc, cc.EvalMult(ct, public_he.encode(v)))
     acc = he.segment_sum(cc, acc, seg)
     return he.compress(cc, acc) if compress else acc
@@ -199,10 +232,11 @@ def finish_range(user, layout, mac_keys, meta, responses):
     H, seg = user.bfv.half, layout.seg
     out = {}
     for ti, t in enumerate(layout.templates):
-        if layout.mode == "combined":
+        if layout.mode in ("combined", "session"):
             g = layout.segment(0, ti) * seg
             y, yh = int(slots[g]), int(slots[H + g])
-            if yh != y * user.delta % field.P:
+            key = meta[-1][1] if layout.mode == "session" else user.delta
+            if yh != y * key % field.P:
                 raise VerificationError(f"MAC check failed for {t}")
             out[t] = y
             continue

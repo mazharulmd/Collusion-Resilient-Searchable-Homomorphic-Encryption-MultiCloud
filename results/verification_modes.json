@@ -1,0 +1,298 @@
+{
+  "environment": {
+    "cpu": "Intel(R) Xeon(R) Processor @ 2.10GHz",
+    "cores": 4,
+    "python": "3.12.3",
+    "openfhe_python": "1.5.1",
+    "omp_threads": "1",
+    "implementation": "crshe reference (Python driver, OpenFHE C++ kernels)"
+  },
+  "N_fast": 11580,
+  "Nd_flexible": 4096,
+  "cube": [
+    3,
+    200,
+    10
+  ],
+  "trials": 200,
+  "results": {
+    "fast": {
+      "global": {
+        "inconsistent": {
+          "detected": 200,
+          "undetected_wrong": 0,
+          "undetected_correct": 0
+        },
+        "dense": {
+          "detected": 0,
+          "undetected_wrong": 200,
+          "undetected_correct": 0
+        },
+        "scale": {
+          "detected": 0,
+          "undetected_wrong": 200,
+          "undetected_correct": 0
+        },
+        "random_point": {
+          "detected": 0,
+          "undetected_wrong": 177,
+          "undetected_correct": 23
+        },
+        "hidden_point": {
+          "detected": 0,
+          "undetected_wrong": 200,
+          "undetected_correct": 0
+        }
+      },
+      "row": {
+        "inconsistent": {
+          "detected": 200,
+          "undetected_wrong": 0,
+          "undetected_correct": 0
+        },
+        "dense": {
+          "detected": 200,
+          "undetected_wrong": 0,
+          "undetected_correct": 0
+        },
+        "scale": {
+          "detected": 200,
+          "undetected_wrong": 0,
+          "undetected_correct": 0
+        },
+        "random_point": {
+          "detected": 182,
+          "undetected_wrong": 0,
+          "undetected_correct": 18
+        },
+        "hidden_point": {
+          "detected": 0,
+          "undetected_wrong": 200,
+          "undetected_correct": 0
+        }
+      },
+      "session": {
+        "inconsistent": {
+          "detected": 200,
+          "undetected_wrong": 0,
+          "undetected_correct": 0
+        },
+        "dense": {
+          "detected": 200,
+          "undetected_wrong": 0,
+          "undetected_correct": 0
+        },
+        "scale": {
+          "detected": 200,
+          "undetected_wrong": 0,
+          "undetected_correct": 0
+        },
+        "random_point": {
+          "detected": 168,
+          "undetected_wrong": 0,
+          "undetected_correct": 32
+        },
+        "hidden_point": {
+          "detected": 200,
+          "undetected_wrong": 0,
+          "undetected_correct": 0
+        }
+      }
+    },
+    "flexible": {
+      "global": {
+        "inconsistent": {
+          "detected": 200,
+          "undetected_wrong": 0,
+          "undetected_correct": 0
+        },
+        "dense": {
+          "detected": 0,
+          "undetected_wrong": 200,
+          "undetected_correct": 0
+        },
+        "scale": {
+          "detected": 0,
+          "undetected_wrong": 200,
+          "undetected_correct": 0
+        },
+        "random_point": {
+          "detected": 0,
+          "undetected_wrong": 200,
+          "undetected_correct": 0
+        },
+        "hidden_point": {
+          "detected": 0,
+          "undetected_wrong": 200,
+          "undetected_correct": 0
+        }
+      },
+      "session": {
+        "inconsistent": {
+          "detected": 200,
+          "undetected_wrong": 0,
+          "undetected_correct": 0
+        },
+        "dense": {
+          "detected": 200,
+          "undetected_wrong": 0,
+          "undetected_correct": 0
+        },
+        "scale": {
+          "detected": 200,
+          "undetected_wrong": 0,
+          "undetected_correct": 0
+        },
+        "random_point": {
+          "detected": 200,
+          "undetected_wrong": 0,
+          "undetected_correct": 0
+        },
+        "hidden_point": {
+          "detected": 200,
+          "undetected_wrong": 0,
+          "undetected_correct": 0
+        }
+      }
+    },
+    "range": {
+      "per_corner": {
+        "inconsistent": {
+          "detected": 200,
+          "undetected_wrong": 0,
+          "undetected_correct": 0
+        },
+        "dense": {
+          "detected": 200,
+          "undetected_wrong": 0,
+          "undetected_correct": 0
+        },
+        "scale": {
+          "detected": 200,
+          "undetected_wrong": 0,
+          "undetected_correct": 0
+        },
+        "random_point": {
+          "detected": 200,
+          "undetected_wrong": 0,
+          "undetected_correct": 0
+        },
+        "hidden_point": {
+          "detected": 0,
+          "undetected_wrong": 200,
+          "undetected_correct": 0
+        }
+      },
+      "combined": {
+        "inconsistent": {
+          "detected": 200,
+          "undetected_wrong": 0,
+          "undetected_correct": 0
+        },
+        "dense": {
+          "detected": 0,
+          "undetected_wrong": 200,
+          "undetected_correct": 0
+        },
+        "scale": {
+          "detected": 0,
+          "undetected_wrong": 200,
+          "undetected_correct": 0
+        },
+        "random_point": {
+          "detected": 0,
+          "undetected_wrong": 200,
+          "undetected_correct": 0
+        },
+        "hidden_point": {
+          "detected": 0,
+          "undetected_wrong": 200,
+          "undetected_correct": 0
+        }
+      },
+      "session": {
+        "inconsistent": {
+          "detected": 200,
+          "undetected_wrong": 0,
+          "undetected_correct": 0
+        },
+        "dense": {
+          "detected": 200,
+          "undetected_wrong": 0,
+          "undetected_correct": 0
+        },
+        "scale": {
+          "detected": 200,
+          "undetected_wrong": 0,
+          "undetected_correct": 0
+        },
+        "random_point": {
+          "detected": 200,
+          "undetected_wrong": 0,
+          "undetected_correct": 0
+        },
+        "hidden_point": {
+          "detected": 200,
+          "undetected_wrong": 0,
+          "undetected_correct": 0
+        }
+      }
+    },
+    "retrieval": {
+      "width_only": {
+        "inconsistent": {
+          "detected": 0,
+          "undetected_wrong": 200,
+          "undetected_correct": 0
+        },
+        "dense": {
+          "detected": 200,
+          "undetected_wrong": 0,
+          "undetected_correct": 0
+        },
+        "scale": {
+          "detected": 200,
+          "undetected_wrong": 0,
+          "undetected_correct": 0
+        },
+        "random_point": {
+          "detected": 200,
+          "undetected_wrong": 0,
+          "undetected_correct": 0
+        },
+        "hidden_point": {
+          "detected": 200,
+          "undetected_wrong": 0,
+          "undetected_correct": 0
+        }
+      },
+      "session": {
+        "inconsistent": {
+          "detected": 200,
+          "undetected_wrong": 0,
+          "undetected_correct": 0
+        },
+        "dense": {
+          "detected": 200,
+          "undetected_wrong": 0,
+          "undetected_correct": 0
+        },
+        "scale": {
+          "detected": 200,
+          "undetected_wrong": 0,
+          "undetected_correct": 0
+        },
+        "random_point": {
+          "detected": 200,
+          "undetected_wrong": 0,
+          "undetected_correct": 0
+        },
+        "hidden_point": {
+          "detected": 200,
+          "undetected_wrong": 0,
+          "undetected_correct": 0
+        }
+      }
+    }
+  }
+}

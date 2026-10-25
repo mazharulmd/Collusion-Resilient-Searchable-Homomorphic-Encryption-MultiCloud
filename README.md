@@ -20,9 +20,10 @@ submission and its revision.
 | FGCS submission (FGCS-D-26-05016) | Rejected 27 Sep 2026, "results too premature". Package archived in [`paper/fgcs-2026-submission/`](paper/fgcs-2026-submission/) |
 | Why, and what to do next | [`docs/REJECTION_ANALYSIS.md`](docs/REJECTION_ANALYSIS.md) |
 | *Internet of Things* submission (IOT-D-26-03923) | Desk-rejected, "lack of sufficient novelty". Package in [`paper/iot-elsevier/`](paper/iot-elsevier/) |
-| **v3 manuscript (current)** | [`paper/v3/CRSHE_v3.pdf`](paper/v3/CRSHE_v3.pdf): adds oblivious range aggregation over encrypted data cubes and a bit-packed masked index. Prior-art search and its limits: [`docs/NOVELTY_SEARCH.md`](docs/NOVELTY_SEARCH.md) |
+| **v4 manuscript (current)** | [`paper/v4/CRSHE_v4.pdf`](paper/v4/CRSHE_v4.pdf): v3 merged with two externally edited drafts; adds a per-query tamper-evidence check on every path and role-scoped access, both implemented and measured. What came from where: [`docs/MERGE_LOG_v4.md`](docs/MERGE_LOG_v4.md) |
+| v3 manuscript | [`paper/v3/CRSHE_v3.pdf`](paper/v3/CRSHE_v3.pdf): adds oblivious range aggregation over encrypted data cubes and a bit-packed masked index. Prior-art search and its limits: [`docs/NOVELTY_SEARCH.md`](docs/NOVELTY_SEARCH.md) |
 | Revised manuscript (FGCS response) | [`paper/revision/CRSHE_revised.pdf`](paper/revision/CRSHE_revised.pdf), tracked changes in [`CRSHE_diff.pdf`](paper/revision/CRSHE_diff.pdf), list of changes and open items in [`CHANGES.md`](paper/revision/CHANGES.md) |
-| Reference implementation | [`crshe/`](crshe/), 57 tests in [`tests/`](tests/) |
+| Reference implementation | [`crshe/`](crshe/), 79 tests in [`tests/`](tests/) |
 | Experiments | [`bench/`](bench/) scripts → [`results/`](results/) JSON → tables generated into the manuscript |
 | First Paillier prototype | [`legacy/`](legacy/). Superseded, kept for history, with its defects listed |
 
@@ -55,7 +56,7 @@ The OpenFHE wheel used here is built for **CPython 3.12 on Linux x86-64**.
 ```bash
 python3.12 -m venv .venv && . .venv/bin/activate
 pip install -r requirements.txt
-pytest -q                                   # 57 tests
+pytest -q                                   # 79 tests
 
 cd bench
 OMP_NUM_THREADS=1 python bench_response.py  # packing, compression, single-server baseline
@@ -64,7 +65,9 @@ OMP_NUM_THREADS=1 python bench_flexible.py --nd 20000 10000 5000 1000
 OMP_NUM_THREADS=1 python bench_ops.py       # per-op costs, single-server retrieval bound
 OMP_NUM_THREADS=1 python bench_range.py     # range aggregation over a synthetic telemetry-shaped cube
 OMP_NUM_THREADS=1 python bench_packed.py    # masked index, 1 vs 32 bits per word
-python make_tables.py                       # regenerate paper/{revision,v3}/tables/*.tex
+OMP_NUM_THREADS=1 python bench_verify.py    # what each verification mode catches, every path
+OMP_NUM_THREADS=1 python bench_roles.py     # index extraction with and without role-scoped keys
+python make_tables.py                       # regenerate paper/{revision,v3,v4}/tables/*.tex
 
 # these need the raw corpora in data/raw/ (see data/README.md)
 python corpus_stats.py
@@ -110,7 +113,14 @@ sends 8 DPF keys, 2,760 B in total, for any 3-D box, and gets one 132,081 B ciph
 provider, whatever the window length (1 to 11,523 time steps). A single server answering the
 same query would need an encrypted selector as long as the cube, 44,448,859 B (computed).
 Provider time is 0.8–0.9 s (combined layout) or 3.2–3.4 s (per-corner MAC layout) in Python.
-The bit-packed masked index is 32× smaller (1.17 GB vs 37.5 GB computed at 405,184 records). The C++ prototype the manuscript's
+The bit-packed masked index is 32× smaller (1.17 GB vs 37.5 GB computed at 405,184 records).
+
+Tamper evidence (v4): with a per-query secret scalar carried in a second key set, no wrong answer
+was accepted in 4,000 tampered queries over the fast, range, flexible and retrieval paths; one
+stored MAC key accepted every consistent substitution, and per-row/per-cell keys missed every
+deviation aimed at the queried point. The verified range layout costs 1.40–1.53 s per provider
+(combined layout 0.78–0.91 s). Role-scoped keys: a role-0 user recovered 0 of 365,227 other-role
+membership bits, against all of them with one mask key. The C++ prototype the manuscript's
 other tables come from is not yet in this repository.
 
 ## Licence

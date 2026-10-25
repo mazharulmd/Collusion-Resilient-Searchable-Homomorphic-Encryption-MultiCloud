@@ -110,3 +110,60 @@ for name in ("packing.tex", "uplink.tex", "flexible.tex", "mac.tex"):
     with open(os.path.join(OUTS[0], name)) as src_f, open(os.path.join(V3, name), "w") as dst:
         dst.write(src_f.read())
 print("wrote v3 tables to", os.path.relpath(V3, ROOT))
+
+# ---- v4: verified range layout, verification modes, role-scoped access ------
+V4 = os.path.join(ROOT, "paper", "v4", "tables")
+os.makedirs(V4, exist_ok=True)
+
+
+def write_v4(name, rows):
+    with open(os.path.join(V4, name), "w") as f:
+        f.write("\n".join(rows) + "\n")
+
+
+for name in ("range_scaling.tex", "packed.tex", "packing.tex", "uplink.tex", "flexible.tex"):
+    with open(os.path.join(V3, name)) as src_f, open(os.path.join(V4, name), "w") as dst:
+        dst.write(src_f.read())
+
+d = load("range_aggregation.json")
+ds_ = load("range_session.json")
+pc, cb = d["modes"]["per_corner"]["by_window"], d["modes"]["combined"]["by_window"]
+se = ds_["modes"]["session"]["by_window"]
+rg = []
+for a, b, c in zip(pc, cb, se):
+    assert a["window_minutes"] == b["window_minutes"] == c["window_minutes"]
+    rg.append(f"{num(a['window_minutes'])} & {ms(a['provider_total'])} & {ms(b['provider_total'])} & "
+              f"{ms(c['dpf_eval_all_corners'])} & {ms(c['provider_total'])} \\\\")
+write_v4("range.tex", rg)
+
+v = load("verification_modes.json")["results"]
+KIND = [("inconsistent", "Constant on value slot"), ("dense", "Share $+\\,d$, $d$ uniform"),
+        ("scale", "$k\\cdot$share"), ("random_point", "Share $+\\,c\\,u_x$, random $x$"),
+        ("hidden_point", "Share $+\\,c\\,u_x$, $x$ = queried point")]
+
+
+def dw(c):
+    return f"${c['detected']}/{c['undetected_wrong']}$"
+
+
+ROWS = [("fast", "global", "Fast", "one key"), ("fast", "row", "", "per-row keys"),
+        ("fast", "session", "", "session"), ("range", "combined", "Range", "one key"),
+        ("range", "per_corner", "", "per-cell keys"), ("range", "session", "", "session"),
+        ("flexible", "global", "Flexible", "one key"), ("flexible", "session", "", "session"),
+        ("retrieval", "width_only", "Retrieval", "width check"), ("retrieval", "session", "", "session")]
+vt = []
+for path, mode, plab, mlab in ROWS:
+    cells = " & ".join(dw(v[path][mode][k]) for k, _ in KIND)
+    if path != "fast" and plab:
+        vt.append("\\midrule")
+    vt.append(f"{plab} & {mlab} & {cells} \\\\")
+write_v4("verify.tex", vt)
+
+ra = load("role_access.json")["results"]
+sk, rs = ra["single_key"], ra["role_scoped"]
+write_v4("roles.tex", [
+    f"One mask key & {num(sk['rows_recovered_exactly'])} & {num(sk['other_role_postings_recovered'])} of "
+    f"{num(sk['other_role_postings'])} & n/a \\\\",
+    f"Role-scoped keys & {num(rs['rows_recovered_exactly'])} & {num(rs['other_role_postings_recovered'])} of "
+    f"{num(rs['other_role_postings'])} & ${100 * rs['other_role_words_passing_width_check'] / rs['other_role_words']:.2f}\\%$ \\\\"])
+print("wrote v4 tables to", os.path.relpath(V4, ROOT))

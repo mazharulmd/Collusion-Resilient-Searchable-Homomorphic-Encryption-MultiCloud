@@ -1,0 +1,42 @@
+{
+  "environment": {
+    "cpu": "Intel(R) Xeon(R) Processor @ 2.10GHz",
+    "cores": 4,
+    "python": "3.12.3",
+    "openfhe_python": "1.5.1",
+    "omp_threads": "1",
+    "implementation": "crshe reference (Python driver, OpenFHE C++ kernels)"
+  },
+  "N": 512,
+  "roles": 3,
+  "records": 12288,
+  "results": {
+    "single_key": {
+      "rows_recovered_exactly": 512,
+      "other_role_postings": 365227,
+      "other_role_postings_recovered": 365227
+    },
+    "role_scoped": {
+      "rows_recovered_exactly": 0,
+      "other_role_postings": 365227,
+      "other_role_postings_recovered": 0,
+      "other_role_words_passing_width_check": 7946,
+      "other_role_words": 131072,
+      "chance_rate": 0.06249558956662985
+    },
+    "aggregates": {
+      "tags": 512,
+      "fast_equal_role0_truth": 512,
+      "fast_equal_all_role_truth": 0,
+      "flexible_all_records": 10200853,
+      "role0_total": 10200853,
+      "all_roles_total": 30675295
+    },
+    "storage_per_role": {
+      "fast_column_ciphertexts": 1,
+      "record_column_ciphertexts": 3,
+      "fresh_ciphertext_bytes": 263011,
+      "note": "columns and cube tables are replicated per role; the masked index is shared"
+    }
+  }
+}

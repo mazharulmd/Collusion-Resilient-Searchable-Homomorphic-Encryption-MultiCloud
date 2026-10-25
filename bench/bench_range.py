@@ -14,6 +14,7 @@ with encrypted one-hot corner vectors, from the measured size of a fresh
 ciphertext.
 """
 import argparse
+import sys
 import time
 
 import numpy as np
@@ -23,6 +24,9 @@ from crshe import Owner, dpf, field, he, rangeagg
 
 ap = argparse.ArgumentParser()
 ap.add_argument("--reps", type=int, default=5)
+ap.add_argument("--modes", nargs="+", default=["per_corner", "combined", "session"])
+ap.add_argument("--no-scaling", action="store_true", help="skip the cube-size sweep and alternatives")
+ap.add_argument("--out", default="range_aggregation.json")
 args = ap.parse_args()
 
 bfv = he.BFV()
@@ -58,7 +62,7 @@ def run_query(layout, cts, secret, box, reps):
 
 
 rows = {}
-for mode in ("per_corner", "combined"):
+for mode in args.modes:
     t0 = time.perf_counter()
     layout, cts = co.register(f"tele_{mode}", (DEV, MIN, BAND), cells, tpl, mode=mode)
     setup_s = time.perf_counter() - t0
@@ -78,6 +82,11 @@ for mode in ("per_corner", "combined"):
     rows[mode] = {"M": layout.M, "chunks": layout.chunks, "segments_per_template":
                   layout.corners if mode == "per_corner" else 1, "setup_s": setup_s,
                   "column_ciphertexts": len(cts), "by_window": res, "edge_box": edge}
+
+if args.no_scaling:
+    save(args.out, {"corpus": "synthetic, telemetry-shaped (3 x 11,523 x 10 cells, 405,184 records)",
+                    "modes": rows})
+    sys.exit(0)
 
 # ---- cube-size scaling (d = 2, combined) --------------------------------------
 scale = []
@@ -110,5 +119,5 @@ alt = {"fresh_ciphertext_bytes": fresh,
 print("single-server uplink (computed):", f"{alt['single_server_uplink_bytes_computed']:,d} B",
       "vs CR-SHE", f"{alt['crshe_uplink_bytes']:,d} B")
 
-save("range_aggregation.json", {"corpus": "synthetic, telemetry-shaped (3 x 11,523 x 10 cells, 405,184 records)",
+save(args.out, {"corpus": "synthetic, telemetry-shaped (3 x 11,523 x 10 cells, 405,184 records)",
                                 "modes": rows, "cube_scaling": scale, "alternatives": alt})

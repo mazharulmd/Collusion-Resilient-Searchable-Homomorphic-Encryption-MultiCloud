@@ -70,3 +70,27 @@ def test_stray_bit_beyond_last_record_is_rejected(bfv):
     s1[-1] = (int(s1[-1]) + (1 << 30)) % field.P   # sets a padding bit after unmasking
     with pytest.raises(VerificationError):
         u.finish_retrieve("k003", [s0, s1])
+
+
+def test_repeated_record_id_sets_one_bit():
+    """Regression: packing added 2^b per occurrence, so a repeated id carried
+    into the next bit. Bits must have set semantics."""
+    post = np.array([3, 3, 7])
+    bits = unpack_row(pack_row(post, 1), 32)
+    assert np.array_equal(np.flatnonzero(bits), [3, 7])
+
+
+def test_failure_control_additive_packing_carries():
+    """The regression test must be able to fail: the old additive packing
+    turns 3,3 into bit 4, which is the bug the test above guards."""
+    row = np.zeros(1, dtype=np.uint64)
+    post = np.array([3, 3, 7])
+    np.add.at(row, post // 32, np.left_shift(np.uint64(1), (post % 32).astype(np.uint64)))
+    assert not np.array_equal(np.flatnonzero(unpack_row(row, 32)), [3, 7])
+
+
+@pytest.mark.parametrize("bad", [np.array([0, 5, 5]), np.array([-1, 2]), np.array([0, 40])])
+def test_owner_rejects_bad_posting_lists(bfv, bad):
+    values = np.ones(40, dtype=np.int64)
+    with pytest.raises(ValueError):
+        Owner(["a"], [bad], values, {"sum": values}, n=2, bfv=bfv, seed=1)

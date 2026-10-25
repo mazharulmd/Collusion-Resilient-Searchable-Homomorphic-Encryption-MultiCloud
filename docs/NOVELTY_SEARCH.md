@@ -77,10 +77,67 @@ Do not write "first" or "novel" without this qualification. The prefix-sum (summ
 structure itself is old and must be credited. Bit-packing the masked index is an
 engineering optimisation, not a research contribution.
 
+
+## Second round (v4), 2026-10-25
+
+Searched for the two mechanisms added in v4 (the session-keyed check and role-scoped access) and,
+again, for close work on oblivious aggregation. A retry of arXiv, IACR ePrint, NDSS, PETS,
+Semantic Scholar and OpenAlex failed at the proxy for every host (no HTTP response), so everything
+below is again `abstract-only` from the Consensus index.
+
+```
+Query (Consensus): "verifiable function secret sharing distributed point function malicious server integrity check"   Date: 2026-10-25
+Opened: abstracts of de Castro & Polychroniadou (Eurocrypt 2022; ePrint 2021), Boyle-Gilboa-Ishai (CCS 2016), Xu et al. VeHSS (2024, 2025), Choudhuri et al. ve-HSS (2024), Kruglik et al. (2024)
+Blocked: full texts (proxy)
+Stopped: no (a parallel query on "secret random scaling" was rate-limited and not re-run)
+Conclusion: verifiable DPF checks that KEYS are well formed (client-side malice); verifiable HSS checks server evaluation. The BGI16 abstract states FSS for decision trees "towards FSS for multi-dimensional intervals".
+```
+
+```
+Query (Consensus): "information-theoretic MAC on homomorphic computation result client-chosen key detect malicious cloud aggregation"   Date: 2026-10-25
+Opened: abstracts of Gupta et al. "Obscure" (PVLDB 2019), Li et al. PVODTE (TDSC 2026), Bottoni et al. (2025), Li et al. (TSC 2024)
+Blocked: full texts (proxy)
+Stopped: no
+Conclusion: MAC-based verification of non-interactive two-server computation exists (PVODTE, HSS). Obscure gives oblivious, verifiable aggregation over secret-shared data.
+```
+
+```
+Query (Consensus): "oblivious range aggregation queries over secret-shared outsourced data multiple non-colluding clouds hiding access patterns"   Date: 2026-10-25
+Opened: abstracts of Gupta et al. "Obscure" (TKDE 2020), Qiu et al. Doquet (PVLDB 2023), Wang et al. (TIFS 2025), Yang et al. TRQED (TKDE 2022), Chang et al. (TKDE 2021), Zhang et al. BRASP (arXiv 2026), Nie et al. VPRQ (2024)
+Blocked: full texts (proxy)
+Stopped: no
+Conclusion: Obscure (TKDE 2020) states aggregation queries with conjunctive or disjunctive predicates over secret-shared data, hiding access and query patterns, with NO server-to-server communication and optional result verification. This is the closest work found to CR-SHE's keyword and flexible paths. Its collusion threshold and range support are not stated in the abstract.
+```
+
+```
+Query (Consensus): "private access control lists function secret sharing PACL authorization of hidden queries"   Date: 2026-10-25
+Opened: abstracts of Servan-Schreiber et al. PACL (S&P 2023), Abdolmaleki et al. (2025), Ji et al. (ePrint 2023), Kamal et al. (2025)
+Blocked: full texts (proxy)
+Stopped: no
+Conclusion: access control for FSS checks that the key-holder is authorised for the shared function (evaluator-side proof). Ji et al. report the PACL DPF scheme ignored beta and give attribute-based constraints on alpha.
+```
+
+### What changes in the manuscript because of this round
+
+* **Obscure** must be cited as the closest work on oblivious, verifiable, non-interactive
+  aggregation. CR-SHE's distinction becomes narrower: owner-encrypted replicas (no re-dealing),
+  a collusion bound of n−1 (Obscure's threshold unknown to us), and one-round range aggregates
+  over registered cubes. The v3 sentence "none of them gives analytics ... without inter-provider
+  communication" is withdrawn from every file.
+* The **session-keyed check** is an information-theoretic MAC whose key the client picks per
+  query and hides in DPF outputs. MAC-based verification of non-interactive multi-server
+  computation is known (PVODTE, verifiable HSS). We claim its use here, not the technique.
+* **Role-scoped access** restricts which data a query can reach (role-filtered columns and
+  role-keyed masks), unlike PACL and Ji et al., which restrict which keys are accepted. We do not
+  claim it is new; it costs storage per role and trusts providers to apply the policy.
+* "FSS for multi-dimensional intervals" exists (BGI16, abstract): our prefix-sum design is
+  one choice among others, not forced.
+
 ## Before submission
 
 Open and read the full texts of Hafiz et al. (NDSS 2024), HADES (VLDB 2025),
-ARQ (PoPETs 2022) and Hayata et al. (IJIS 2020) from a network that can reach them.
+ARQ (PoPETs 2022), Hayata et al. (IJIS 2020), **Obscure (PVLDB 2019, TKDE 2020)** and
+PVODTE (TDSC 2026) from a network that can reach them.
 Then update the table above. If any of them already does box aggregation over
 encrypted data at t = n−1 without interaction, the range contribution must be
 re-scoped.

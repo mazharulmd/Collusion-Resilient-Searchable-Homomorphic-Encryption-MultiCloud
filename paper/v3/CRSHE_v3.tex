@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% CR-SHE, prepared for Elsevier "Internet of Things" (ISSN 2542-6605)
+%% CR-SHE v3 (after the Internet of Things desk rejection, IOT-D-26-03923)
 %% Elsevier CAS single-column template (cas-sc).
 %% Guide for authors checked October 2026: abstract <= 250 words, 1-7 keywords,
 %% 3-5 highlights of <= 85 characters (also supplied as a separate file),
@@ -149,13 +149,13 @@ encrypted summed-area tables of registered data cubes; a query is $2^d$
 distributed-point-function keys with signed outputs at the box's corners,
 padded with dummy keys so that ranges touching the cube's edge look the same,
 and each provider returns a single ciphertext. Per-cell MAC keys let the client
-detect deviating providers, and a bit-packed masked index shrinks retrieval
-32-fold for arbitrary selections in a second round. We prove correctness and
+detect deviating providers, and a bit-packed masked index, 32 times smaller,
+serves arbitrary selections in a second round. We prove correctness and
 adaptive security, and evaluate an open implementation on a telemetry-shaped
 cube of $345{,}690$ cells over $405{,}184$ records: provider cost and the
 $132$\,kB response do not change from a one-minute window to the whole
-timeline, and a query needs $2.7$\,kB of uplink, against $44$\,MB for a single
-server answering it.
+timeline, and a query needs $2.7$\,kB of uplink, against a computed $44$\,MB
+for a single server.
 \end{abstract}
 
 %% ===========================================================================
@@ -170,8 +170,8 @@ server answering it.
 \item Encrypted summed-area tables turn any d-dimensional box into 2^d DPF
       keys.
 \item Dummy corner keys hide whether a range touches the edge of the cube.
-\item Without server interaction, sharing the data cannot replace homomorphic
-      encryption.
+\item Without server interaction, secret-sharing the data still needs
+      single-server PIR.
 \item Cost and the 132 kB response are flat from one minute to the whole
       timeline.
 \end{highlights}
@@ -320,7 +320,8 @@ only uniform shares, so the guarantee is unchanged.
 \item \textbf{A packed, masked index.} A one-time-pad mask, sampled exactly
 uniformly over $\mathbb{Z}_p$, makes the stored index perfectly hiding under
 the PRF assumption, and packing $32$ membership bits per $\mathbb{Z}_p$ word
-cuts its size and the retrieval pass $32$-fold while keeping four bits of
+cuts its size $32$-fold and retrieval time $19$--$27$-fold in our measurements,
+while keeping four bits of
 headroom to reject corrupted words (Section~\ref{sec:mask},
 Theorem~\ref{thm:mask}).
 
@@ -420,9 +421,9 @@ aggregates, and we measure it directly as baseline~(vi)
 factor in server work and three to four orders of magnitude in uplink, not
 asymptotic work. On retrieval and the flexible path a single server must
 multiply an encrypted selection vector by the whole $N\times N_d$ index, at
-least $NN_d/\ell$ homomorphic products, which we bound at no less than three
-times CR-SHE's retrieval in the same implementation; again a constant factor,
-with the uplink gap on top.
+least $N\lceil N_d/32\rceil/\ell$ homomorphic products with the same bit
+packing, which we bound at $1.5$--$3.1$ times CR-SHE's retrieval in the same
+implementation; again a constant factor, with the uplink gap on top.
 
 \subsection{Encrypted search, encrypted analytics and multi-cloud storage}
 Searchable encryption leaks search and access patterns, which leakage-abuse
@@ -713,8 +714,9 @@ $\alpha$ to either provider and so cannot occur for a private DPF. \qed
 
 The cross terms are not an artefact of choosing linear answers. Take any
 non-interactive scheme in which $\text{CP}_1$ holds an additive share $S_1$ of
-the data, providers answer independently, and every query and response is
-shorter than a share. Given a database $X$ held by a single server, a client
+the data, the client forms its queries without reference to the data,
+providers answer independently, and every query and response is shorter than a
+share. Given a database $X$ held by a single server, a client
 can run that scheme with $S_1:=X$ and the other shares drawn by itself, which
 fixes the data as $A=X+\sum_{k>1}S_k$. It plays providers $2,\dots,n$ locally,
 sends only the first query to the server, and subtracts $\sum_{k>1}S_k[\alpha]$
@@ -980,8 +982,11 @@ is one ciphertext. The DU adds the $n$ responses and decrypts. In the combined
 layout slot $0$ holds the range aggregate directly. In the per-corner layout it
 holds each signed corner value $\beta_\sigma T_f[\kappa_\sigma]$, which the DU
 checks against a per-cell MAC key (row~$1$ of the segment holds
-$\delta_c T_f[c]$, $\delta_c=F''_{K''}(c)$); a dummy corner must decrypt to
-$0$ in both rows. The DU adds the corners.
+$\delta_c T_f[c]$, with $\delta_c=F''_{K''}(\mathsf{cube},c)$ domain-separated
+from the fast path's per-row keys); a dummy corner must decrypt to $0$ in both
+rows. The DU adds the corners. In the combined layout row~$1$ holds
+$\delta T_f[c]$ under the global key, so slot $\ell/2$ carries $\delta$ times
+the aggregate.
 
 \emph{Cost.} Per provider: $2^d$ full-domain DPF evaluations over $M$ cells,
 $\lceil kM/(\ell/2)\rceil$ plaintext-ciphertext products with $k=2^d|\{f\}|$
@@ -999,10 +1004,16 @@ slice, and the DO re-encrypts only the ciphertexts covering it; since time
 advances publicly, that reveals nothing new.
 
 \emph{Why prefix sums rather than interval FSS.} Distributed comparison
-functions \citep{boyle2016function} share interval indicators directly, but a
-$d$-dimensional box is a product of intervals, which a linear contraction of
-shares cannot form. Prefix sums turn the box into $2^d$ points, so the
+functions \citep{boyle2016function} share one-dimensional interval indicators,
+and in one dimension contracting such shares against the cell column is an
+alternative to prefix sums. A $d$-dimensional box indicator is the product of
+$d$ interval indicators, which providers cannot form from shares of the
+factors without interacting; function secret sharing for boxes as a function
+class in its own right is a possible alternative that we have neither
+implemented nor compared. Prefix sums turn the box into $2^d$ points, so the
 point-function DPF and the homomorphic contraction are used unchanged.
+\authorcheck{Check the FSS literature for multi-dimensional interval
+functions (key size, evaluation cost) and compare.}
 
 \subsection{Verification of the aggregate}
 \label{sec:verify}
@@ -1213,7 +1224,7 @@ tables with time as the first axis are the exception
          $\Dec(sk,\bplus_j\text{ct}_j)$
   \State \textbf{abort} if $\hat{y}\neq\delta_{\alpha_w} y$
          (fast) or $\delta y$ (flexible)
-  \State retrieval: $b\gets(\sum_j b_j)-P[\alpha_w]$
+  \State retrieval: $b\gets\mathrm{unpack}\big((\sum_j b_j)-P[\alpha_w]\big)$
   \State \hskip2em $S\gets\{i: b[i]=1\}$
   \State \Return $y$, and $S$ if retrieving
 \EndProcedure
@@ -1237,7 +1248,7 @@ queried, which records contributed, how many did, or the mean itself.
 $\Leak=(\Leak_{\mathrm{Setup}},\Leak^{\text{CP}},\Leak^{\text{DU}})$ with an
 observer split:
 \begin{align*}
-\Leak_{\mathrm{Setup}}(DB) &= (n,t,N,N_d,p,\ell,\{w_f\}),\\
+\Leak_{\mathrm{Setup}}(DB) &= (n,t,N,N_d,p,\ell,\{w_f\},\{(s_1,\dots,s_d)\}_{\text{cubes}}),\\
 \Leak^{\text{CP}}_{\mathrm{Query}} &= \mathrm{class}(q),\\
 \Leak^{\text{DU}}_{\mathrm{Query}} &= \big(|S|,\ f(\mathrm{records}(S))\big).
 \end{align*}
@@ -1259,10 +1270,11 @@ $\Leak^{\text{DU}}$, never to the coalition.
 In $\Real_{\Adv,\Pi}(1^\lambda)$: (1) $\Adv$ outputs $(DB,C)$ with $|C|\le t$;
 (2) the challenger runs $\mathsf{Setup}$, $\mathsf{BuildIndex}$,
 $\mathsf{Precompute}$, $\mathsf{EncData}$ and gives $\Adv$ the static view
-$(I',\text{CT},\widehat{\text{CT}},\{A_f,\widehat A_f\}_f,pk,pp)$;
+$(I',\text{CT},\widehat{\text{CT}},\{A_f,\widehat A_f\}_f,\{T_f,\widehat
+T_f\}_{f,\text{cube}},pk,pp)$;
 (3) for $q=1,\dots,Q$, $\Adv$ adaptively issues a query (a keyword with a
-template layout, a keyword to retrieve, or a selection vector $v_q$ for a
-flexible round) and receives the coalition's per-query view: its DPF keys
+template layout, a box of a registered cube with a layout, a keyword to
+retrieve, or a selection vector $v_q$ for a flexible round) and receives the coalition's per-query view: its DPF keys
 $\{\kappa_{q,j}\}_{j\in C}$ or its shares $\{v_{q,j}\}_{j\in C}$, and the
 responses those providers compute; (4) $\Adv$
 outputs a bit. In $\Ideal_{\Adv,\Sim,\Leak}(1^\lambda)$ a $\PPT$ simulator
@@ -1374,8 +1386,9 @@ $\mathrm{Adv}^{\mathrm{PRF}}_{B_4}$. Either way the coalition's shares become
 uniform and independent of $v_q$, over at most $Q$ rounds.
 
 \emph{$H_3$ (ciphertexts to encryptions of $0$).} Replace each of the $m$
-ciphertexts in the coalition view, namely the record column and the columns
-$A_f,\widehat A_f$, by encryptions of $0$ under $pk$,
+ciphertexts in the coalition view, namely the record column, the columns
+$A_f,\widehat A_f$ and the tables $T_f,\widehat T_f$, by encryptions of $0$
+under $pk$,
 at cost $m\cdot\mathrm{Adv}^{\mathrm{CPA}}_{B_3}$, since the coalition holds
 only $pk$.
 
@@ -1397,7 +1410,7 @@ and let the per-cell keys $\delta_c$ be uniform and unknown to it. The DU
 accepts a result different from the honest one only if, for some $\sigma$,
 $d_\sigma$ is supported on $\{\kappa_\sigma\}\cup\{c: T_f[c]=0\}$ for a real
 corner, or on $\{c: T_f[c]=0\}$ for a dummy corner; otherwise it accepts with
-probability at most $2^d/p$.
+probability at most $1/p$.
 \end{lemma}
 \begin{pf}
 Segment $\sigma$ decrypts to $y=\beta_\sigma T_f[\kappa_\sigma]+\Delta$ and
@@ -1410,12 +1423,15 @@ If $d_\sigma$ touches some $c\ne\kappa_\sigma$ with $T_f[c]\ne0$, this is a
 non-zero affine form in the independent uniform $\delta_c$ and vanishes with
 probability $1/p$. For a dummy corner the DU requires $y=\hat y=0$, so
 $\hat\Delta=0$, which has probability $1/p$ unless $d_\sigma[c]T_f[c]=0$ for all
-$c$. A union bound over the $2^d$ segments gives the bound. If every $d_\sigma$
+$c$. The DU accepts only if every segment passes, so one segment that
+violates the support condition already bounds acceptance by $1/p$. If every
+$d_\sigma$
 satisfies the support condition, each perturbation is either zero or
 concentrated on $\kappa_\sigma$, the corner the DPF hides. \qed
 \end{pf}
 Because cell aggregates are non-negative, $T_f[c]=0$ only when the box
-$\prod_k[0,c_k]$ holds no record, so in practice an undetected deviation must
+$\prod_k[0,c_k]$ holds no record with a non-zero contribution (for
+\textsc{count}, no record at all), so in practice an undetected deviation must
 hit the hidden corner itself. Its success probability is then at most the provider's chance of
 guessing $\kappa_\sigma$.
 
@@ -1491,10 +1507,11 @@ Fourth, the single-server alternative of Section~\ref{sec:packing} needs no
 non-collusion assumption but pays in two places. On the fast path its query is
 $\lceil N/(\ell/2)\rceil$ fresh ciphertexts instead of an $O(\lambda\log N)$
 key, and its contraction uses ciphertext-ciphertext products. On retrieval and
-the flexible path it must multiply an encrypted $N$-vector by the
-$N\times N_d$ index, about $NN_d/\ell$ plaintext-ciphertext products with
-diagonal packing \citep{halevi2014algorithms}, where CR-SHE does $\Theta(NN_d)$
-word operations. Both are $\Theta(NN_d)$: the gap is the constant ratio of a
+the flexible path it must multiply an encrypted $N$-vector by the packed
+$N\times\lceil N_d/32\rceil$ index, about $N\lceil N_d/32\rceil/\ell$
+plaintext-ciphertext products with diagonal packing
+\citep{halevi2014algorithms}, where CR-SHE does $\Theta(NN_d/32)$ word
+operations. Both are linear in $NN_d$: the gap is the constant ratio of a
 homomorphic slot operation to a machine-word operation, which
 Section~\ref{sec:packresult} bounds from below. What does not shrink with
 better kernels is the client side: a $\lambda\log N$-bit key against
@@ -1648,15 +1665,16 @@ one-minute window to the whole $11{,}523$-minute timeline, a provider spends
 $3.24$--$3.44$\,s in the per-corner layout and $0.78$--$0.91$\,s in the
 combined layout, of which $0.45$--$0.60$\,s is the evaluation of the eight DPF
 keys. Every query sends $2{,}760$\,B of keys to each provider and receives one
-$132{,}081$\,B ciphertext. A box on the cube's edge, which turns two of its eight
-corners into dummy keys, costs the same ($3{,}238.8$ and $937.8$\,ms) and sends
-the same eight keys. The data user spends $6$--$15$\,ms generating keys and
+$132{,}081$\,B ciphertext. The whole-timeline box already starts at the cube's
+edge, so four of its eight keys are dummies; a $240$-minute box at the cube's
+origin, on which seven of the eight are dummies, costs the same ($3{,}238.8$ and
+$937.8$\,ms) and sends the same eight keys. The data user spends $6$--$15$\,ms generating keys and
 $1.1$--$1.9$\,ms combining, verifying and decrypting.
 
 \emph{Where the time goes.} The per-corner layout stores each table eight times
 and contracts $1{,}351$ packed chunks, the combined layout $169$. At the
 measured $0.092$\,ms per plaintext-ciphertext product (Section~\ref{sec:packresult})
-the products themselves account for $124$ and $16$\,ms, a computed figure; the
+the products themselves account for $125$ and $16$\,ms, a computed figure; the
 rest is the DPF evaluation and the Python-side encoding of one plaintext
 vector per chunk, which a native implementation largely avoids. The per-corner
 layout buys verification of every corner (Lemma~\ref{lem:cornermac}); the
@@ -1691,8 +1709,9 @@ keys and response, and the number of queries reveals the box's size. Through
 the flexible path it needs a retrieval for the device, each of the $240$
 minutes and each band before the contraction. A single server holding the same
 encrypted table needs no non-collusion assumption but an encrypted query as long
-as the table: $169$ fresh ciphertexts, $44.4$\,MB of uplink computed from the
-measured ciphertext size, against $2.7$\,kB of DPF keys.
+as the table: $169$ fresh ciphertexts in the combined layout, $44.4$\,MB of
+uplink computed from the measured ciphertext size, against $2.7$\,kB of DPF
+keys.
 
 \subsection{Selection latency and key size}
 Table~\ref{tab:search} reports the per-provider full-domain evaluation in the
@@ -2240,8 +2259,8 @@ output delivery. Per-user authorisation remains a requirement the prototype
 does not meet (Section~\ref{sec:authresult}).
 
 \emph{Collusion beyond two providers.} For $n>2$ the prototype uses a
-non-succinct sharing whose heavy key is $8N+16$ bytes; range queries multiply
-it by $2^d$. Our key-size claims are for $n=2$.
+non-succinct sharing whose heavy key is $8N+16$ bytes; a range query needs
+$2^d$ such keys over the cube's $M$ cells. Our key-size claims are for $n=2$.
 
 \emph{Prior art.} The full texts of the closest works on private aggregation
 and range queries could not be read from our environment
@@ -2295,9 +2314,12 @@ During the preparation of this work the authors used Claude (Anthropic), an
 AI assistant, in order to convert the manuscript between journal templates,
 edit and restructure the text, write the plotting script that draws
 Fig.~\ref{fig:arch}, develop the reference implementation with its tests
-and benchmark scripts, and draft parts of the analysis in
+and benchmark scripts, search the literature for prior work on private range
+aggregation, and draft parts of the text and analysis, including the range
+construction, Lemma~\ref{lem:cornermac} and its results in
+Sections~\ref{sec:range} and~\ref{sec:rangeresult}, and
 Sections~\ref{sec:whyrep}, \ref{sec:flex}, \ref{sec:packing},
-\ref{sec:packresult} and~\ref{sec:flexresult}. No image was generated or
+\ref{sec:packresult}, \ref{sec:flexresult} and~\ref{sec:packedresult}. No image was generated or
 altered by a generative AI tool. After using this tool, the authors reviewed
 and edited the content as needed and take full responsibility for the content
 of the publication.

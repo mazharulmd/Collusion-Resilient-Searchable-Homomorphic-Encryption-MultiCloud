@@ -26,6 +26,12 @@ import numpy as np
 
 from . import dpf, field, he, prg
 
+# Membership bits packed into one Z_p element of the masked index. p is just
+# above 2^36, so 32 bits leave four bits of headroom: after the mask is
+# stripped, a word >= 2^32 can only come from a corrupted share, and a random
+# corruption lands below 2^32 with probability 1/16.
+PACK_BITS = 32
+
 
 # ---------------------------------------------------------------------------
 # helpers
@@ -45,6 +51,19 @@ def matvec_mod(e, M, block=64):
         acc0 = field.add(acc0, (e0[s:s + block] @ M[s:s + block]) % np.uint64(field.P))
         acc1 = field.add(acc1, (e1[s:s + block] @ M[s:s + block]) % np.uint64(field.P))
     return field.add(acc0, field.mul(acc1, np.uint64((1 << 19) % field.P)))
+
+
+def pack_row(post, words, bits=PACK_BITS):
+    """Bit i of the row set for each record i in `post`, `bits` per word."""
+    row = np.zeros(words, dtype=np.uint64)
+    post = np.asarray(post, dtype=np.int64)
+    np.add.at(row, post // bits, np.left_shift(np.uint64(1), (post % bits).astype(np.uint64)))
+    return row
+
+
+def unpack_row(row, n_records, bits=PACK_BITS):
+    shifts = np.arange(bits, dtype=np.uint64)
+    return ((row[:, None] >> shifts) & np.uint64(1)).reshape(-1)[:n_records]
 
 
 def mask_rows(key, rows, n_records):
@@ -74,7 +93,7 @@ class Owner:
     """Holds the plaintext records, the dictionary and every secret."""
 
     def __init__(self, tags, postings, values, templates, n, N=None, bfv=None,
-                 seed=None, build_masked_index=False):
+                 seed=None, build_masked_index=False, pack_bits=PACK_BITS):
         """
         tags       list of tag names; row of tag k is k (sorted order is the
                    caller's choice, rows never move)
@@ -84,7 +103,12 @@ class Owner:
         n          number of providers
         N          tag domain (>= len(tags)); free rows are all-zero rows
         seed       fixes the owner's keys for reproducible experiments only
+        pack_bits  membership bits per masked-index word (1 = one bit per
+                   word, the unpacked layout)
         """
+        if not 1 <= pack_bits <= field.P_BITS - 1:
+            raise ValueError("a packed word must stay below p")
+        self.pack_bits = pack_bits
         self.tags = list(tags)
         self.D = {t: i for i, t in enumerate(self.tags)}
         self.postings = [np.asarray(p, dtype=np.int64) for p in postings]
@@ -151,11 +175,15 @@ class Owner:
 
     # -- retrieval and flexible path -----------------------------------------
     def _masked_index(self):
-        I = np.zeros((self.N, self.Nd), dtype=np.uint64)
+        """I'[x] = pack(I[x]) + P[x] mod p, `pack_bits` membership bits per word.
+        A packed word is below 2^pack_bits < p, so the one-time pad still hides
+        it perfectly (Theorem 1), and the index shrinks by pack_bits."""
+        words = -(-self.Nd // self.pack_bits)
+        I = np.zeros((self.N, words), dtype=np.uint64)
         for x, post in enumerate(self.postings):
-            I[x, post] = 1
+            I[x] = pack_row(post, words, self.pack_bits)
         for x in range(self.N):
-            I[x] = field.add(I[x], prg.uniform_zp(self.K_mask, prg.DOMAIN_MASK, x, self.Nd))
+            I[x] = field.add(I[x], prg.uniform_zp(self.K_mask, prg.DOMAIN_MASK, x, words))
         return I
 
     def record_columns(self):
@@ -188,7 +216,8 @@ class Owner:
     def user(self):
         """Authorised data user: dictionary, mask key, MAC keys, delegated sk."""
         return DataUser(self.bfv, self.D, self.N, self.Nd, self.n, self.K_mask,
-                        self.delta, self.delta_rows, int(self.values.max(initial=0)))
+                        self.delta, self.delta_rows, int(self.values.max(initial=0)),
+                        self.pack_bits)
 
 
 @dataclass
@@ -286,8 +315,10 @@ class VerificationError(Exception):
 
 
 class DataUser:
-    def __init__(self, bfv, D, N, Nd, n, K_mask, delta, delta_rows, m_max):
+    def __init__(self, bfv, D, N, Nd, n, K_mask, delta, delta_rows, m_max,
+                 pack_bits=PACK_BITS):
         self.bfv = bfv
+        self.pack_bits = pack_bits
         self.m_max = m_max      # public bound on the record field, for Lemma 1
         self._sk = bfv.secret_key()
         self.D, self.N, self.Nd, self.n = D, N, Nd, n
@@ -329,10 +360,14 @@ class DataUser:
         acc = shares[0]
         for s in shares[1:]:
             acc = field.add(acc, s)
-        b = field.sub(acc, prg.uniform_zp(self.K_mask, prg.DOMAIN_MASK, alpha, self.Nd))
-        if not np.isin(b, (0, 1)).all():
-            raise VerificationError("retrieved row is not a 0/1 vector")
-        return np.flatnonzero(b)
+        words = -(-self.Nd // self.pack_bits)
+        row = field.sub(acc, prg.uniform_zp(self.K_mask, prg.DOMAIN_MASK, alpha, words))
+        if (row >> np.uint64(self.pack_bits)).any():
+            raise VerificationError("retrieved word exceeds the packed width")
+        bits = unpack_row(row, words * self.pack_bits, self.pack_bits)
+        if bits[self.Nd:].any():
+            raise VerificationError("bits set beyond the record count")
+        return np.flatnonzero(bits[:self.Nd])
 
     def deal_selection(self, selection, weights=None):
         """Flexible path, round 2: fresh additive shares of w o 1_S."""

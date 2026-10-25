@@ -2637,9 +2637,9 @@ evaluation, multi-owner multi-key deployment, and richer predicates than
 single-keyword selection.
 
 % ===========================================================================
-% \ifanonymous\else\printcredits\fi emits its own "CRediT authorship contribution statement"
+% \printcredits emits its own "CRediT authorship contribution statement"
 % heading from the \credit declarations in the front matter.
-\printcredits
+\ifanonymous\else\printcredits\fi
 
 \section*{Declaration of competing interest}
 The authors declare that they have no known competing financial interests or

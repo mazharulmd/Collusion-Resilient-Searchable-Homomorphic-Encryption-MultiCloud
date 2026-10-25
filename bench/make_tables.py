@@ -75,3 +75,38 @@ for kind, lab in names.items():
     mac.append(f"{lab} & {cell(g)} & {cell(r)} \\\\")
 write("mac.tex", mac)
 print("wrote tables to", [os.path.relpath(o, ROOT) for o in OUTS])
+
+
+# ---- v3: range aggregation and packed index -------------------------------
+V3 = os.path.join(ROOT, "paper", "v3", "tables")
+os.makedirs(V3, exist_ok=True)
+
+
+def write_v3(name, rows):
+    with open(os.path.join(V3, name), "w") as f:
+        f.write("\n".join(rows) + "\n")
+
+
+d = load("range_aggregation.json")
+rg = []
+pc, cb = d["modes"]["per_corner"]["by_window"], d["modes"]["combined"]["by_window"]
+for a, b in zip(pc, cb):
+    assert a["window_minutes"] == b["window_minutes"]
+    rg.append(f"{num(a['window_minutes'])} & {ms(a['dpf_eval_all_corners'])} & {ms(a['provider_total'])} & "
+              f"{ms(b['dpf_eval_all_corners'])} & {ms(b['provider_total'])} \\\\")
+write_v3("range.tex", rg)
+sc = [f"{num(s['M'])} & ${s['chunks']}$ & {ms(s['dpf_eval_all_corners'])} & {ms(s['provider_total'])} \\\\"
+      for s in d["cube_scaling"]]
+write_v3("range_scaling.tex", sc)
+
+d = load("packed_index.json")
+pk = []
+for r in d["rows"]:
+    label = "unpacked" if r["pack_bits"] == 1 else f"{r['pack_bits']} bits/word"
+    pk.append(f"{num(r['Nd'])} & {label} & ${r['index_bytes'] / 1e9:.3f}$ & {ms(r['retrieve'])} & "
+              f"{num(r['retrieve_downlink_bytes'])} \\\\")
+write_v3("packed.tex", pk)
+for name in ("packing.tex", "uplink.tex", "flexible.tex", "mac.tex"):
+    with open(os.path.join(OUTS[0], name)) as src_f, open(os.path.join(V3, name), "w") as dst:
+        dst.write(src_f.read())
+print("wrote v3 tables to", os.path.relpath(V3, ROOT))

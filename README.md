@@ -19,8 +19,10 @@ submission and its revision.
 |---|---|
 | FGCS submission (FGCS-D-26-05016) | Rejected 27 Sep 2026, "results too premature". Package archived in [`paper/fgcs-2026-submission/`](paper/fgcs-2026-submission/) |
 | Why, and what to do next | [`docs/REJECTION_ANALYSIS.md`](docs/REJECTION_ANALYSIS.md) |
-| Revised manuscript | [`paper/revision/CRSHE_revised.pdf`](paper/revision/CRSHE_revised.pdf), tracked changes in [`CRSHE_diff.pdf`](paper/revision/CRSHE_diff.pdf), list of changes and open items in [`CHANGES.md`](paper/revision/CHANGES.md) |
-| Reference implementation | [`crshe/`](crshe/), 34 tests in [`tests/`](tests/) |
+| *Internet of Things* submission (IOT-D-26-03923) | Desk-rejected, "lack of sufficient novelty". Package in [`paper/iot-elsevier/`](paper/iot-elsevier/) |
+| **v3 manuscript (current)** | [`paper/v3/CRSHE_v3.pdf`](paper/v3/CRSHE_v3.pdf): adds oblivious range aggregation over encrypted data cubes and a bit-packed masked index. Prior-art search and its limits: [`docs/NOVELTY_SEARCH.md`](docs/NOVELTY_SEARCH.md) |
+| Revised manuscript (FGCS response) | [`paper/revision/CRSHE_revised.pdf`](paper/revision/CRSHE_revised.pdf), tracked changes in [`CRSHE_diff.pdf`](paper/revision/CRSHE_diff.pdf), list of changes and open items in [`CHANGES.md`](paper/revision/CHANGES.md) |
+| Reference implementation | [`crshe/`](crshe/), 57 tests in [`tests/`](tests/) |
 | Experiments | [`bench/`](bench/) scripts → [`results/`](results/) JSON → tables generated into the manuscript |
 | First Paillier prototype | [`legacy/`](legacy/). Superseded, kept for history, with its defects listed |
 
@@ -32,7 +34,8 @@ crshe/            reference implementation (Python driving OpenFHE's C++ kernels
   prg.py          fixed-key AES-MMO generator; AES-CTR PRF with exact rejection sampling
   dpf.py          two-party BGI tree DPF over Z_p; non-succinct n-party sharing
   he.py           BFV at p = 68,724,326,401, ring 8,192, depth 1, 128-bit security
-  protocol.py     owner / provider / data user: fast path, retrieval, flexible path
+  protocol.py     owner / provider / data user: fast path, retrieval (bit-packed index), flexible path
+  rangeagg.py     oblivious range aggregation: encrypted summed-area cubes, 2^d signed DPF keys
   baselines.py    single-server encrypted-selection baseline; (n,n)-sharing counterexample
   attack.py       frequency attack vs unmasked, padded, volume-hiding and masked index
   corpus.py       loaders for the two public IoT corpora, plus a synthetic corpus
@@ -40,7 +43,7 @@ tests/            pytest suite
 bench/            one script per experiment; make_tables.py renders results into LaTeX
 results/          JSON outputs, each stamped with the machine and library versions
 data/             where the raw corpora go (not redistributed; see data/README.md)
-paper/            FGCS submission (as submitted) and the revision
+paper/            FGCS and IoT submissions (as submitted), the revision, and v3
 docs/             rejection analysis and revision plan
 legacy/           superseded Paillier prototype
 ```
@@ -52,14 +55,16 @@ The OpenFHE wheel used here is built for **CPython 3.12 on Linux x86-64**.
 ```bash
 python3.12 -m venv .venv && . .venv/bin/activate
 pip install -r requirements.txt
-pytest -q                                   # 34 tests
+pytest -q                                   # 57 tests
 
 cd bench
 OMP_NUM_THREADS=1 python bench_response.py  # packing, compression, single-server baseline
 python bench_mac.py                         # MAC detection, global vs per-row keys
 OMP_NUM_THREADS=1 python bench_flexible.py --nd 20000 10000 5000 1000
 OMP_NUM_THREADS=1 python bench_ops.py       # per-op costs, single-server retrieval bound
-python make_tables.py                       # regenerate paper/revision/tables/*.tex
+OMP_NUM_THREADS=1 python bench_range.py     # range aggregation over a synthetic telemetry-shaped cube
+OMP_NUM_THREADS=1 python bench_packed.py    # masked index, 1 vs 32 bits per word
+python make_tables.py                       # regenerate paper/{revision,v3}/tables/*.tex
 
 # these need the raw corpora in data/raw/ (see data/README.md)
 python corpus_stats.py
@@ -98,7 +103,14 @@ print(user.finish_fast("device:b", layout, [p.fast(k, "stats", compress=True)
 
 The trust split's advantage over a single server is a small constant factor in server
 work. It is large in uplink and client cost: a 260 B DPF key against 3–9 fresh
-ciphertexts. See §10.5 of the revised manuscript. The C++ prototype the manuscript's
+ciphertexts. See §10.5 of the revised manuscript.
+
+Range aggregation (v3; synthetic cube of 3 × 11,523 × 10 cells, 405,184 records): the client
+sends 8 DPF keys, 2,760 B in total, for any 3-D box, and gets one 132,081 B ciphertext per
+provider, whatever the window length (1 to 11,523 time steps). A single server answering the
+same query would need an encrypted selector as long as the cube, 44,448,859 B (computed).
+Provider time is 0.8–0.9 s (combined layout) or 3.2–3.4 s (per-corner MAC layout) in Python.
+The bit-packed masked index is 32× smaller (1.17 GB vs 37.5 GB computed at 405,184 records). The C++ prototype the manuscript's
 other tables come from is not yet in this repository.
 
 ## Licence

@@ -1,0 +1,129 @@
+{
+  "environment": {
+    "cpu": "Intel(R) Xeon(R) Processor @ 2.10GHz",
+    "cores": 4,
+    "python": "3.12.3",
+    "openfhe_python": "1.5.1",
+    "omp_threads": "1",
+    "implementation": "crshe reference (Python driver, OpenFHE C++ kernels)"
+  },
+  "N": 11580,
+  "rows": [
+    {
+      "Nd": 10000,
+      "pack_bits": 1,
+      "index_bytes": 926400000,
+      "build_masked_index": {
+        "median_ms": 7054.2126870000175,
+        "q1_ms": 7054.2126870000175,
+        "q3_ms": 7054.2126870000175,
+        "reps": 1
+      },
+      "retrieve": {
+        "median_ms": 424.39582600013637,
+        "q1_ms": 409.4906569999921,
+        "q3_ms": 426.37754850011333,
+        "reps": 5
+      },
+      "retrieve_downlink_bytes": 80000,
+      "matched": 10000
+    },
+    {
+      "Nd": 10000,
+      "pack_bits": 32,
+      "index_bytes": 28996320,
+      "build_masked_index": {
+        "median_ms": 479.0127250000751,
+        "q1_ms": 479.0127250000751,
+        "q3_ms": 479.0127250000751,
+        "reps": 1
+      },
+      "retrieve": {
+        "median_ms": 22.030201000006855,
+        "q1_ms": 21.76685450012883,
+        "q3_ms": 22.698277000017697,
+        "reps": 5
+      },
+      "retrieve_downlink_bytes": 2504,
+      "matched": 10000
+    },
+    {
+      "Nd": 20000,
+      "pack_bits": 1,
+      "index_bytes": 1852800000,
+      "build_masked_index": {
+        "median_ms": 7881.782275999967,
+        "q1_ms": 7881.782275999967,
+        "q3_ms": 7881.782275999967,
+        "reps": 1
+      },
+      "retrieve": {
+        "median_ms": 696.2405530000524,
+        "q1_ms": 632.7962789999901,
+        "q3_ms": 879.3057200000476,
+        "reps": 5
+      },
+      "retrieve_downlink_bytes": 160000,
+      "matched": 20000
+    },
+    {
+      "Nd": 20000,
+      "pack_bits": 32,
+      "index_bytes": 57900000,
+      "build_masked_index": {
+        "median_ms": 453.70505799996863,
+        "q1_ms": 453.70505799996863,
+        "q3_ms": 453.70505799996863,
+        "reps": 1
+      },
+      "retrieve": {
+        "median_ms": 25.992602000087572,
+        "q1_ms": 24.363156499930483,
+        "q3_ms": 56.26499350000813,
+        "reps": 5
+      },
+      "retrieve_downlink_bytes": 5000,
+      "matched": 20000
+    },
+    {
+      "Nd": 100000,
+      "pack_bits": 32,
+      "index_bytes": 289500000,
+      "build_masked_index": {
+        "median_ms": 1437.4822380000296,
+        "q1_ms": 1437.4822380000296,
+        "q3_ms": 1437.4822380000296,
+        "reps": 1
+      },
+      "retrieve": {
+        "median_ms": 234.63710900000478,
+        "q1_ms": 193.3032945000832,
+        "q3_ms": 253.64764500000092,
+        "reps": 5
+      },
+      "retrieve_downlink_bytes": 25000,
+      "matched": 100000
+    },
+    {
+      "Nd": 405184,
+      "pack_bits": 32,
+      "index_bytes": 1173007680,
+      "build_masked_index": {
+        "median_ms": 4325.994759999958,
+        "q1_ms": 4325.994759999958,
+        "q3_ms": 4325.994759999958,
+        "reps": 1
+      },
+      "retrieve": {
+        "median_ms": 1095.7884929998727,
+        "q1_ms": 1078.647584000123,
+        "q3_ms": 1105.583620999937,
+        "reps": 5
+      },
+      "retrieve_downlink_bytes": 101296,
+      "matched": 405184
+    }
+  ],
+  "computed_unpacked_index_bytes_full_corpus": 37536245760,
+  "note": "postings are synthetic; index size and retrieval cost depend only on N and N_d"
+}

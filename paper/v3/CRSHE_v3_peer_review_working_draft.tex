@@ -1246,7 +1246,8 @@ queried, which records contributed, how many did, or the mean itself.
 $\Leak=(\Leak_{\mathrm{Setup}},\Leak^{\text{CP}},\Leak^{\text{DU}})$ with an
 observer split:
 \begin{align*}
-\Leak_{\mathrm{Setup}}(DB) &= (n,t,N,N_d,p,\ell,\{w_f\},\{(s_1,\dots,s_d)\}_{\text{cubes}}),\\
+\Leak_{\mathrm{Setup}}(DB) &=
+(n,t,N,N_d,p,\ell,\mathrm{cubeMeta},\mathrm{layoutMeta},\mathrm{tierMeta}),\\
 \Leak^{\text{CP}}_{\mathrm{Query}} &= \mathrm{class}(q),\\
 \Leak^{\text{DU}}_{\mathrm{Query}} &= \big(|S|,\ f(\mathrm{records}(S))\big).
 \end{align*}
@@ -2295,23 +2296,22 @@ a systematic full-text and like-for-like comparison is still needed.
 \section{Conclusion}
 \label{sec:conclusion}
 
-IoT analytics are range aggregates over time, place and value, and the data
-behind them increasingly sit encrypted across several clouds. CR-SHE answers
-such aggregates in one round, over data encrypted under one owner's key,
-hiding the range, the matched records, their number and the result from any
-coalition of up to $n-1$ providers that never talk to one another. It rests on
-three pieces: a proof that this setting needs a homomorphic layer at all,
-oblivious homomorphic aggregation, in which each provider contracts its own
-share of the selection against encrypted columns and returns one ciphertext,
-and encrypted summed-area tables, which turn any box of a registered data cube
-into $2^d$ point selections whose signs and dummy padding hide the box
-entirely. A packed masked index and a two-round flexible path cover the
-queries a cube does not. Measured costs depend on the cube's size, not on the
-range or the record count, and the client sends kilobytes where a single
-server would need tens of megabytes. Future work will port range aggregation to
-the native prototype, evaluate it across cloud regions and on gateway
-hardware, and pursue succinct multi-party keys and verification against
-providers that deviate on purpose.
+This paper studies registered rectangular aggregates over owner-encrypted,
+replicated IoT records under an $n-1$ semi-honest provider-collusion
+assumption and without provider-to-provider interaction. Encrypted
+summed-area tables enable $d$-dimensional box queries using $2^d$
+signed private point selections, while a masked, packed index
+supports retrieval and a flexible two-round path. The current
+reference results demonstrate fixed-size responses as box lengths
+vary on a synthetic telemetry-shaped cube and a $32$-fold
+index-storage reduction. They do not establish native-optimized
+performance, real-corpus range performance, or cross-region latency.
+The privacy model assumes explicit public setup and layout metadata
+and a trusted data owner; the MAC checks do not confer general
+malicious integrity. A comprehensive prior-work comparison,
+independent security-proof review, unified reproducible code and
+benchmarks, real IoT range experiments and multi-region validation
+remain prerequisites for any new submission.
 
 % ===========================================================================
 % \printcredits emits its own "CRediT authorship contribution statement"

@@ -8,6 +8,7 @@ Checked against the journal's Guide for Authors (PDF supplied by the authors, pr
 | Upload step | File |
 |---|---|
 | Manuscript (required, Word) | `CRSHE_JNCA_manuscript.docx` |
+| Cover letter (Word; built by `node make_cover_letter.js`) | `CRSHE_JNCA_cover_letter.docx` (one page; check the date before uploading) |
 | Declaration of competing interests (required, Word) | `CRSHE_JNCA_declaration_of_competing_interests.docx`, or tick the "no competing interests" box on the upload page |
 | Highlights (optional) | `CRSHE_JNCA_highlights.docx` |
 | Figures (artwork as separate files) | `Figure_1.pdf` … `Figure_9.pdf`, numbered as in the paper |

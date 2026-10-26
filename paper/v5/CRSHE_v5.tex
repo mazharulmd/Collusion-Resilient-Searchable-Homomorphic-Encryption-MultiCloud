@@ -296,8 +296,11 @@ providers computes, the client accepts a changed answer with probability at
 most $1/(p-1)$ plus the DPF advantage, on every path: single keyword, range and
 the flexible path. No MAC key is stored, the homomorphic work is unchanged, and
 the deviations that per-row and per-cell keys miss, those aimed at the queried
-point, are caught. The underlying idea is an information-theoretic MAC; what
-is specific here is carrying its key inside the DPF outputs.
+point, are caught. A one-time MAC key chosen by the client already appears in
+two-server decision-tree evaluation \citep{li2026silent}, delivered under
+homomorphic secret sharing; what is specific here is carrying it inside the DPF
+outputs, at no public-key or homomorphic cost, and an argument that covers
+coalitions of up to $n-1$ providers.
 
 \item \textbf{Role-scoped access without interaction} (Section~\ref{sec:auth}).
 A user of one role holds only that role's mask key, so retrieval reveals
@@ -353,10 +356,17 @@ discusses results, and Section~\ref{sec:conclusion} concludes.
 Splinter \citep{splinter} established the model of splitting a query into
 function-secret-sharing shares evaluated against replicas, hidden as long as
 one provider abstains, with \textsc{sum}, \textsc{count}, \textsc{max} and
-\textsc{topk} over \emph{public} databases the providers can read. DORY
-\citep{dory} moves to encrypted documents with a masked Bloom-filter index,
-hiding access patterns and result counts from all but one server, but stops at
-retrieval. Waldo \citep{waldo} supports multi-predicate filtering over
+\textsc{topk} over \emph{public} cleartext databases. Its conditions are
+equalities, intervals, and an AND of equalities with at most one interval
+\citep[Fig.~4]{splinter}, so it answers one-dimensional range aggregates over
+public data; its providers are honest-but-curious, and it does not protect
+against incorrect results \citep[\S2.3]{splinter}. DORY \citep{dory} moves to
+encrypted documents: $\ell$ replicas ($\ell=2$ in its implementation) hold a
+Bloom-filter index whose bits are one-time-padded with a PRF of a per-folder
+key and the document version \citep[\S4.1]{dory}; it hides search access
+patterns, including the number of results, from an attacker that maliciously
+controls $\ell-1$ of the $\ell$ trust domains, and proves security with abort
+using aggregate MACs \citep[\S3.4, \S4.3]{dory}. It stops at retrieval. Waldo \citep{waldo} supports multi-predicate filtering over
 time series with malicious security, in a three-party honest-majority setting
 with secret-shared data and server-to-server interaction, that is, a
 collusion bound of $t=1$. CR-SHE trades Waldo's predicate expressiveness and
@@ -390,42 +400,57 @@ packed masked index, and one-round prefix-sum range cubes.
 \subsection{Private range aggregation}
 Prefix sums answer a range sum from a constant number of lookups, a structure
 known from data cubes \citep{ho1997range} and summed-area tables
-\citep{crow1984summed}. Over encrypted data held by one server, range-aggregate
-schemes built on searchable or structured encryption
-\citep{demertzis2018practical,espiritu2022arq} accept leakage of access
-patterns or volumes, and HADES \citep{liu2025hades} evaluates point and range
-predicates under fully homomorphic encryption in one round, for data that is
-public. With non-colluding servers, Hayata et al.\ \citep{hayata2020private}
-give FSS-based PIR for range \emph{retrieval}, Hafiz et
-al.\ \citep{hafiz2024private} answer aggregate queries in one round with
-information-theoretic PIR over a database the servers host, and Waldo
-\citep{waldo} supports range predicates over secret-shared time series with an
-honest majority and server interaction. In Hafiz et al.\ \citep{hafiz2024private}
-the servers host the database and multiply the client's Shamir-shared query
-vector by precomputed aggregate-query indexes, with a Byzantine-robust variant;
-HADES \citep{liu2025hades} evaluates range predicates under fully homomorphic
-encryption at a single server holding public data. CR-SHE's range path instead
+\citep{crow1984summed}. Boyle, Gilboa and Ishai obtain function secret sharing
+for $d$-dimensional intervals with key size $O(\lambda n^d)$ for $n$-bit
+coordinates by reducing a box, through inclusion--exclusion, to $2^d$
+intervals anchored at zero \citep[Cor.~3.4]{boyle2016function}; the
+decomposition our range path uses is therefore theirs, applied on the data side
+rather than the function side (Section~\ref{sec:range}). Over encrypted data
+held by one server, ARQ \citep{espiritu2022arq} builds range sums, minima,
+modes and medians from structured encryption, primarily for one-dimensional
+queries; its strongest notion, data obliviousness, still lets the query leakage
+depend on the query itself \citep[Def.~3.3]{espiritu2022arq}, and its range-sum
+scheme follows Demertzis et al.'s prefix sums \citep{demertzis2018practical}.
+HADES \citep{liu2025hades} evaluates point and range predicates under fully
+homomorphic encryption in one round at a single server holding public data.
+With non-colluding servers, Hayata et al.\ \citep{hayata2020private} give
+FSS-based PIR for range \emph{retrieval}; in Hafiz et
+al.\ \citep{hafiz2024private} the servers host the database and multiply the
+client's Shamir-shared query vector by precomputed aggregate-query indexes,
+with a Byzantine-robust variant; and Waldo \citep{waldo} supports range
+predicates over secret-shared time series with an honest majority and server
+interaction. CR-SHE's range path instead
 composes prefix-sum data cubes with oblivious homomorphic contraction, so that
 the data remain encrypted at rest under the owner's key, the coalition bound is
 $t=n-1$ for any $n\ge 2$, and providers answer $d$-dimensional box queries in
 one round without interacting. Neither private aggregation nor prefix-sum range
 queries is new in isolation, and function secret sharing for multi-dimensional
 intervals exists \citep{boyle2016function}; the contribution is the
-combination. Our characterisation of these works rests on their abstracts and
-on search summaries of their full texts, which we could not open, so we make no
-claim of priority; the search log ships with our artefact.
+combination. We have read Splinter, DORY, ARQ, PVODTE and the FSS
+constructions of Boyle et al.\ in full; our characterisation of Obscure, Hafiz
+et al., HADES and Hayata et al.\ rests on their abstracts and on search
+summaries, so we make no claim of priority; the search log ships with our
+artefact.\authorcheck{Update after reading Obscure, Hafiz et al.\ and HADES in
+full.}
 
 \subsection{Verification and access control for hidden queries}
 Verifiable DPFs \citep{decastro2022lightweight} and access control for FSS
 \citep{pacl,ji2023finegrained} let servers check that a client's \emph{keys}
 are well formed or authorised; they guard against a malicious client. Against
-malicious servers, verifiable homomorphic secret sharing
-\citep{choudhuri2024vehss} and MAC-based two-server evaluation without server
-communication \citep{li2026silent} check the result. Our tamper evidence is an
-information-theoretic MAC in the style of SPDZ \citep{damgard2012spdz}, value
-$y$ alongside $\delta_s y$, except that the client draws $\delta_s$ afresh for
-each query and delivers it inside DPF outputs, so the providers' stored state
-carries no key at all. Our role-scoped access restricts which \emph{data} a
+malicious servers, DORY keeps per-bit MAC tags condensed into aggregate MACs
+\citep[\S4.3]{dory}, verifiable homomorphic secret sharing
+\citep{choudhuri2024vehss} checks evaluation, and PVODTE \citep{li2026silent}
+has the client generate a one-time MAC key, encrypt it under homomorphic secret
+sharing and send it to two servers, which return the result alongside its
+product with the key \citep[\S VII-B]{li2026silent}; PVODTE is secure against
+one malicious server and leaves verifiability against colluding servers to
+future work \citep[\S IV-D]{li2026silent}. Our tamper evidence is the same kind
+of information-theoretic MAC, value $y$ alongside $\delta_s y$ as in SPDZ
+\citep{damgard2012spdz}, with $\delta_s$ drawn afresh per query; it differs in
+carrying $\delta_s$ inside the DPF outputs, so the providers' stored state holds
+no key and no public-key operation or extra homomorphic product is needed, and
+in an argument (Theorem~\ref{thm:tamper}) that covers coalitions of up to
+$n-1$ providers. Our role-scoped access restricts which \emph{data} a
 query can reach rather than which keys are accepted, and needs no proof or
 server-to-server message; it pays in storage per role.
 
@@ -493,9 +518,9 @@ Malicious & Hides \\
 $|S|$ \\
 \midrule
 Splinter \citep{splinter} & plaintext replica & $\checkmark$ &
-$\circ$ (plaintext) & ? & $n-1$ & no & $\times$ & pad to $k$ \\
+$\circ$ (plaintext) & $\circ$ (1-D) & $n-1$ & no & $\times$ & pad to $k$ \\
 DORY \citep{dory} & encrypted replica & $\checkmark$ & $\times$ & $\times$ &
-$n-1$ & no & detect & $\checkmark$ \\
+$n-1$ & no & abort & $\checkmark$ \\
 Waldo \citep{waldo} & secret-shared & $\checkmark$ & $\checkmark$ &
 $\checkmark$ & $1$ (h.\ maj.) & yes & $\checkmark$ & $\checkmark$ \\
 Hafiz et al.\ \citep{hafiz2024private} & hosted database & $\checkmark$ &
@@ -527,9 +552,11 @@ $\checkmark$, 1 round & $n-1$ & no & abort$^{\S}$ & $\checkmark$ / pad$^{\dagger
 \begin{flushleft}
 \footnotesize
 $\checkmark$: supported; $\circ$: partial; $\times$: not supported; ?: not
-determined from the sources we could read (abstracts and search summaries).
-\emph{Detect} denotes detection of a deviating server without guaranteed
-output delivery; \emph{verify}, optional result verification;
+determined, because for that work we have read only the abstract and search
+summaries. \emph{Abort}: a deviating server is detected and the client aborts,
+without guaranteed output delivery; for DORY this is a proof of security with
+abort against malicious servers \citep{dory}, for CR-SHE a correctness check
+alone (footnote~$\S$); \emph{verify}, optional result verification;
 \emph{$v$-robust}, robustness to $v$ Byzantine servers as summarised for
 Hafiz et al. $^{\S}$Any provider deviation that changes the answer is caught
 except with probability about $2^{-36}$ (Theorem~\ref{thm:tamper}); no output
@@ -868,7 +895,9 @@ failure is data-dependent and therefore easy to miss in testing.
 Retrieval (Section~\ref{sec:auth}) reads a row of the membership index through
 the DPF. Stored in the clear, that index would hand every provider each
 posting-list length, which the attack of Section~\ref{sec:leakeval} turns into
-tag identities. The DO therefore stores it masked and packed:
+tag identities. As DORY does for its Bloom-filter bits \citep[\S4.1]{dory},
+the DO therefore stores it one-time-padded, here with field-element masks so
+that arithmetic DPF shares can strip them, and packed:
 \[
 I'[x][c]\;=\;\sum_{b<\pi} I[x][\pi c+b]\,2^b \;+\; P[x][c] \bmod p ,
 \]
@@ -1085,17 +1114,19 @@ and their write patterns belong in an update-leakage analysis we have not done.
 Role-scoped tables (Section~\ref{sec:auth}) multiply storage by the number of
 roles.
 
-\emph{Why prefix sums rather than interval FSS.} Distributed comparison
-functions \citep{boyle2016function} share one-dimensional interval indicators,
-and in one dimension contracting such shares against the cell column is an
-alternative to prefix sums. A $d$-dimensional box indicator is the product of
-$d$ interval indicators, which providers cannot form from shares of the
-factors without interacting; function secret sharing for multi-dimensional
-intervals as a class of its own exists \citep{boyle2016function}, with keys and
-evaluation costs we have neither implemented nor compared. Prefix sums turn the box into $2^d$ points, so the
-point-function DPF and the homomorphic contraction are used unchanged.
-\authorcheck{Check the FSS literature for multi-dimensional interval
-functions (key size, evaluation cost) and compare.}
+\emph{Why prefix sums rather than interval FSS.} Boyle, Gilboa and Ishai
+give FSS for $d$-dimensional intervals with key size $O(\lambda n^d)$, built by
+the same inclusion--exclusion over $2^d$ zero-anchored intervals, each shared
+as a decision tree \citep[\S3.3, Cor.~3.4]{boyle2016function}. Evaluating such
+keys requires the servers to hold each record's coordinates, as Splinter's
+providers hold public data \citep{splinter}; over owner-encrypted records the
+coordinates themselves (which device, which minute, which band) are the
+sensitive part. Moving the prefix sums into a dense, encrypted table over all
+$M$ cells keeps the coordinates hidden, reveals only the cube's dimensions, and
+lets each of the $2^d$ pieces be a point function with a key of
+$O(\lambda\log M)$ bits. The price is that cubes and templates must be
+registered and precomputed, and that cost grows with $M$ rather than with the
+number of records.
 
 
 \subsection{Tamper evidence}
@@ -2594,9 +2625,12 @@ claims are for $n=2$.
 
 \emph{Prior art.} Private aggregation, prefix-sum cubes and encrypted range
 aggregates are established topics, and Obscure is close on oblivious,
-verifiable, non-interactive aggregation. We could not open the full texts of
-the closest works; our statements about them rest on abstracts and search
-summaries, and a like-for-like comparison remains to be done.
+verifiable, non-interactive aggregation. The $2^d$ box decomposition, the
+one-time-padded index and the client-chosen one-time MAC key each have a
+direct precursor \citep{boyle2016function,dory,li2026silent}; what we offer is
+their combination in this setting. Our statements about Obscure, Hafiz et al.\
+and HADES rest on abstracts and search summaries, and a like-for-like
+comparison with them remains to be done.
 
 \emph{Multi-owner extensions.} The construction assumes a single data owner
 and full delegation of decryption within each role; extending ingestion to
@@ -2654,7 +2688,8 @@ During the preparation of this work the authors used three AI assistants.
 Claude (Anthropic) was used to convert the manuscript between journal
 templates, edit and restructure the text, write the plotting script that draws
 Fig.~\ref{fig:arch}, develop the reference implementation with its tests and
-benchmark scripts, search the literature for prior work, and draft parts of
+benchmark scripts, search the literature for prior work and compare the
+manuscript with papers the authors supplied, and draft parts of
 the text and analysis, including the range construction, the tamper-evidence
 mechanism with Theorem~\ref{thm:tamper}, role-scoped access with
 Proposition~\ref{prop:role}, and Sections~\ref{sec:whyrep}, \ref{sec:flex},

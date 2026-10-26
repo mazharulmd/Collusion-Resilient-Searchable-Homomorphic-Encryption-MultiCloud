@@ -133,11 +133,49 @@ Conclusion: access control for FSS checks that the key-holder is authorised for 
 * "FSS for multi-dimensional intervals" exists (BGI16, abstract): our prefix-sum design is
   one choice among others, not forced.
 
+## Third round: full texts supplied by the authors, 2026-10-26
+
+The authors supplied five PDFs. Each was read in the passages cited below (access:
+`read-directly`). Section numbers are the papers' own.
+
+```
+Query: none (PDFs supplied by the authors)   Date: 2026-10-26
+Opened: Splinter (NSDI'17) in full; DORY (OSDI'20) §3–§4; Boyle–Gilboa–Ishai, "FSS: Improvements
+        and Extensions" (CCS'16) §3; ARQ (PoPETs 2022(4)) §1–§3 and the range-sum scheme;
+        PVODTE / "Silent Guardians" (IEEE TDSC 23(4), 2026) §IV, §VII
+Blocked: Obscure full version, Hafiz et al. (NDSS'24), HADES (PVLDB'25) — still awaited from the authors
+Stopped: no
+Conclusion: each of the three building blocks of CR-SHE's new material has a direct precursor in
+            these papers; CR-SHE's contribution is their composition in this setting, not any one of them.
+```
+
+| Paper | What it does (as read) | Consequence for CR-SHE |
+|---|---|---|
+| Splinter | FSS over replicated **public cleartext** data; conditions are equalities, intervals and an AND of equalities with at most one interval (Fig. 4); SUM/COUNT/AVG/MAX/TOPK; honest-but-curious providers, no protection against incorrect results (§2.3) | Splinter already answers **one-dimensional range aggregates** (over public data). Table 1 cell changed from "?" to "○ (1-D)". |
+| DORY | ℓ replicas (ℓ = 2 implemented); Bloom-filter index bits one-time-padded with a PRF of a per-folder key and version (§4.1); hides access patterns and result counts against ℓ−1 malicious trust domains; security with abort via aggregate MACs (§3.4, §4.3); retrieval only | The **masked index** follows DORY's one-time-padded Bloom filter (credited in §5). DORY's malicious column changed from "detect" to "abort"; the manuscript now states that DORY proves privacy against malicious servers while CR-SHE proves privacy for semi-honest providers and adds only a correctness check. |
+| BGI16 | FSS for d-dimensional intervals with keys O(λ·n^d), by inclusion–exclusion over 2^d zero-anchored intervals, each shared as a decision tree (§3.3, Cor. 3.4) | The **2^d decomposition is BGI16's.** CR-SHE moves it to the data side: a dense encrypted summed-area table plus point DPFs (keys O(λ log M)), which keeps record coordinates hidden; BGI-style evaluation needs the servers to hold each record's coordinates. Price: registered, precomputed cubes. The "why prefix sums" `\authorcheck` is resolved. |
+| ARQ | Single server, structured encryption; range sum/min/mode/median, mainly 1-D; strongest notion (data obliviousness) still has query-dependent leakage (Def. 3.3); range sum builds on Demertzis et al.'s prefix sums | Prefix sums for encrypted range sums are known in the single-server setting; CR-SHE's difference is the multi-server, fixed-leakage setting. |
+| PVODTE | Two servers, HSS; client generates a one-time MAC key, sends it encrypted under HSS, servers return result and result·key (§VII-B); one malicious server; verifiability against colluding servers left as future work (§IV-D) | The **session check is a variant of PVODTE's one-time client MAC key**: CR-SHE delivers the key inside DPF outputs (no public-key operation, no extra homomorphic product) and argues soundness against n−1 colluding providers. Credited in the contributions and related work. |
+
+### Consequence for the novelty claim
+
+Narrower than v5 stated. Priority for the sub-ideas belongs to BGI16 (2^d interval decomposition),
+DORY (one-time-padded index; aggregate MACs) and PVODTE (one-time client-chosen MAC key). What
+remains specific to CR-SHE, within what has been read:
+
+1. the composition: oblivious multi-dimensional range aggregation over **owner-encrypted** replicas,
+   t = n−1, one round, no provider channel, with the record coordinates hidden;
+2. delivering the per-query MAC key inside DPF outputs, so the check costs no public-key or
+   homomorphic operation and its soundness argument covers n−1 colluders;
+3. Proposition 1 (local additive-share answers cannot be repaired non-interactively within the
+   stated class without single-server PIR).
+
+None of this is a priority claim: Obscure, Hafiz et al. and HADES are still read only from abstracts
+and search summaries.
+
 ## Before submission
 
-Open and read the full texts of Hafiz et al. (NDSS 2024), HADES (VLDB 2025),
-ARQ (PoPETs 2022), Hayata et al. (IJIS 2020), **Obscure (PVLDB 2019, TKDE 2020)** and
-PVODTE (TDSC 2026) from a network that can reach them.
-Then update the table above. If any of them already does box aggregation over
-encrypted data at t = n−1 without interaction, the range contribution must be
-re-scoped.
+Read the full texts of **Obscure** (PVLDB 2019; TKDE 2020, arXiv 2004.13115), **Hafiz et al.**
+(NDSS 2024) and **HADES** (PVLDB 2025), and Hayata et al. (IJIS 2020) if obtainable. Then fill in
+the remaining "?" cells of Table 1. If any of them already does box aggregation over encrypted data
+at t = n−1 without interaction, the range contribution must be re-scoped.

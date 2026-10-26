@@ -419,8 +419,18 @@ modes and medians from structured encryption, primarily for one-dimensional
 queries; its strongest notion, data obliviousness, still lets the query leakage
 depend on the query itself \citep[Def.~3.3]{espiritu2022arq}, and its range-sum
 scheme follows Demertzis et al.'s prefix sums \citep{demertzis2018practical}.
-HADES \citep{liu2025hades} evaluates point and range predicates under fully
-homomorphic encryption in one round at a single server holding public data.
+HADES \citep{liu2025hades} is a one-round, two-party protocol in which the
+analyst encrypts only the query parameters under BFV, and a single data
+provider holding its database in cleartext computes encrypted indicator
+vectors for point and range predicates, combines them with AND, OR and NOT,
+and aggregates, so that it learns neither the selection nor the result
+\citep[\S2--\S3]{liu2025hades}. A conjunction of ranges over several columns
+gives box aggregates, at a cost linear in the number of records; its
+efficiency comes from evaluating predicates against plaintext values, and its
+threat model concerns the privacy of query parameters, without result
+verification \citep[\S2.3]{liu2025hades}. HADES therefore covers the public-data
+case that CR-SHE does not, and CR-SHE the owner-encrypted case that HADES
+does not.
 With non-colluding servers, Hayata et al.\ \citep{hayata2020private} give
 FSS-based PIR for range \emph{retrieval}; in Hafiz et
 al.\ \citep{hafiz2024private} each of $\ell$ servers hosts a plaintext copy of
@@ -439,10 +449,10 @@ one round without interacting. Neither private aggregation nor prefix-sum range
 queries is new in isolation, and function secret sharing for multi-dimensional
 intervals exists \citep{boyle2016function}; the contribution is the
 combination. We have read Splinter, DORY, ARQ, PVODTE, Obscure, Hafiz et
-al.\ and the FSS constructions of Boyle et al.; our characterisation of HADES
-and Hayata et al.\ rests on their abstracts and on search summaries, so we make
-no claim of priority; the search log ships with our artefact.\authorcheck{Read
-HADES in full and update its row of Table~\ref{tab:compare}.}
+al., HADES and the FSS constructions of Boyle et al.; our characterisation of
+Hayata et al.\ and SHAMC rests on their abstracts, and a search reaches only
+what it can open, so we make no claim of priority; the search log ships with
+our artefact.
 
 \subsection{Verification and access control for hidden queries}
 Verifiable DPFs \citep{decastro2022lightweight} and access control for FSS
@@ -541,7 +551,7 @@ Obscure \citep{gupta2020obscure} & Shamir-shared & $\checkmark$ & $\checkmark$
 Timecrypt, Zeph \citep{timecrypt,zeph} & encrypted, 1 server & time only &
 $\checkmark$ & time, revealed & n/a & n/a & $\times$ & $\times$ \\
 HADES \citep{liu2025hades} & public, 1 server & $\checkmark$ & $\circ$ (plaintext) &
-$\checkmark$ & n/a & n/a & ? & ? \\
+$\checkmark$ & n/a & n/a & $\times$ & $\checkmark$ \\
 ARQ \citep{espiritu2022arq} & encrypted, 1 server & range & $\times$ &
 $\checkmark$ (leaky) & n/a & n/a & $\times$ & $\times$ \\
 Multi-cloud SSE \citep{xu2021privacy} & encrypted & $\checkmark$ & $\times$ &
@@ -2037,7 +2047,10 @@ selection vector the fast path never touches. The faithful homomorphic
 equality scan needs multiplicative depth $17$ at ring dimension $32{,}768$:
 $1.86$\,s per batch of $32{,}768$ slots and $24.2$\,s per query, extrapolated,
 $617\times$ the fast path. It is the right comparison for ad-hoc predicates on
-one server; for registered aggregates the stronger single-server alternative is
+one server, and consistent with HADES's report that one-round homomorphic query
+processing over encrypted data takes more than fifteen hours for a million
+records, which HADES avoids only by evaluating predicates against plaintext
+data \citep[\S2.4]{liu2025hades}; for registered aggregates the stronger single-server alternative is
 baseline~(vi), measured in Section~\ref{sec:packresult}.
 
 \begin{table}[pos=htbp]
@@ -2641,8 +2654,7 @@ aggregates are established topics, and Obscure is close on oblivious,
 verifiable, non-interactive aggregation. The $2^d$ box decomposition, the
 one-time-padded index and the client-chosen one-time MAC key each have a
 direct precursor \citep{boyle2016function,dory,li2026silent}; what we offer is
-their combination in this setting. Our statements about HADES rest on
-abstracts and search summaries, and no system in Table~\ref{tab:compare} has
+their combination in this setting. No system in Table~\ref{tab:compare} has
 been run against CR-SHE on the same data and hardware.
 
 \emph{Multi-owner extensions.} The construction assumes a single data owner

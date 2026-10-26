@@ -75,9 +75,8 @@ port to the client's address.
 
 ## Job 3: papers to send (PDFs)
 
-**Received 2026-10-26 and read:** Splinter, DORY, BGI16 (CCS'16), ARQ, PVODTE, Obscure, Hafiz et al.
-Findings in `docs/NOVELTY_SEARCH.md` (third round). **Still needed:** HADES; Hayata et al. and
-Waldo if available.
+**Received 2026-10-26 and read:** Splinter, DORY, BGI16 (CCS'16), ARQ, PVODTE, Obscure, Hafiz et al.,
+HADES. Findings in `docs/NOVELTY_SEARCH.md` (third round). **Optional:** Hayata et al., SHAMC, Waldo.
 
 The proxy blocks arXiv, ePrint, NDSS, VLDB and PETS here, so every statement about these works
 currently rests on abstracts and search summaries. In order of importance:
@@ -100,7 +99,7 @@ currently rests on abstracts and search summaries. In order of importance:
    (the multi-dimensional interval construction, for the "why prefix sums" comparison).
 7. J. Li et al., "Silent Guardians: Independent and Secure Decision Tree Evaluation Without Chatter"
    (PVODTE), IEEE TDSC 2026 (closest to the tamper-evidence check).
-8. Hayata et al., FSS-based PIR for range retrieval, IJIS 2020.
+8. Hayata et al., FSS-based PIR for range retrieval, IJIS 23(1), 2024.
 9. Waldo (IEEE S&P 2022) and DORY (OSDI 2020), to re-check the comparison table.
 
 **Nice to have:** Choudhuri et al., "Homomorphic Secret Sharing with Verifiable Evaluation" (2024);

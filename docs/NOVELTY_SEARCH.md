@@ -61,7 +61,7 @@ Conclusion: single-round aggregate queries over IT-PIR, hiding which records con
 | Hafiz et al., NDSS 2024 | Single-round aggregate queries via IT-PIR; servers host the database (`abstract-only`) | Owner-encrypted data the servers cannot read; t = n−1; multi-dimensional box aggregates. Whether their framework supports ranges is **not known**, since the full text was not read |
 | HADES, VLDB 2025 | Single-server FHE range-filtered aggregation on public data (`search-summary`) | Two or more servers, data encrypted, symmetric-key selection; no FHE comparison |
 | ARQ, PoPETs 2022; Demertzis et al., TODS 2018 | Range aggregates over encrypted data, single server, structured/searchable encryption with leakage (`search-summary` / `abstract-only`) | No access-pattern or result-size leakage to a coalition of n−1 |
-| Hayata et al., IJIS 2020 | FSS-based PIR for range *retrieval*, constant rounds (`abstract-only`) | Aggregation without returning records; one round; data encrypted |
+| Hayata et al., IJIS 2024 (23(1):629–647, per the HADES reference list; earlier logged as 2020) | FSS-based PIR for range *retrieval*, constant rounds (`abstract-only`) | Aggregation without returning records; one round; data encrypted |
 | Splinter, NSDI 2017 | FSS queries with SUM/COUNT on public data (cited in the manuscript; not re-read here) | Data encrypted at rest under the owner's key |
 | Prefix-sum data cubes (OLAP), PRISM (ICDE 2022) | Range sums from constant numbers of prefix sums (`abstract-only` for PRISM) | We use the classical structure; the contribution is composing it with oblivious homomorphic aggregation, not the structure |
 
@@ -173,6 +173,23 @@ Conclusion: neither paper gives d-dimensional box aggregates over owner-encrypte
 | Obscure | c > 2 non-communicating servers; Shamir shares of unary-encoded data; count/sum/avg/max/top-k with conjunctive/disjunctive equality predicates; hides access, query and output-size patterns; information-theoretic; single or multiple owners; optional verification against malicious servers (§1, §3). Adversary cannot collude with all, or possibly a majority, of the servers (§3.2). One round needs 2l+1 shares for length-l predicates (§2.1, Table 7): 13 servers for a six-digit 1-D count, ≥25 for a 3-attribute disjunction (App. E). Ranges: point queries or owner-precomputed k-way-tree nodes; measured 1-D only (§8.3, Exp 7–8) | Table 1: range "○ (1-D tree)", collusion "minority", hides \|S\| ✓. CR-SHE's distinction holds: t = n−1 with n = 2, d-dimensional boxes with 2^d keys. Obscure wins on information-theoretic security, multiple owners and query types. |
 | Hafiz et al. | ℓ servers each host a **plaintext** copy of the database; Shamir-shared query vector times precomputed index-of-aggregate-queries matrices; SUM/COUNT/MEAN/MIN/MAX/histograms in one round; t-private when t+1 (or t+u with batching) of ℓ respond (App. B), so t ≤ ℓ−1; honest-but-curious, extendable to v-Byzantine-robust (§VI-C); no range predicates described | Table 1: storage "plaintext replica", range ×, collusion ℓ−1, hides \|S\| ✓. It reaches t = ℓ−1 non-interactively, but over plaintext data, so it is consistent with Proposition 1 (which concerns secret-shared data). |
 
+### Fifth batch, same day: HADES
+
+```
+Query: none (PDF supplied by the authors)   Date: 2026-10-26
+Opened: HADES, IACR ePrint 2024/1699 (version of 2024-10-17) §1–§4, §7 (Tables 5–6), §8
+Blocked: none for this paper; PVLDB volume/pages not checked (Crossref refused by the proxy)
+Stopped: no
+Conclusion: HADES is single-server, public-data private aggregation; it does not address owner-encrypted data.
+```
+
+| Paper | What it does (as read) | Consequence for CR-SHE |
+|---|---|---|
+| HADES | Two parties, one round. The analyst encrypts query parameters under BFV (SEAL). One data provider holds its database **in cleartext**, computes encrypted indicator vectors for point and range predicates, combines them with AND/OR/NOT, multiplies by columns and aggregates; the provider learns neither selection nor result (§2–§3). Threat model: adversary may compromise the provider or network; the goal is privacy of query parameters; no result verification (§2.3). Rules out non-colluding servers by design (§2.3). Notes that one-round FHE over encrypted data (HEDA, HE3DB) needs >15 h for 1M records (§2.4); HADES: 38 s (abstract) | Table 1: malicious ×, hides \|S\| ✓. Multi-column range conjunctions give box aggregates over **public** data, linear in records. Complementary: HADES public data, CR-SHE owner-encrypted data. Its §2.4 figure supports the claim that the encrypted-data case needs another route; cited in §8 next to baseline (v). |
+
+Side finding: HADES's reference [13] gives Hayata et al. as IJIS 23(1), 2024, pp. 629–647, with
+four authors; the bibliography had 2020. Updated, marked as not checked against the publisher.
+
 ### Consequence for the novelty claim
 
 Narrower than v5 stated. Priority for the sub-ideas belongs to BGI16 (2^d interval decomposition),
@@ -186,13 +203,13 @@ remains specific to CR-SHE, within what has been read:
 3. Proposition 1 (local additive-share answers cannot be repaired non-interactively within the
    stated class without single-server PIR).
 
-None of this is a priority claim. Obscure and Hafiz et al. have now been read and do not cover
-point 1; HADES (single server, public data, per its abstract) and Hayata et al. are still read only
-from abstracts and search summaries, and the search itself covers what loaded, not the field.
+None of this is a priority claim. Obscure, Hafiz et al. and HADES have now been read and do not
+cover point 1; Hayata et al. and SHAMC are still read only from abstracts, and the search covers
+what loaded, not the field.
 
 ## Before submission
 
-Read **HADES** (PVLDB 2025) and Hayata et al. (IJIS 2020) if obtainable (Obscure and Hafiz et al.
-done, above). Then fill in
+All papers on the must-have list are read. Optional: Hayata et al. (IJIS 2024) and SHAMC, for the
+last "?" cell of Table 1 (SHAMC range support). Then fill in
 the remaining "?" cells of Table 1. If any of them already does box aggregation over encrypted data
 at t = n−1 without interaction, the range contribution must be re-scoped.

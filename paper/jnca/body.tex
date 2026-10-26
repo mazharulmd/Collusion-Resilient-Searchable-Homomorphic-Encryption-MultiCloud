@@ -210,7 +210,9 @@ the answer.
 columns to $n$ clouds (1). A query is split into DPF keys, one set per cloud
 (2); each cloud aggregates obliviously over its own share (3) and returns one
 ciphertext carrying value and check value (4); the user combines, verifies and
-decrypts (5). No cloud sees the matched set or its size.}
+decrypts (5). No cloud sees the matched set or its size. Drawn by a plotting
+script written with the assistance of a generative AI tool (see the
+declaration before the references).}
 \label{fig:arch}
 \end{figure*}
 
@@ -847,7 +849,9 @@ breaking ties at random (Fig.~\ref{fig:leakage}, Table~\ref{tab:leakage}).
 \includegraphics[width=\linewidth]{figures/fig_leakage_reference.pdf}
 \caption{Share of tags re-identified against the adversary's auxiliary
 knowledge, four index representations, both datasets (log scales). The
-volume-hiding and masked curves coincide with random guessing.}
+volume-hiding and masked curves coincide with random guessing. Plotted from the
+measured results by a script written with the assistance of a generative AI
+tool (see the declaration before the references).}
 \label{fig:leakage}
 \end{figure}
 
@@ -940,3 +944,14 @@ and kilobytes of upload, no tampered answer was accepted, and a frequency
 attack fell to random guessing where power-of-two padding did not. Future work
 will port the range path to native code, evaluate cross-region deployments,
 add succinct multi-party DPFs for $n>2$ and support multiple data owners.
+
+\section*{Supplementary material}
+The Supplementary Material (PDF) accompanies this article: S1, the full
+argument for a homomorphic layer at $t=n-1$; S2, the stored-key verification
+modes and the full proof of Theorem~\ref{thm:tamper}; S3 and S4, the full
+proofs of Theorems~\ref{thm:correct} and~\ref{thm:sec}; S5, dynamic ingest, the
+complexity table and further measurements (range layouts and cube size,
+selection latency, packing and the single-server baseline, the flexible path,
+the packed index, deployment, communication, setup and scaling, role
+extraction and the second dataset in the C++ prototype); and S6, the withdrawn
+leakage figures of an earlier C++ run.

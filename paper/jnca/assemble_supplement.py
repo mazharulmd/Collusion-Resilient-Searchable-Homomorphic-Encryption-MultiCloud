@@ -127,7 +127,7 @@ PRE = r"""\documentclass[11pt,a4paper]{article}
 \begin{center}
 {\Large\bfseries Supplementary Material}\\[4pt]
 {\large Collusion-resilient, tamper-evident range analytics over homomorphically
-encrypted IoT data in multi-cloud storage}
+encrypted Internet of Things data in multi-cloud storage}
 \end{center}
 \noindent Section, theorem, table and equation numbers without an ``S'' refer to
 the main text. Tables and figures here are numbered S1, S2, \dots

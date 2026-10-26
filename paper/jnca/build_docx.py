@@ -1,4 +1,4 @@
-"""Build the Word submission files from manuscript.tex + body.tex.
+"""Build the JNCA submission files from manuscript.tex + body.tex.
 
 Run after the LaTeX build (it reads manuscript.aux so that every section, table,
 figure, equation and algorithm number in Word matches the PDF):
@@ -6,14 +6,16 @@ figure, equation and algorithm number in Word matches the PDF):
     pdflatex manuscript; bibtex manuscript; pdflatex manuscript; pdflatex manuscript
     python build_docx.py
 
-Writes, in submission/:
-  CRSHE_JNCA_manuscript.docx              full manuscript with author details
-  CRSHE_JNCA_manuscript_anonymized.docx   same without author details (if the
-                                          journal asks for anonymized review)
-  CRSHE_JNCA_title_page.docx              title page with authors and declarations
-  CRSHE_JNCA_highlights.docx              highlights, as a separate file
-Equations become native Word equations (pandoc/OMML); algorithms are rendered
-from the same LaTeX source as images; references use elsevier-numeric.csl.
+Writes, in submission/, the files the JNCA guide for authors (October 2026) asks for:
+  CRSHE_JNCA_manuscript.docx                  manuscript, single column, title-page details
+                                              on page 1 (the journal uses single-anonymized review)
+  CRSHE_JNCA_highlights.docx                  3-5 highlights of at most 85 characters,
+                                              separate file with "highlights" in its name
+  CRSHE_JNCA_declaration_of_competing_interests.docx
+  Figure_1.pdf, Figure_2.pdf                  artwork as separate vector files
+  CRSHE_JNCA_supplementary.pdf                supplementary material, cited in the text
+Equations become native Word equations (pandoc/OMML); algorithms and tables are
+editable text; references use elsevier-numeric.csl; no underlined text.
 """
 import os
 import re
@@ -31,7 +33,9 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 BUILD = os.path.join(HERE, "build")
 OUT = os.path.join(HERE, "submission")
 os.makedirs(BUILD, exist_ok=True)
-os.makedirs(OUT, exist_ok=True)
+if os.path.isdir(OUT):
+    shutil.rmtree(OUT)
+os.makedirs(OUT)
 
 
 def run(cmd, cwd=HERE):
@@ -53,22 +57,10 @@ if "sec:range" not in LABEL:
     sys.exit("manuscript.aux has no labels: compile manuscript.tex first")
 
 # ---------------------------------------------------------- images ----------
-for fig in ("fig_architecture", "fig_leakage_reference"):
+FIGURES = {"fig_architecture": "Figure_1", "fig_leakage_reference": "Figure_2"}
+for fig, out in FIGURES.items():
     run(["pdftoppm", "-r", "300", "-png", "-singlefile", f"figures/{fig}.pdf", f"build/{fig}"])
-
-ALG_DOC = r"""\documentclass[varwidth=16cm,border=6pt]{standalone}
-\usepackage{amsmath,amssymb,algorithm,algpseudocode}
-\input{../macros}
-\begin{document}
-\small
-\input{../%s}
-\end{document}
-"""
-for alg in ("alg_setup", "alg_query"):
-    with open(os.path.join(BUILD, f"{alg}_standalone.tex"), "w") as f:
-        f.write(ALG_DOC % alg)
-    run(["pdflatex", "-interaction=nonstopmode", f"{alg}_standalone.tex"], cwd=BUILD)
-    run(["pdftoppm", "-r", "300", "-png", "-singlefile", f"{alg}_standalone.pdf", alg], cwd=BUILD)
+    shutil.copy(os.path.join(HERE, "figures", fig + ".pdf"), os.path.join(OUT, out + ".pdf"))
 
 # ---------------------------------------------------------- front matter ----
 man = read("manuscript.tex")
@@ -91,9 +83,12 @@ for m in re.finditer(r"\\author\[(\d+)\]\{([^}]*)\}(?:\[orcid=([^\]]*)\])?(.*?)\
     email = re.search(r"\\ead\{([^}]*)\}", block)
     authors.append({"name": m.group(2), "orcid": m.group(3), "corr": "\\cormark" in block,
                     "email": email.group(1) if email else None,
-                    "credit": re.sub(r"\s+", " ", m.group(5)).replace("--", "-")})
-aff = re.search(r"organization=\{([^}]*)\},\s*city=\{([^}]*)\},\s*country=\{([^}]*)\}", man, re.S)
-affiliation = re.sub(r"\s+", " ", f"{aff.group(1)}, {aff.group(2)}, {aff.group(3)}")
+                    "credit": re.sub(r"\s+", " ", m.group(5)).replace("--", "\u2013")})
+aff_block = re.search(r"\\affiliation\[1\]\{(.*?)\}\s*\n\s*\n", man, re.S).group(1)
+aff_fields = dict(re.findall(r"(\w+)=\{([^}]*)\}", aff_block))
+affiliation = re.sub(r"\s+", " ", ", ".join(
+    [aff_fields["organization"], aff_fields.get("addressline", ""),
+     (aff_fields["city"] + " " + aff_fields.get("postcode", "")).strip(), aff_fields["country"]]).replace(", ,", ","))
 
 # ---------------------------------------------------------- body ------------
 body = read("body.tex")
@@ -105,13 +100,58 @@ def inline_tables(t):
                                                          else m.group(1) + ".tex"), t)
 
 
+IND = "\u2003\u2003"   # one algorithmic indentation level
+
+
+def algorithm_table(src, n, cap):
+    """The algorithmic source as an editable three-column table: line, step, comment."""
+    text = read(src + ".tex").split("\\begin{algorithmic}[1]")[1].split("\\end{algorithmic}")[0]
+    items = []
+    for line in text.strip().split("\n"):
+        l = line.strip()
+        if re.match(r"\\(State|Statex|ForAll|EndFor|Require)\b", l) or not items:
+            items.append(l)
+        else:
+            items[-1] += " " + l
+    rows, depth, k = [], 0, 0
+    for it in items:
+        comment = ""
+        c = re.search(r"\\Comment\{(.*)\}\s*$", it)
+        if c:
+            comment, it = c.group(1), it[:c.start()].strip()
+        if it.startswith("\\Require"):
+            rows.append(("", "\\textbf{Input:} " + it[len("\\Require"):].strip(), comment))
+        elif it.startswith("\\Statex"):
+            b = it[len("\\Statex"):].strip()
+            if b.startswith("\\hspace{\\algorithmicindent}"):
+                rows.append(("", IND * (depth + 1) + b[len("\\hspace{\\algorithmicindent}"):].strip(), comment))
+            else:
+                rows.append(("", b, comment))
+        elif it.startswith("\\EndFor"):
+            depth -= 1
+            k += 1
+            rows.append((str(k), IND * depth + "\\textbf{end for}", comment))
+        elif it.startswith("\\ForAll"):
+            k += 1
+            arg = re.match(r"\\ForAll\{(.*)\}$", it).group(1)
+            rows.append((str(k), IND * depth + "\\textbf{for all} " + arg + " \\textbf{do}", comment))
+            depth += 1
+        elif it.startswith("\\State"):
+            k += 1
+            rows.append((str(k), IND * depth + it[len("\\State"):].strip().replace("\\Return", "\\textbf{return}"),
+                         comment))
+        else:
+            sys.exit(f"unhandled algorithm line: {it}")
+    lines = ["%s & %s & %s \\\\" % (a, b, "\u25b7 \\emph{%s}" % c if c else "") for a, b, c in rows]
+    return ("\\begin{table}\n\\caption{Algorithm %s. %s}\n\\begin{tabular}{p{0.06\\linewidth}p{0.66\\linewidth}p{0.24\\linewidth}}\n%s\n\\end{tabular}\n\\end{table}"
+            % (n, re.sub(r"\s+", " ", cap), "\n".join(lines)))
+
+
 def algorithms(t):
     def rep(m):
         cap = re.search(r"\\caption\{(.*?)\}\s*\\label\{([^}]*)\}", m.group(0), re.S)
         src = re.search(r"\\input\{([^}]*)\}", m.group(0)).group(1)
-        n = LABEL[cap.group(2)]
-        return ("\n\n\\noindent\\textbf{Algorithm %s.} %s\n\n\\includegraphics[width=0.95\\linewidth]{%s.png}\n\n"
-                % (n, re.sub(r"\s+", " ", cap.group(1)), src))
+        return algorithm_table(src, LABEL[cap.group(2)], cap.group(1))
     return re.sub(r"\\begin\{algorithm\}.*?\\end\{algorithm\}", rep, t, flags=re.S)
 
 
@@ -170,6 +210,7 @@ def numtext(t):
 
 body = numtext(body)
 abstract = numtext(abstract)
+declarations_doc = numtext(declarations)
 # chemical subscripts (PM$_{2.5}$, NO$_2$) and comparison numbers as text; grouped numbers
 # inside equations as upright text, so Word does not space them as "11 , 580"
 body = re.sub(r"([A-Za-z])\$_\{?([0-9.]+)\}?\$", r"\1\\textsubscript{\2}", body)
@@ -190,20 +231,24 @@ def group_in_math(t):
 
 
 body = group_in_math(body)
-body = re.sub(r"\\(eq)?ref\{([^}]*)\}", lambda m: ("(%s)" if m.group(1) else "%s") % LABEL[m.group(2)], body)
-body = re.sub(r"\\label\{[^}]*\}", "", body)
-left = re.findall(r"\\(?:ref|eqref|label|inputtbl|input)\{", body)
+
+
+def resolve(t):
+    t = re.sub(r"\\(eq)?ref\{([^}]*)\}", lambda m: ("(%s)" if m.group(1) else "%s") % LABEL[m.group(2)], t)
+    return re.sub(r"\\label\{[^}]*\}", "", t)
+
+
+body = resolve(body)
+declarations_doc = resolve(declarations_doc)
+left = re.findall(r"\\(?:ref|eqref|label|inputtbl|input)\{", body + declarations_doc)
 if left:
     sys.exit(f"unresolved commands: {left}")
 
-decl = declarations.replace("\\section*{", "\\section*{")
 credit = "\\section*{CRediT authorship contribution statement}\n" + " ".join(
     "\\textbf{%s:} %s." % (a["name"], a["credit"]) for a in authors)
 
 
-def front(anonymous):
-    if anonymous:
-        return ""
+def front():
     names = ", ".join(a["name"] + "\\textsuperscript{a%s}" % (",*" if a["corr"] else "") for a in authors)
     corr = [a for a in authors if a["corr"]][0]
     emails = "; ".join(f"{a['name']}: {a['email']}" for a in authors if a["email"])
@@ -213,23 +258,16 @@ def front(anonymous):
 
 
 MACROS = read("macros.tex")
-
-
-def write_tex(name, anonymous):
-    doc = ("\\documentclass{article}\n\\usepackage{amsthm,amsmath,amssymb,natbib,booktabs,graphicx}\n"
+doc_tex = ("\\documentclass{article}\n\\usepackage{amsthm,amsmath,amssymb,natbib,booktabs,graphicx}\n"
            "\\newtheorem{theorem}{Theorem}\n\\newtheorem{lemma}{Lemma}\n"
            "\\newtheorem{proposition}{Proposition}\n\\newtheorem{definition}{Definition}\n"
            + MACROS + "\n\\title{" + title + "}\n\\date{}\n\\begin{document}\n\\maketitle\n"
-           + front(anonymous)
+           + front()
            + "\\section*{Abstract}\n" + abstract + "\n\n\\noindent\\textbf{Keywords:} "
-           + "; ".join(keywords) + "\n\n" + body + "\n\n"
-           + ("" if anonymous else credit + "\n\n")
-           + (decl if not anonymous else re.sub(r"\\section\*\{Declaration of generative AI.*", "", decl, flags=re.S)
-              + decl[decl.index("\\section*{Declaration of generative AI"):])
+           + "; ".join(keywords) + "\n\n" + body + "\n\n" + credit + "\n\n" + declarations_doc
            + "\n\\end{document}\n")
-    with open(os.path.join(BUILD, name), "w") as f:
-        f.write(doc)
-
+with open(os.path.join(BUILD, "manuscript_docx.tex"), "w") as f:
+    f.write(doc_tex)
 
 # ---------------------------------------------------------- reference doc ---
 ref = os.path.join(BUILD, "reference.docx")
@@ -271,6 +309,9 @@ for sid, size in SIZES.items():
         st.font.italic = sid == "Heading2"
     if sid in ("BodyText", "FirstParagraph", "Abstract"):
         pf.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+# the guide asks for no underline formatting: links keep their colour only
+if "Hyperlink" in BY_ID:
+    BY_ID["Hyperlink"].font.underline = False
 for sec in rd.sections:
     sec.page_height, sec.page_width = Cm(29.7), Cm(21.0)
     sec.left_margin = sec.right_margin = Cm(2.5)
@@ -279,6 +320,21 @@ rd.save(ref)
 
 
 # ---------------------------------------------------------- pandoc ----------
+REF_TAGS = (("environmental sensor telemetry data", "[dataset] "), ("beijing multi-site air quality", "[dataset] "),
+            ("reference implementation, benchmark scripts", "[software] "))
+
+
+def border(parent_tag, edges, size):
+    b = OxmlElement(parent_tag)
+    for edge in edges:
+        e = OxmlElement(f"w:{edge}")
+        e.set(qn("w:val"), "single")
+        e.set(qn("w:sz"), str(size))
+        e.set(qn("w:color"), "000000")
+        b.append(e)
+    return b
+
+
 def finish(path):
     d = Document(path)
     sect = d.sections[-1]
@@ -300,54 +356,50 @@ def finish(path):
             it.set(qn("xml:space"), "preserve")
             it.text = text
             r._r.append(it)
-    # booktabs-like rules on every table: top, below the header, bottom
+    # horizontal rules only (the guide asks for no vertical rules or shading):
+    # top and bottom of every table, and below the header row where there is one
     for tbl in d.tables:
-        tblPr = tbl._tbl.tblPr
-        b = OxmlElement("w:tblBorders")
-        for edge in ("top", "bottom"):
-            e = OxmlElement(f"w:{edge}")
-            e.set(qn("w:val"), "single")
-            e.set(qn("w:sz"), "8")
-            e.set(qn("w:color"), "000000")
-            b.append(e)
-        tblPr.append(b)
-        if tbl.rows:
+        tbl._tbl.tblPr.append(border("w:tblBorders", ("top", "bottom"), 8))
+        if tbl.rows and tbl.rows[0]._tr.find(qn("w:trPr")) is not None and \
+                tbl.rows[0]._tr.find(qn("w:trPr")).find(qn("w:tblHeader")) is not None:
             for cell in tbl.rows[0].cells:
-                tcPr = cell._tc.get_or_add_tcPr()
-                bb = OxmlElement("w:tcBorders")
-                e = OxmlElement("w:bottom")
-                e.set(qn("w:val"), "single")
-                e.set(qn("w:sz"), "4")
-                e.set(qn("w:color"), "000000")
-                bb.append(e)
-                tcPr.append(bb)
+                cell._tc.get_or_add_tcPr().append(border("w:tcBorders", ("bottom",), 4))
     for p_ in d.paragraphs:
         if re.match(r"(Algorithm|Table) \d+\.", p_.text):
             p_.paragraph_format.keep_with_next = True
+    # the reference list sits inside a content control, so walk every paragraph element;
+    # Elsevier asks for [dataset] / [software] immediately before such references
+    for p_el in d.element.body.iter(qn("w:p")):
+        text = "".join(t.text or "" for t in p_el.iter(qn("w:t")))
+        if not re.match(r"\[\d+\]", text):
+            continue
+        for needle, tag in REF_TAGS:
+            if needle in text.lower():
+                # prefix the first text after the "[n]" label and its tab
+                for t in p_el.iter(qn("w:t")):
+                    if t.text and t.text.strip() and not re.fullmatch(r"\s*\[\d+\]\s*", t.text):
+                        t.text = tag + t.text.lstrip()
+                        t.set(qn("xml:space"), "preserve")
+                        break
+                break
+    # strip any underline that survived (the guide asks for none)
+    for u in d.element.body.iter(qn("w:u")):
+        u.getparent().remove(u)
     d.save(path)
 
 
-def pandoc(tex, docx):
-    run(["pandoc", os.path.join(BUILD, tex), "-f", "latex", "-o", docx, "--citeproc",
-         "--bibliography", "references.bib", "--csl", "elsevier-numeric.csl", "--number-sections",
-         "--reference-doc", ref, "--resource-path", f"{BUILD}:{HERE}",
-         "-M", "reference-section-title=References", "-M", "link-citations=false"])
-    finish(docx)
-
-
-write_tex("manuscript_full.tex", anonymous=False)
-write_tex("manuscript_anon.tex", anonymous=True)
-pandoc("manuscript_full.tex", os.path.join(OUT, "CRSHE_JNCA_manuscript.docx"))
-pandoc("manuscript_anon.tex", os.path.join(OUT, "CRSHE_JNCA_manuscript_anonymized.docx"))
+MANUSCRIPT = os.path.join(OUT, "CRSHE_JNCA_manuscript.docx")
+run(["pandoc", os.path.join(BUILD, "manuscript_docx.tex"), "-f", "latex", "-o", MANUSCRIPT, "--citeproc",
+     "--bibliography", "references.bib", "--csl", "elsevier-numeric.csl", "--number-sections",
+     "--reference-doc", ref, "--resource-path", f"{BUILD}:{HERE}",
+     "-M", "reference-section-title=References", "-M", "link-citations=false"])
+finish(MANUSCRIPT)
 
 
 # ---------------------------------------------------------- small files -----
 def plain(s):
     s = s.replace("$2^d$", "2\u1d48").replace("2^d", "2\u1d48")
     return re.sub(r"[{}\\$]", "", s)
-
-
-
 
 
 def md_docx(md, name):
@@ -357,22 +409,16 @@ def md_docx(md, name):
     run(["pandoc", path, "-o", os.path.join(OUT, name + ".docx"), "--reference-doc", ref])
 
 
+for h in highlights:
+    if len(plain(h)) > 85:
+        sys.exit(f"highlight over 85 characters: {plain(h)}")
 md_docx("# Highlights\n\n" + "".join(f"- {plain(h)}\n" for h in highlights), "CRSHE_JNCA_highlights")
 
-corr = [a for a in authors if a["corr"]][0]
-tp = [f"# {title}\n"]
-for a in authors:
-    tp.append(a["name"] + ("\\*" if a["corr"] else "") + (f", ORCID {a['orcid']}" if a["orcid"] else "")
-              + (f", {a['email']}" if a["email"] else "") + "\n")
-tp.append(affiliation + "\n")
-tp.append(f"\\*Corresponding author: {corr['name']}, {corr['email']}\n")
-tp.append("## CRediT authorship contribution statement\n")
-tp += [f"**{a['name']}:** {a['credit']}.\n" for a in authors]
-for m in re.finditer(r"\\section\*\{(.*?)\}\s*(.*?)(?=\\section\*|\Z)", declarations, re.S):
-    tp.append("## " + re.sub(r"\s+", " ", m.group(1)) + "\n")
-    tp.append(re.sub(r"\s+", " ", m.group(2)).strip() + "\n")
-md_docx("\n".join(tp), "CRSHE_JNCA_title_page")
+competing = re.search(r"\\section\*\{Declaration of competing interest\}\s*(.*?)(?=\\section\*)", declarations,
+                      re.S).group(1)
+md_docx("# Declaration of competing interests\n\n" + f"**Manuscript title:** {title}\n\n"
+        + "**Authors:** " + ", ".join(a["name"] for a in authors) + "\n\n"
+        + re.sub(r"\s+", " ", competing).strip() + "\n", "CRSHE_JNCA_declaration_of_competing_interests")
 
-for name in ("manuscript.pdf", "supplementary.pdf"):
-    shutil.copy(os.path.join(HERE, name), os.path.join(OUT, name.replace(".pdf", "") .join(["CRSHE_JNCA_", ".pdf"])))
+shutil.copy(os.path.join(HERE, "supplementary.pdf"), os.path.join(OUT, "CRSHE_JNCA_supplementary.pdf"))
 print("wrote", sorted(os.listdir(OUT)))

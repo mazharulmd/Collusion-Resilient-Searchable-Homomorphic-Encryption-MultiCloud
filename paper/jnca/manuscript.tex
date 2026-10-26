@@ -35,7 +35,7 @@
 
 %%TITLE%%
 \title[mode=title]{Collusion-resilient, tamper-evident range analytics over
-homomorphically encrypted IoT data in multi-cloud storage}
+homomorphically encrypted Internet of Things data in multi-cloud storage}
 %%END%%
 
 \ifanonymous\else
@@ -58,7 +58,9 @@ Writing -- review and editing}
 
 \affiliation[1]{organization={Department of Electrical and Computer
     Engineering, North South University},
+    addressline={Plot 15, Block B, Bashundhara R/A},
     city={Dhaka},
+    postcode={1229},
     country={Bangladesh}}
 
 \cortext[cor1]{Corresponding author.}
@@ -72,16 +74,17 @@ sensor-value ranges. Existing designs fall short: hiding which records a query
 selects is undone once the clouds aggregate over them, and
 prior multi-server systems compute over plaintext, need an honest majority with
 server interaction, or leak access patterns, and cannot cheaply detect
-tampering when all but one cloud collude. We propose CR-SHE, which combines
-distributed point functions with BFV homomorphic encryption: each cloud
+tampering by colluding clouds. We propose CR-SHE
+(Collusion-Resilient Searchable Homomorphic Encryption), which combines
+distributed point functions with lattice-based homomorphic encryption: each cloud
 contracts its share of a hidden selection against owner-encrypted columns and
 returns one ciphertext. Our contributions are one-round multi-dimensional range
 aggregation over encrypted summed-area tables, where any box becomes $2^d$
 padded point keys; tamper evidence from a secret scalar drawn per query inside
 the keys, accepting a wrong answer with probability about $2^{-36}$ at no extra
 homomorphic cost; role-scoped access without interaction; and security proofs
-against $n-1$ colluding clouds. On two real IoT datasets with $825{,}554$
-records, our OpenFHE implementation answers a verified range query in $0.68$--$1.19$\,s per cloud with one $132$\,kB ciphertext, flat
+against $n-1$ colluding clouds. On two real IoT datasets ($825{,}554$
+records), our implementation answers a verified range query in $0.68$--$1.19$\,s per cloud with one $132$\,kB ciphertext, flat
 from one minute to the whole timeline, uploading $5.5$\,kB against $44$\,MB for
 a single-server encrypted query; no tampered answer was accepted in $4{,}500$
 trials, and a frequency attack fell to random guessing. CR-SHE lets
@@ -94,7 +97,7 @@ single cloud with the query, the data or the result.
 \begin{highlights}
 \item Range aggregates over homomorphically encrypted IoT data held by many clouds
 \item Query, matched records and result stay hidden while one cloud is honest
-\item Encrypted summed-area tables turn any d-dimensional box into $2^d$ DPF keys
+\item Encrypted summed-area tables turn any d-dimensional box into $2^d$ point keys
 \item A fresh secret scalar per query makes any tampered answer evident
 \item Real-data range queries take under 1.2 s per cloud with one 132 kB reply
 \end{highlights}
@@ -104,7 +107,7 @@ single cloud with the query, the data or the result.
 \begin{keywords}
 Homomorphic encryption \sep
 Multi-cloud storage \sep
-Internet of Things \sep
+IoT \sep
 Distributed point function \sep
 Range aggregation \sep
 Privacy-preserving analytics \sep
@@ -129,24 +132,30 @@ This research did not receive any specific grant from funding agencies in the
 public, commercial, or not-for-profit sectors.
 
 \section*{Data availability}
-The two datasets are public (Kaggle, Environmental Sensor Telemetry Data; UCI
-Machine Learning Repository, Beijing Multi-Site Air-Quality Data). The
-reference implementation, benchmark scripts and result files will be made
-available on request.
+The two datasets are public: the Environmental Sensor Telemetry Data on Kaggle
+\citep{stafford_2020_environmental} and the Beijing Multi-Site Air-Quality
+Data in the UCI Machine Learning Repository \citep{chen2019beijing}. The
+reference implementation, benchmark scripts, result files and the scripts that
+generate every table and figure are available in a public repository
+\citep{crshe_artifact}.
 
 \section*{Declaration of generative AI and AI-assisted technologies in the
 manuscript preparation process}
 During the preparation of this work the authors used three AI assistants.
 Claude (Anthropic) was used to develop the reference implementation with its
-tests and benchmark scripts, search and compare the literature, draft and edit
-parts of the text and analysis, including the range construction, the
-tamper-evidence mechanism, role-scoped access and their proofs, condense the
-manuscript to its present length, and convert it to the journal's format.
-ChatGPT (OpenAI) and Gemini (Google) were used to edit and review intermediate
-drafts; changes adopted from them were checked against the implementation and
-the measured results. No image was generated or altered by a generative AI
-tool. After using these tools, the authors reviewed and edited the content as
-needed and take full responsibility for the content of the publication.
+tests and benchmark scripts, write the plotting scripts that draw
+Figs.~\ref{fig:arch} and~\ref{fig:leakage}, search and compare the literature,
+draft and edit parts of the text and analysis, including the range
+construction, the tamper-evidence mechanism, role-scoped access and their
+proofs, condense the manuscript to its present length, and convert it to the
+journal's format. ChatGPT (OpenAI) and Gemini (Google) were used to edit and
+review intermediate drafts; changes adopted from them were checked against the
+implementation and the measured results. No image was generated directly by a
+generative AI model: Fig.~\ref{fig:arch} is a schematic drawn by a script, and
+Fig.~\ref{fig:leakage} is plotted by a script directly from the measured
+results. After using these tools, the authors reviewed and edited the content
+as needed and take full responsibility for the content of the published
+article.
 %%END%%
 
 \bibliographystyle{model1-num-names}

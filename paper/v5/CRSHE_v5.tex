@@ -240,10 +240,9 @@ are public), by moving to a three-party honest-majority setting with
 secret-shared data and server-to-server interaction (Waldo), or by
 evaluating predicates over Shamir shares of unary-encoded values without server
 interaction (Obscure \citep{gupta2019obscure,gupta2020obscure}), where
-multiplying shares raises the polynomial degree and with it the number of
-servers needed for a given collusion bound.\authorcheck{Confirm against the
-Obscure full text the exact relation between servers, predicate length and
-collusion threshold, and state it here.} Multi-cloud IoT deployments add three
+multiplying shares raises the polynomial degree, so that a one-round query
+needs $2l+1$ servers for a predicate of length $l$, and the adversary must not
+control a majority of them \citep[\S2.1, \S3.2]{gupta2020obscure}. Multi-cloud IoT deployments add three
 constraints that together define our setting: (i) privacy must hold while any
 one provider is honest, $t=n-1$; (ii) providers never talk to one another, so
 there are no cross-cloud channels, synchronisation or egress charges; and
@@ -372,18 +371,27 @@ with secret-shared data and server-to-server interaction, that is, a
 collusion bound of $t=1$. CR-SHE trades Waldo's predicate expressiveness and
 full malicious security for $t=n-1$, no inter-provider communication and
 owner-keyed encryption at rest. Obscure \citep{gupta2019obscure,gupta2020obscure}
-is the closest system we found: aggregation queries with conjunctive or
-disjunctive predicates over Shamir secret-shared, unary-encoded data, hiding
-access and query patterns, without communication between servers and with
-optional result verification. Because evaluating a predicate multiplies shares,
-the polynomial degree grows with the predicate, and one-round evaluation needs
-correspondingly more servers per tolerated colluder. Against it CR-SHE offers
-$t=n-1$ for any $n\ge2$, owner-encrypted replicas that need no re-dealing, and
-range aggregation with a fixed $2^d$ keys per box. We have read Obscure's
-abstracts and search summaries of its full version, not the full text, so we
-do not state its exact thresholds or its range mechanism.\authorcheck{Read the
-Obscure full version (arXiv 2004.13115) and replace this paragraph with its
-exact server and threshold requirements, range support and verification.} The primitives are due to Gilboa and Ishai
+is the closest system we found: count, sum, average, maximum and top-$k$
+queries with conjunctive or disjunctive equality predicates over Shamir
+secret-shared, unary-encoded data at $c>2$ non-communicating servers, hiding
+access patterns, query patterns and output sizes, with information-theoretic
+security, data from one or several owners, and optional result verification
+against malicious servers \citep[\S1, \S3]{gupta2020obscure}. Its adversary
+may not collude with all, or possibly a majority, of the servers
+\citep[\S3.2]{gupta2020obscure}. String matching multiplies shares, so a
+predicate of length $l$ evaluated in one round needs $2l+1$ shares
+\citep[\S2.1, Table~7]{gupta2020obscure}: in its experiments a one-attribute
+count over six-digit values needs thirteen servers and a three-attribute
+disjunction twenty-five, and with fewer servers the user interpolates partial
+results or adds a round \citep[App.~E]{gupta2020obscure}. Range queries are
+rewritten as point queries, or as a few node values of a $k$-way tree that the
+owner precomputes as extra attributes; experiments cover one-dimensional count
+and sum, and the same decomposition is said to extend to conjunctive and
+disjunctive queries \citep[\S8.3, \S9]{gupta2020obscure}. Against it CR-SHE
+offers $t=n-1$ for any $n\ge2$, with $n=2$ sufficing, and $d$-dimensional box
+aggregates with a fixed $2^d$ keys per box, over replicas encrypted once under
+the owner's key; Obscure offers information-theoretic security, several
+owners, and richer query types. The primitives are due to Gilboa and Ishai
 \citep{gilboa2014distributed} and Boyle, Gilboa and Ishai
 \citep{boyle2015function,boyle2016function}; FSS also serves metadata-hiding
 messaging \citep{express}, robust private statistics
@@ -415,9 +423,13 @@ HADES \citep{liu2025hades} evaluates point and range predicates under fully
 homomorphic encryption in one round at a single server holding public data.
 With non-colluding servers, Hayata et al.\ \citep{hayata2020private} give
 FSS-based PIR for range \emph{retrieval}; in Hafiz et
-al.\ \citep{hafiz2024private} the servers host the database and multiply the
-client's Shamir-shared query vector by precomputed aggregate-query indexes,
-with a Byzantine-robust variant; and Waldo \citep{waldo} supports range
+al.\ \citep{hafiz2024private} each of $\ell$ servers hosts a plaintext copy of
+the database and multiplies the client's Shamir-shared query vector by
+precomputed indexes of aggregate queries (sum, count, mean, min/max,
+histograms) in one round, private against $t$ colluding servers when $t+1$
+respond, so $t$ can reach $\ell-1$, with a $v$-Byzantine-robust variant
+\citep[\S II, \S VI-C, App.~B]{hafiz2024private}; filters select indexed
+values, and range predicates are not among the queries it describes; and Waldo \citep{waldo} supports range
 predicates over secret-shared time series with an honest majority and server
 interaction. CR-SHE's range path instead
 composes prefix-sum data cubes with oblivious homomorphic contraction, so that
@@ -426,12 +438,11 @@ $t=n-1$ for any $n\ge 2$, and providers answer $d$-dimensional box queries in
 one round without interacting. Neither private aggregation nor prefix-sum range
 queries is new in isolation, and function secret sharing for multi-dimensional
 intervals exists \citep{boyle2016function}; the contribution is the
-combination. We have read Splinter, DORY, ARQ, PVODTE and the FSS
-constructions of Boyle et al.\ in full; our characterisation of Obscure, Hafiz
-et al., HADES and Hayata et al.\ rests on their abstracts and on search
-summaries, so we make no claim of priority; the search log ships with our
-artefact.\authorcheck{Update after reading Obscure, Hafiz et al.\ and HADES in
-full.}
+combination. We have read Splinter, DORY, ARQ, PVODTE, Obscure, Hafiz et
+al.\ and the FSS constructions of Boyle et al.; our characterisation of HADES
+and Hayata et al.\ rests on their abstracts and on search summaries, so we make
+no claim of priority; the search log ships with our artefact.\authorcheck{Read
+HADES in full and update its row of Table~\ref{tab:compare}.}
 
 \subsection{Verification and access control for hidden queries}
 Verifiable DPFs \citep{decastro2022lightweight} and access control for FSS
@@ -523,10 +534,10 @@ DORY \citep{dory} & encrypted replica & $\checkmark$ & $\times$ & $\times$ &
 $n-1$ & no & abort & $\checkmark$ \\
 Waldo \citep{waldo} & secret-shared & $\checkmark$ & $\checkmark$ &
 $\checkmark$ & $1$ (h.\ maj.) & yes & $\checkmark$ & $\checkmark$ \\
-Hafiz et al.\ \citep{hafiz2024private} & hosted database & $\checkmark$ &
-$\circ$ (plaintext) & ? & ? & no & $\circ$ ($v$-robust) & ? \\
+Hafiz et al.\ \citep{hafiz2024private} & plaintext replica & $\checkmark$ &
+$\circ$ (plaintext) & $\times$ & $\ell-1$ & no & $\circ$ ($v$-robust) & $\checkmark$ \\
 Obscure \citep{gupta2020obscure} & Shamir-shared & $\checkmark$ & $\checkmark$
-& ? & ? & no & verify & ? \\
+& $\circ$ (1-D tree) & minority & no & verify & $\checkmark$ \\
 Timecrypt, Zeph \citep{timecrypt,zeph} & encrypted, 1 server & time only &
 $\checkmark$ & time, revealed & n/a & n/a & $\times$ & $\times$ \\
 HADES \citep{liu2025hades} & public, 1 server & $\checkmark$ & $\circ$ (plaintext) &
@@ -557,8 +568,10 @@ summaries. \emph{Abort}: a deviating server is detected and the client aborts,
 without guaranteed output delivery; for DORY this is a proof of security with
 abort against malicious servers \citep{dory}, for CR-SHE a correctness check
 alone (footnote~$\S$); \emph{verify}, optional result verification;
-\emph{$v$-robust}, robustness to $v$ Byzantine servers as summarised for
-Hafiz et al. $^{\S}$Any provider deviation that changes the answer is caught
+\emph{$v$-robust}, robustness to $v$ Byzantine servers, for
+Hafiz et al.\ (\S VI-C there); \emph{minority}, the adversary may not
+control a majority of the servers, and one-round queries need $2l+1$ servers
+for predicates of length $l$ (Obscure, \S2.1, \S3.2). $^{\S}$Any provider deviation that changes the answer is caught
 except with probability about $2^{-36}$ (Theorem~\ref{thm:tamper}); no output
 delivery is guaranteed, and privacy is proved for semi-honest providers. $^{\dagger}$Aggregates hide $|S|$; retrieval pads to the
 public bound $k_{\max}$. $^{\ddagger}$Local answers over additive shares miss
@@ -814,10 +827,10 @@ applies at $t=n-1$ with $(n,n)$ sharing. A lower threshold escapes it: with
 $(t{+}1,n)$ threshold shares and $t<n/2$, providers can multiply two shared
 values locally and the client interpolates the degree-$2t$ result, so
 low-degree selection needs neither interaction nor a public-key primitive. That
-appears to be the route of Shamir-shared systems such as Obscure
-\citep{gupta2020obscure}, whose share multiplications raise the polynomial
-degree and so the number of servers per tolerated colluder; we have not
-verified its exact bound. A store replicated
+is the route of Obscure \citep{gupta2020obscure}, whose share
+multiplications raise the polynomial degree, so that one-round queries need
+$2l+1$ servers for a predicate of length $l$ and the adversary must stay below
+a majority \citep[\S2.1, \S3.2]{gupta2020obscure}. A store replicated
 under one owner's homomorphic key is the direct way to supply the primitive at
 $t=n-1$, and it also brings three operational properties that a shared store
 lacks.
@@ -2628,9 +2641,9 @@ aggregates are established topics, and Obscure is close on oblivious,
 verifiable, non-interactive aggregation. The $2^d$ box decomposition, the
 one-time-padded index and the client-chosen one-time MAC key each have a
 direct precursor \citep{boyle2016function,dory,li2026silent}; what we offer is
-their combination in this setting. Our statements about Obscure, Hafiz et al.\
-and HADES rest on abstracts and search summaries, and a like-for-like
-comparison with them remains to be done.
+their combination in this setting. Our statements about HADES rest on
+abstracts and search summaries, and no system in Table~\ref{tab:compare} has
+been run against CR-SHE on the same data and hardware.
 
 \emph{Multi-owner extensions.} The construction assumes a single data owner
 and full delegation of decryption within each role; extending ingestion to

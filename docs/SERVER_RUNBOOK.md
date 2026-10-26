@@ -75,9 +75,9 @@ port to the client's address.
 
 ## Job 3: papers to send (PDFs)
 
-**Received 2026-10-26 and read:** Splinter, DORY, BGI16 (CCS'16), ARQ, PVODTE. Findings in
-`docs/NOVELTY_SEARCH.md` (third round). **Still needed:** Obscure (full version), Hafiz et al.,
-HADES; Hayata et al. and Waldo if available.
+**Received 2026-10-26 and read:** Splinter, DORY, BGI16 (CCS'16), ARQ, PVODTE, Obscure, Hafiz et al.
+Findings in `docs/NOVELTY_SEARCH.md` (third round). **Still needed:** HADES; Hayata et al. and
+Waldo if available.
 
 The proxy blocks arXiv, ePrint, NDSS, VLDB and PETS here, so every statement about these works
 currently rests on abstracts and search summaries. In order of importance:

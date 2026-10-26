@@ -157,6 +157,22 @@ Conclusion: each of the three building blocks of CR-SHE's new material has a dir
 | ARQ | Single server, structured encryption; range sum/min/mode/median, mainly 1-D; strongest notion (data obliviousness) still has query-dependent leakage (Def. 3.3); range sum builds on Demertzis et al.'s prefix sums | Prefix sums for encrypted range sums are known in the single-server setting; CR-SHE's difference is the multi-server, fixed-leakage setting. |
 | PVODTE | Two servers, HSS; client generates a one-time MAC key, sends it encrypted under HSS, servers return result and result·key (§VII-B); one malicious server; verifiability against colluding servers left as future work (§IV-D) | The **session check is a variant of PVODTE's one-time client MAC key**: CR-SHE delivers the key inside DPF outputs (no public-key operation, no extra homomorphic product) and argues soundness against n−1 colluding providers. Credited in the contributions and related work. |
 
+### Fourth batch, same day: Obscure and Hafiz et al.
+
+```
+Query: none (PDFs supplied by the authors)   Date: 2026-10-26
+Opened: Obscure, arXiv 2004.13115v1 (TKDE 2020 accepted version) §1–§4, §8.3, §9 Exp 7–8, App. E;
+        Hafiz et al., arXiv 2403.13296v1 (NDSS 2024) §I–§IV, §VI-C/D, §VIII, App. B
+Blocked: HADES (PVLDB 2025) — not supplied; Hayata et al. — not supplied
+Stopped: no
+Conclusion: neither paper gives d-dimensional box aggregates over owner-encrypted data at t = n−1 in one round.
+```
+
+| Paper | What it does (as read) | Consequence for CR-SHE |
+|---|---|---|
+| Obscure | c > 2 non-communicating servers; Shamir shares of unary-encoded data; count/sum/avg/max/top-k with conjunctive/disjunctive equality predicates; hides access, query and output-size patterns; information-theoretic; single or multiple owners; optional verification against malicious servers (§1, §3). Adversary cannot collude with all, or possibly a majority, of the servers (§3.2). One round needs 2l+1 shares for length-l predicates (§2.1, Table 7): 13 servers for a six-digit 1-D count, ≥25 for a 3-attribute disjunction (App. E). Ranges: point queries or owner-precomputed k-way-tree nodes; measured 1-D only (§8.3, Exp 7–8) | Table 1: range "○ (1-D tree)", collusion "minority", hides \|S\| ✓. CR-SHE's distinction holds: t = n−1 with n = 2, d-dimensional boxes with 2^d keys. Obscure wins on information-theoretic security, multiple owners and query types. |
+| Hafiz et al. | ℓ servers each host a **plaintext** copy of the database; Shamir-shared query vector times precomputed index-of-aggregate-queries matrices; SUM/COUNT/MEAN/MIN/MAX/histograms in one round; t-private when t+1 (or t+u with batching) of ℓ respond (App. B), so t ≤ ℓ−1; honest-but-curious, extendable to v-Byzantine-robust (§VI-C); no range predicates described | Table 1: storage "plaintext replica", range ×, collusion ℓ−1, hides \|S\| ✓. It reaches t = ℓ−1 non-interactively, but over plaintext data, so it is consistent with Proposition 1 (which concerns secret-shared data). |
+
 ### Consequence for the novelty claim
 
 Narrower than v5 stated. Priority for the sub-ideas belongs to BGI16 (2^d interval decomposition),
@@ -170,12 +186,13 @@ remains specific to CR-SHE, within what has been read:
 3. Proposition 1 (local additive-share answers cannot be repaired non-interactively within the
    stated class without single-server PIR).
 
-None of this is a priority claim: Obscure, Hafiz et al. and HADES are still read only from abstracts
-and search summaries.
+None of this is a priority claim. Obscure and Hafiz et al. have now been read and do not cover
+point 1; HADES (single server, public data, per its abstract) and Hayata et al. are still read only
+from abstracts and search summaries, and the search itself covers what loaded, not the field.
 
 ## Before submission
 
-Read the full texts of **Obscure** (PVLDB 2019; TKDE 2020, arXiv 2004.13115), **Hafiz et al.**
-(NDSS 2024) and **HADES** (PVLDB 2025), and Hayata et al. (IJIS 2020) if obtainable. Then fill in
+Read **HADES** (PVLDB 2025) and Hayata et al. (IJIS 2020) if obtainable (Obscure and Hafiz et al.
+done, above). Then fill in
 the remaining "?" cells of Table 1. If any of them already does box aggregation over encrypted data
 at t = n−1 without interaction, the range contribution must be re-scoped.

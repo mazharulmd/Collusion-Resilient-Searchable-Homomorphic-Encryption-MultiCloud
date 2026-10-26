@@ -68,3 +68,19 @@ compiling both; search-summary checks of the new prior-art claims (full texts st
 * Draft D: every number traces to v4, the results or arithmetic (11,040 = 2×5,520; 146,625,960 = N·⌈N_d/32⌉; 8.27×10⁻¹⁰ verified).
 * Draft E: five numbers have no source (1.55, 2.25, 9.11, 50.0, 75.0), all removed.
 * Corrected v5: the only numbers not in a source are 0.51 (512.1 ms), 146,625,960 (computed) and the arXiv identifier.
+
+## Addendum, 2026-10-26: draft E's prior-art claims checked against the full texts
+
+The authors later supplied Obscure (arXiv 2004.13115, TKDE version) and Hafiz et al. (arXiv
+2403.13296, NDSS 2024), read directly. Row 7 above, re-graded:
+
+| Draft E claim | Full text | Verdict |
+|---|---|---|
+| Obscure: 13–25 servers in its benchmarks | App. E: one-round 1-D count over six digits needs thirteen servers; a three-attribute disjunction needs at least 25; experiments used at most fifteen | **Correct** |
+| Obscure: k-way-tree ranges | §8.3: ranges as point queries or k-way-tree node values precomputed as attributes; Exp 7–8 are 1-D | **Correct** (1-D measured) |
+| Obscure: n ≥ 2ℓt+1, t < c/(2ℓ) | §2.1 states 2l+1 shares for degree-one polynomials and length-l predicates; §3.2 says the adversary cannot collude with all, or possibly a majority, of the servers. The general formula is not stated in that form | **Not in the paper as written**; v5 states what the paper says |
+| Hafiz et al.: collusion t with u-batch coding | App. B, Cor. B.4/B.5: t-private when t+u (batched) or t+1 of ℓ servers respond | **Correct** (stated as t+u of ℓ responding) |
+| Splinter supports ranges | Fig. 4: one interval per query, over public data | **Correct in substance**; v5 now says 1-D |
+
+So draft E was right on more of these points than the search summaries could confirm. Hedging them
+was still the right call at the time, because no one had read the papers.

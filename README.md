@@ -20,7 +20,8 @@ submission and its revision.
 | FGCS submission (FGCS-D-26-05016) | Rejected 27 Sep 2026, "results too premature". Package archived in [`paper/fgcs-2026-submission/`](paper/fgcs-2026-submission/) |
 | Why, and what to do next | [`docs/REJECTION_ANALYSIS.md`](docs/REJECTION_ANALYSIS.md) |
 | *Internet of Things* submission (IOT-D-26-03923) | Desk-rejected, "lack of sufficient novelty". Package in [`paper/iot-elsevier/`](paper/iot-elsevier/) |
-| **v4 manuscript (current)** | [`paper/v4/CRSHE_v4.pdf`](paper/v4/CRSHE_v4.pdf): v3 merged with two externally edited drafts; adds a per-query tamper-evidence check on every path and role-scoped access, both implemented and measured. What came from where: [`docs/MERGE_LOG_v4.md`](docs/MERGE_LOG_v4.md) |
+| **v5 manuscript (current)** | [`paper/v5/CRSHE_v5.pdf`](paper/v5/CRSHE_v5.pdf): a second round of ChatGPT/Gemini edits checked and corrected; audit in [`docs/DRAFT_AUDIT_v5.md`](docs/DRAFT_AUDIT_v5.md) |
+| v4 manuscript | [`paper/v4/CRSHE_v4.pdf`](paper/v4/CRSHE_v4.pdf): v3 merged with two externally edited drafts; adds a per-query tamper-evidence check on every path and role-scoped access, both implemented and measured. What came from where: [`docs/MERGE_LOG_v4.md`](docs/MERGE_LOG_v4.md) |
 | v3 manuscript | [`paper/v3/CRSHE_v3.pdf`](paper/v3/CRSHE_v3.pdf): adds oblivious range aggregation over encrypted data cubes and a bit-packed masked index. Prior-art search and its limits: [`docs/NOVELTY_SEARCH.md`](docs/NOVELTY_SEARCH.md) |
 | Revised manuscript (FGCS response) | [`paper/revision/CRSHE_revised.pdf`](paper/revision/CRSHE_revised.pdf), tracked changes in [`CRSHE_diff.pdf`](paper/revision/CRSHE_diff.pdf), list of changes and open items in [`CHANGES.md`](paper/revision/CHANGES.md) |
 | Reference implementation | [`crshe/`](crshe/), 79 tests in [`tests/`](tests/) |

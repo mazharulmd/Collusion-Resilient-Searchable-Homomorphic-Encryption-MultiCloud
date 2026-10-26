@@ -22,24 +22,42 @@ pip install -q --upgrade pip
 pip install -q -r requirements.txt
 
 step "Datasets"
+command -v unzip >/dev/null || { echo "need unzip (sudo apt install unzip)"; exit 1; }
+KSLUG=garystafford/environmental-sensor-data-132k
 if [ ! -f data/raw/iot_telemetry_data.csv ]; then
-  if command -v kaggle >/dev/null && [ -f ~/.kaggle/kaggle.json ]; then
-    kaggle datasets download -d garystafford/environmental-sensor-data-132k -p data/raw --unzip
-  else
-    echo "MISSING data/raw/iot_telemetry_data.csv"
-    echo "  Download 'Environmental Sensor Telemetry Data' (garystafford) from Kaggle and put"
-    echo "  iot_telemetry_data.csv in data/raw/  (or: pip install kaggle, add ~/.kaggle/kaggle.json, re-run)"
-    exit 1
+  # credentials from ~/.kaggle/kaggle.json, or KAGGLE_USERNAME / KAGGLE_KEY in the environment
+  if [ -z "${KAGGLE_USERNAME:-}" ] && [ -f ~/.kaggle/kaggle.json ]; then
+    KAGGLE_USERNAME=$(python -c 'import json,os;print(json.load(open(os.path.expanduser("~/.kaggle/kaggle.json")))["username"])')
+    KAGGLE_KEY=$(python -c 'import json,os;print(json.load(open(os.path.expanduser("~/.kaggle/kaggle.json")))["key"])')
+  fi
+  if [ -n "${KAGGLE_USERNAME:-}" ] && [ -n "${KAGGLE_KEY:-}" ]; then
+    curl -fL -u "$KAGGLE_USERNAME:$KAGGLE_KEY" -o /tmp/crshe_tel.zip \
+      "https://www.kaggle.com/api/v1/datasets/download/$KSLUG" \
+      && unzip -o -q /tmp/crshe_tel.zip -d data/raw || echo "Kaggle download failed"
   fi
 fi
 if ! ls data/raw/beijing/PRSA_Data_*_20130301-20170228.csv >/dev/null 2>&1; then
   mkdir -p data/raw/beijing /tmp/crshe_bj
   curl -fL -o /tmp/crshe_bj/bj.zip \
-    "https://archive.ics.uci.edu/static/public/501/beijing+multi+site+air+quality+data.zip"
-  (cd /tmp/crshe_bj && unzip -o -q bj.zip && for z in *.zip; do [ "$z" = bj.zip ] || unzip -o -q "$z"; done)
-  find /tmp/crshe_bj -name 'PRSA_Data_*_20130301-20170228.csv' -exec cp {} data/raw/beijing/ \;
+    "https://archive.ics.uci.edu/static/public/501/beijing+multi+site+air+quality+data.zip" \
+    && (cd /tmp/crshe_bj && unzip -o -q bj.zip && for z in *.zip; do [ "$z" = bj.zip ] || unzip -o -q "$z"; done) \
+    && find /tmp/crshe_bj -name 'PRSA_Data_*_20130301-20170228.csv' -exec cp {} data/raw/beijing/ \; \
+    || echo "UCI download failed"
 fi
-echo "telemetry: $(wc -l < data/raw/iot_telemetry_data.csv) lines; beijing files: $(ls data/raw/beijing | wc -l)"
+CORPORA=""
+if [ -f data/raw/iot_telemetry_data.csv ]; then
+  CORPORA="$CORPORA telemetry"; echo "telemetry: $(wc -l < data/raw/iot_telemetry_data.csv) lines (405,185 expected with header)"
+else
+  echo "SKIPPING telemetry: data/raw/iot_telemetry_data.csv is missing."
+  echo "  Get it from https://www.kaggle.com/datasets/$KSLUG (Download, unzip, copy iot_telemetry_data.csv"
+  echo "  to data/raw/), or create a Kaggle API token and re-run with KAGGLE_USERNAME=... KAGGLE_KEY=..."
+fi
+if ls data/raw/beijing/PRSA_Data_*_20130301-20170228.csv >/dev/null 2>&1; then
+  CORPORA="$CORPORA beijing"; echo "beijing: $(ls data/raw/beijing/PRSA_Data_*.csv | wc -l) files (12 expected)"
+else
+  echo "SKIPPING beijing: no PRSA_Data_*.csv files in data/raw/beijing/"
+fi
+[ -n "$CORPORA" ] || { echo "no corpus available; nothing to run"; exit 1; }
 
 step "Unit tests"
 python -m pytest -q 2>&1 | tee logs/pytest.log | tail -2
@@ -52,24 +70,27 @@ import json
 s = json.load(open("../results/corpus_stats.json"))
 want = {"telemetry": (11580, 405184, 3646656), "beijing": (35162, 420370, 4624070)}
 for k, (N, Nd, P) in want.items():
+    if k not in s:
+        print(k, "not available"); continue
     got = (s[k]["N"], s[k]["Nd"], s[k]["postings"])
     print(k, "OK" if got == (N, Nd, P) else f"MISMATCH got {got}, manuscript says {(N, Nd, P)}")
 PY
 
-step "Correctness on the real corpora"
-python correctness.py --corpus telemetry --nd 20000 --tags 200 2>&1 | tee ../logs/correctness_telemetry.log
-python correctness.py --corpus beijing   --nd 20000 --tags 200 2>&1 | tee ../logs/correctness_beijing.log
-
-step "Leakage attack: unmasked, power-of-two padded, volume-hiding, masked"
-python bench_leakage.py --corpus telemetry 2>&1 | tee ../logs/leakage_telemetry.log
-python bench_leakage.py --corpus beijing   2>&1 | tee ../logs/leakage_beijing.log
-
-step "Range aggregation on the real corpora"
-python bench_range_real.py --corpus telemetry                   2>&1 | tee ../logs/range_real_telemetry.log
-python bench_range_real.py --corpus beijing --time day          2>&1 | tee ../logs/range_real_beijing_day.log
-if [ "${FULL:-0}" = 1 ]; then
-  python bench_range_real.py --corpus beijing --time hour --reps 3 --trials 10 2>&1 | tee ../logs/range_real_beijing_hour.log
-fi
+for c in $CORPORA; do
+  step "Correctness on $c"
+  python correctness.py --corpus "$c" --nd 20000 --tags 200 2>&1 | tee "../logs/correctness_$c.log"
+  step "Leakage attack on $c: unmasked, power-of-two padded, volume-hiding, masked"
+  python bench_leakage.py --corpus "$c" 2>&1 | tee "../logs/leakage_$c.log"
+  step "Range aggregation on $c"
+  if [ "$c" = telemetry ]; then
+    python bench_range_real.py --corpus telemetry 2>&1 | tee ../logs/range_real_telemetry.log
+  else
+    python bench_range_real.py --corpus beijing --time day 2>&1 | tee ../logs/range_real_beijing_day.log
+    if [ "${FULL:-0}" = 1 ]; then
+      python bench_range_real.py --corpus beijing --time hour --reps 3 --trials 10 2>&1 | tee ../logs/range_real_beijing_hour.log
+    fi
+  fi
+done
 cd ..
 
 step "Pack results"

@@ -1,0 +1,7 @@
+{
+  "source": "paper/revision/CRSHE_revised.tex, Table tab:compute (lines 1830-1837): C++ prototype, N = 11,580, template SUM, two-ciphertext layout, AMD EPYC 7J13; medians of 11 runs (fast) and 3 (general). Transcribed for plotting; the C++ result files are not in this repository.",
+  "Nd": [1000, 5000, 10000, 20000, 50000, 100000, 200000, 405184],
+  "fast_ms": [38.8, 39.0, 38.8, 38.8, 39.1, 39.2, 39.1, 38.8],
+  "general_ms": [103.7, 106.9, 111.9, 121.7, 120.7, 196.8, 539.5, 1378.2],
+  "downlink_bytes": 525950
+}

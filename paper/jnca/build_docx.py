@@ -12,7 +12,7 @@ Writes, in submission/, the files the JNCA guide for authors (October 2026) asks
   CRSHE_JNCA_highlights.docx                  3-5 highlights of at most 85 characters,
                                               separate file with "highlights" in its name
   CRSHE_JNCA_declaration_of_competing_interests.docx
-  Figure_1.pdf, Figure_2.pdf                  artwork as separate vector files
+  Figure_<n>.pdf                              artwork as separate vector files, numbered as in the paper
   CRSHE_JNCA_supplementary.pdf                supplementary material, cited in the text
 Equations become native Word equations (pandoc/OMML); algorithms and tables are
 editable text; references use elsevier-numeric.csl; no underlined text.
@@ -57,10 +57,12 @@ if "sec:range" not in LABEL:
     sys.exit("manuscript.aux has no labels: compile manuscript.tex first")
 
 # ---------------------------------------------------------- images ----------
-FIGURES = {"fig_architecture": "Figure_1", "fig_leakage_reference": "Figure_2"}
-for fig, out in FIGURES.items():
+# every figure in body.tex, named Figure_<n> by its number in the paper (guide: separate files)
+for m in re.finditer(r"\\begin\{figure\*?\}.*?\\end\{figure\*?\}", read("body.tex"), re.S):
+    fig = re.search(r"figures/([A-Za-z_]+)\.pdf", m.group(0)).group(1)
+    n = LABEL[re.search(r"\\label\{([^}]*)\}", m.group(0)).group(1)]
     run(["pdftoppm", "-r", "300", "-png", "-singlefile", f"figures/{fig}.pdf", f"build/{fig}"])
-    shutil.copy(os.path.join(HERE, "figures", fig + ".pdf"), os.path.join(OUT, out + ".pdf"))
+    shutil.copy(os.path.join(HERE, "figures", fig + ".pdf"), os.path.join(OUT, f"Figure_{n}.pdf"))
 
 # ---------------------------------------------------------- front matter ----
 man = read("manuscript.tex")

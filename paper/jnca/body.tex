@@ -58,37 +58,41 @@ keys, one per cloud for a keyword and $2^d$ for a $d$-dimensional range; each
 cloud contracts its \emph{own share} of the hidden selection against the
 encrypted columns and returns one ciphertext, and the client adds the $n$
 ciphertexts and decrypts once. The matched set is never assembled at any
-cloud, and its size never leaves the client. Our contributions are:
+cloud, and its size never leaves the client. The main contributions of this
+paper are as follows:
 
 \begin{itemize}
-\item \textbf{One-round oblivious range aggregation} (Section~\ref{sec:range}).
-The owner stores encrypted summed-area tables of registered data cubes; any
-box becomes $2^d$ DPF keys with signed outputs at its corners, padded with
-dummy keys so that boxes at the cube's edge look like interior ones. Provider
-work and the response do not depend on the range or on the record count.
-\item \textbf{Tamper evidence from a per-query secret}
-(Section~\ref{sec:verify}). A second key set carries a scalar $\delta_s$ drawn
-afresh for each query, so a client accepts a wrong answer with probability at
-most $1/(p-1)$ plus the DPF advantage, whatever up to $n-1$ deviating clouds
-compute, with no stored key and no extra homomorphic product.
-\item \textbf{Role-scoped access without interaction} (Section~\ref{sec:auth}),
-confining each user to its own role's records through role-filtered columns
-and role-specific mask keys.
-\item \textbf{Security analysis} (Section~\ref{sec:security}): simulation-based
-leakage security against $n-1$ colluding semi-honest clouds, and a reduction
-showing why a homomorphic layer is needed at $t=n-1$ without interaction
-(Proposition~\ref{prop:nolocal}).
-\item \textbf{Evaluation on two real IoT datasets} with $825{,}554$ records
-(Section~\ref{sec:results}): range queries on cubes built from both, injected
-tampering on every path, and a frequency attack against padding baselines.
+\item \textbf{One-round oblivious range aggregation.} The owner stores
+encrypted summed-area tables of registered data cubes, and any
+$d$-dimensional box becomes $2^d$ DPF keys with signed outputs at its corners,
+padded with dummy keys so that boxes at the cube's edge look like interior
+ones. Provider work and the response depend neither on the range nor on the
+record count.
+\item \textbf{Tamper evidence from a per-query secret.} A second key set
+carries a scalar $\delta_s$ drawn afresh for each query, so the client accepts
+a wrong answer with probability at most $1/(p-1)$ plus the DPF advantage,
+whatever up to $n-1$ deviating clouds compute, with no stored key and no extra
+homomorphic product.
+\item \textbf{Role-scoped access without interaction.} Role-filtered columns
+and role-specific mask keys confine each user to its own role's records,
+without any exchange between providers.
+\item \textbf{Security analysis and implementation on real IoT data.} We prove
+leakage security against $n-1$ colluding semi-honest clouds and show why a
+homomorphic layer is needed at $t=n-1$ without interaction. A C++ prototype and
+an OpenFHE-based reference implementation are evaluated on two real IoT
+datasets with $825{,}554$ records, covering range queries, injected tampering,
+role confinement and a frequency attack against padding baselines.
 \end{itemize}
 
-Section~\ref{sec:related} reviews related work, Section~\ref{sec:system}
-gives the system and threat model, Section~\ref{sec:construction} the
-construction, Section~\ref{sec:security} the security analysis,
-Sections~\ref{sec:impl} and~\ref{sec:results} the implementation and results,
-and Section~\ref{sec:limits} discusses limitations. Full proofs and further
-experiments are in the Supplementary Material.
+The remainder of this paper is organized as follows.
+Section~\ref{sec:related} reviews related work. Section~\ref{sec:system}
+presents the system model, the threat model and the cryptographic
+preliminaries. Section~\ref{sec:construction} describes the CR-SHE
+construction, and Section~\ref{sec:security} analyses its security.
+Section~\ref{sec:impl} describes the implementation and the experimental
+setup, and Section~\ref{sec:results} presents and discusses the results.
+Finally, Section~\ref{sec:conclusion} concludes the paper. Full proofs and
+additional experiments are provided in the Supplementary Material.
 
 % ===========================================================================
 \section{Related work}
@@ -157,10 +161,8 @@ costly on heavy-tailed IoT data; multi-cloud searchable encryption
 Table~\ref{tab:compare} summarises the comparison.
 
 \begin{table*}[pos=t,width=\textwidth]
-\caption{CR-SHE against distributed-trust and encrypted-analytics systems.
-\emph{Oblivious analytics}: the servers learn neither which records feed the
-aggregate nor how many. $\checkmark$ supported, $\circ$ partial, $\times$ not
-supported.}
+\caption{Comparison with related systems ($\checkmark$ supported, $\circ$
+partial, $\times$ not supported).}
 \label{tab:compare}
 \centering
 \scriptsize
@@ -196,7 +198,12 @@ records and hold no secrets. The $n$ \textbf{cloud providers}
 $\text{CP}_1,\dots,\text{CP}_n$ each hold the public key $pk$ and a replica of
 the masked index and of the encrypted columns and tables, and never decrypt.
 Authorised \textbf{data users} (DU) hold $D$, their role's mask key and
-delegated decryption, issue queries and combine responses (Fig.~\ref{fig:arch}).
+delegated decryption, issue queries and combine responses. In
+Fig.~\ref{fig:arch}, the owner replicates a masked index and encrypted columns
+to $n$ clouds (1); a query is split into DPF keys, one set per cloud (2); each
+cloud aggregates obliviously over its own share (3) and returns one ciphertext
+carrying the value and a check value (4); and the user combines, verifies and
+decrypts (5). No cloud sees the matched set or its size.
 For example, a city's monitoring stations feed its data office, which
 replicates the encrypted store to three clouds; a health agency asks for the
 hours carbon monoxide spent in its top bands at one site last month, and no
@@ -206,13 +213,7 @@ the answer.
 \begin{figure*}[pos=t,width=\textwidth]
 \centering
 \includegraphics[width=\textwidth]{figures/fig_architecture.pdf}
-\caption{Overview of CR-SHE. The owner replicates a masked index and encrypted
-columns to $n$ clouds (1). A query is split into DPF keys, one set per cloud
-(2); each cloud aggregates obliviously over its own share (3) and returns one
-ciphertext carrying value and check value (4); the user combines, verifies and
-decrypts (5). No cloud sees the matched set or its size. Drawn by a plotting
-script written with the assistance of a generative AI tool (see the
-declaration before the references).}
+\caption{CR-SHE system architecture. Drawn with an AI-assisted script.}
 \label{fig:arch}
 \end{figure*}
 
@@ -433,7 +434,9 @@ cube's edge cannot be told from an interior one.
 \emph{Answering.} Provider $j$ evaluates its $2^d$ keys over all $M$ cells,
 adds them, $e_j=\sum_\sigma e_{\sigma,j}$, and contracts once against the
 encrypted table; the response is one ciphertext, and the DU decrypts the box
-aggregate in slot~0 (Algorithm~\ref{alg:query}). The cost per provider is
+aggregate in slot~0 (Algorithm~\ref{alg:query}; a single-keyword aggregate is
+the special case $d=0$, one key pair at $\alpha_w$ over $A_f$). The cost per
+provider is
 $2^d$ full-domain evaluations over $M$ cells, $\lceil kM/(\ell/2)\rceil$
 plaintext-ciphertext products for $k$ templates and $\log_2(\ell/2k)$
 rotations; the uplink is $2^d$ keys of $O(\lambda\log M)$ bits. Nothing depends
@@ -457,8 +460,7 @@ precomputed, at a cost that grows with $M$ rather than with the record count.
 
 \begin{algorithm}[t]
 \footnotesize
-\caption{Verified range query. A single-keyword aggregate is the case $d=0$:
-one key pair at $\alpha_w$ over $A_f$.}
+\caption{Verified range query.}
 \label{alg:query}
 \input{alg_query}
 \end{algorithm}
@@ -674,13 +676,24 @@ UCI Beijing Multi-Site Air-Quality dataset
 \citep{zhang2017cautionary,chen2019beijing} has $420{,}370$ hourly records from
 twelve sites after dropping those without a temperature, $N=35{,}162$ tags over
 $4{,}624{,}070$ postings. Both aggregate temperature in hundredths of a degree.
+Their posting lists are heavy-tailed (Fig.~\ref{fig:postings}): most tags are
+time buckets holding tens of records (median 35 and 12), while device, site,
+flag and band tags hold up to $404{,}702$ and $98{,}878$ records, which is what
+makes posting-list lengths identifying (Section~\ref{sec:leakeval}).
+
+\begin{figure}[pos=htbp]
+\centering
+\includegraphics[width=0.6\linewidth]{figures/fig_postings.pdf}
+\caption{Posting-list length distribution of the two datasets. Plotted with an AI-assisted script.}
+\label{fig:postings}
+\end{figure}
 
 \emph{Machines.} C++: an AMD EPYC 7J13 with 64 cores, medians of 11 runs.
 Reference implementation: synthetic-data runs on a cloud VM with four vCPUs of
 an Intel Xeon at 2.1\,GHz; real-dataset runs on an AMD EPYC 7J13 server with 32
-vCPUs; one thread, medians of 5--21 runs. Every table is generated from the
-result files by a script, and latencies from different machines are not
-compared with each other.
+vCPUs; one thread, medians of 5--21 runs. Every table and figure is generated
+from the result files by a script, and latencies from different machines are
+not compared with each other.
 
 % ===========================================================================
 \section{Results and discussion}
@@ -703,103 +716,93 @@ window $\times$ CO band over the telemetry data ($M=345{,}690$ cells) and site
 $\times$ day $\times$ PM$_{2.5}$ band over the Beijing data, with missing
 readings as an eleventh band ($M=192{,}852$). A query fixes one device or site,
 a window of $L$ minutes or days and bands 3--7, so $d=3$ and each provider
-receives 8 keys, or 16 verified. Table~\ref{tab:rangereal} reports the
-per-provider cost.
+receives 8 keys, or 16 verified. Fig.~\ref{fig:rangereal} breaks the
+per-provider cost into DPF evaluation and the homomorphic part.
 
-\begin{table}[pos=htbp]
-\caption{Range aggregation per provider on cubes built from the real datasets,
-against window length $L$; $d=3$, two templates. Every query returns
-$132{,}081$\,B; uplink per provider is $2{,}760$ and $2{,}624$\,B combined,
-$5{,}520$ and $5{,}248$\,B verified.}
-\label{tab:rangereal}
+\begin{figure}[pos=htbp]
 \centering
-\footnotesize
-\begin{tabular*}{\tblwidth}{@{\extracolsep{\fill}}lccc@{}}
-\toprule
-$L$ & Combined total (ms) & Verified: DPF eval (ms) & Verified total (ms) \\
-\midrule
-\inputtbl tables/range_real.tex
-\bottomrule
-\end{tabular*}
-\end{table}
+\includegraphics[width=\linewidth]{figures/fig_range_real.pdf}
+\caption{Per-provider range-query cost on the real cubes. Plotted with an AI-assisted script.}
+\label{fig:rangereal}
+\end{figure}
 
 \emph{Cost does not depend on the range.} A verified query costs $1.19$\,s per
 provider on the telemetry cube and $0.68$--$0.77$\,s on the Beijing cube, and a
 combined query $0.77$--$0.79$\,s and $0.44$--$0.48$\,s, with no trend in $L$
-from one window to the whole timeline. A box at the cube's origin, with seven
-of its eight corners dummies, costs the same ($1{,}192.6$ and $758.9$\,ms
-verified). Every response is one $132{,}081$\,B ciphertext, and the data user
-spends $1.1$--$1.9$\,ms combining, checking and decrypting.
+from one window to the whole timeline. DPF evaluation is the larger share,
+because every key is expanded over all $M$ cells, and verification adds a
+second key set rather than more homomorphic work. A box at the cube's origin,
+with seven of its eight corners dummies, costs the same ($1{,}192.6$ and
+$758.9$\,ms verified). Every response is one $132{,}081$\,B ciphertext, and the
+data user spends $1.1$--$1.9$\,ms combining, checking and decrypting.
 
 \emph{Verification costs one key set, not a layout.} The verified layout
-stores the same ciphertexts as the combined one, a copy of the table in place
-of a MAC row, and performs the same homomorphic products; it adds a second set
-of keys and its full-domain evaluation. On a synthetic cube of the same
-dimensions it costs $1.6$--$1.9$ times the combined layout and less than half
-the per-corner layout ($3.24$--$3.44$\,s), which stores the table eight times
-and still misses deviations at the queried corner (Supplementary S5). Range
+stores the same ciphertexts as the combined one and performs the same
+homomorphic products. On a synthetic cube of the telemetry dimensions it costs
+$1.6$--$1.9$ times the combined layout and less than half the per-corner
+layout ($3.24$--$3.44$\,s), which stores the table eight times and still misses
+deviations at the queried corner (Fig.~\ref{fig:rangelayouts}, left). Range
 cost grows linearly with the cube: $34.7$, $129.3$ and $1{,}356.0$\,ms per
-provider for $10^4$, about $10^5$ and $10^6$ cells in the combined layout, so
-cube size, not record count or range length, is what a deployment provisions.
+provider for $10^4$, about $10^5$ and $10^6$ cells (right), so cube size, not
+record count or range length, is what a deployment provisions.
 
-\emph{The trust split pays on the uplink.} A single server holding the same
-encrypted tables needs no non-collusion assumption but an encrypted query as
-long as the table: $44.4$\,MB and $25.0$\,MB for the two cubes (computed from
-the measured ciphertext size), against $5.5$ and $5.2$\,kB of DPF keys per
-provider verified, four orders of magnitude, which is the regime of a thin or
-metered IoT client. Answering the same box through single-tag aggregates would
-need one query per cell, $1{,}200$ for a 240-minute window over five bands,
-revealing the box's size.
+\begin{figure}[pos=htbp]
+\centering
+\includegraphics[width=\linewidth]{figures/fig_range_layouts.pdf}
+\caption{Range layouts against window length (left) and cost against cube size
+(right). Plotted with an AI-assisted script.}
+\label{fig:rangelayouts}
+\end{figure}
 
 \subsection{Tamper evidence}
 \label{sec:verifyresult}
-Table~\ref{tab:verify} injects five provider deviations, 200 trials each, into
+Fig.~\ref{fig:tamper} injects five provider deviations, 200 trials each, into
 every path and verification mode; one provider deviates and the other is
-honest. The last deviation is the strongest we can stage: the provider
-perturbs exactly the point the query reads, as if it knew the query.
+honest. The deviations add a constant to the value slot, a uniform vector to
+the share, scale the share, perturb a random point, and perturb exactly the
+point the query reads, as if the provider knew the query. A single stored key
+catches only the inconsistent constant: every consistent substitution was
+accepted with a wrong answer on every path. Per-position keys catch every
+deviation except the one aimed at the queried point, which passed 200 times
+out of 200 on the keyword and range paths. The session check detected every
+deviation that changed the answer: across the $4{,}000$ session trials no wrong
+answer was accepted, and the undetected keyword trials perturbed an empty row,
+so their answers were correct. On both real cubes it also flagged all 250
+tampered range queries, while the combined layout without a check returned 200
+of them wrong and unflagged.
 
-\begin{table}[pos=htbp]
-\caption{Detected / undetected-and-wrong over 200 trials per cell. Deviations:
-a constant added to the value slot; the share plus a uniform vector; the share
-scaled by $k$; the share plus $c\,u_x$ at a random point; the same at the
-queried point. Trials not counted were undetected but left the answer correct
-(the perturbed row was empty).}
-\label{tab:verify}
+\begin{figure}[pos=htbp]
 \centering
-\footnotesize
-\setlength{\tabcolsep}{3pt}
-\begin{tabular*}{\tblwidth}{@{\extracolsep{\fill}}llccccc@{}}
-\toprule
-Path & Check & Constant & Uniform & Scale & Random pt & Queried pt \\
-\midrule
-\inputtbl tables/verify.tex
-\bottomrule
-\end{tabular*}
-\end{table}
-
-A single stored key catches only the inconsistent constant: every consistent
-substitution was accepted with a wrong answer on every path. Per-position keys
-catch every deviation except the one aimed at the queried point, which passed
-200 times out of 200 on the keyword and range paths. The session check
-detected every deviation that changed the answer: across the $4{,}000$ session
-trials no wrong answer was accepted. On both real cubes it also flagged all 250
-tampered range queries (five deviations, fifty each), while the combined layout
-without a check returned 200 of them wrong and unflagged.
+\includegraphics[width=0.78\linewidth]{figures/fig_tamper.pdf}
+\caption{Injected provider deviations: detected / accepted with a wrong
+answer, of 200 trials. Plotted with an AI-assisted script.}
+\label{fig:tamper}
+\end{figure}
 
 \subsection{Single-keyword aggregates and baselines}
 \label{sec:aggresult}
 In the C++ prototype a keyword aggregate costs $38.8$--$39.2$\,ms per provider
-across a $405\times$ range of record counts, $N_d=10^3$ to $405{,}184$, because
-the precomputed column removes $N_d$ from the query. Table~\ref{tab:baselines}
-places it against baselines on the telemetry data for a tag with the median
-$|S|=35$. The DORY-style search-only baseline costs $3.3\times$ more because it
-materialises the selection vector; a faithful homomorphic equality scan needs
-depth 17 and costs $617\times$ more, consistent with the fifteen hours HADES
-reports for a million encrypted records.
+across a $405\times$ range of record counts, because the precomputed column
+removes $N_d$ from the query, while a single-round variant that contracts the
+masked index row by row grows to $1{,}378.2$\,ms at the full dataset
+(Fig.~\ref{fig:cppkeyword}). Table~\ref{tab:baselines} places the keyword
+aggregate against baselines for a tag with the median $|S|=35$. The DORY-style
+search-only baseline costs $3.3\times$ more because it materialises the
+selection vector; a faithful homomorphic equality scan needs depth 17 and costs
+$617\times$ more, consistent with the fifteen hours HADES reports for a million
+encrypted records.
+
+\begin{figure}[pos=htbp]
+\centering
+\includegraphics[width=0.6\linewidth]{figures/fig_cpp_keyword.pdf}
+\caption{Keyword aggregate against record count, telemetry data, C++
+prototype. Plotted with an AI-assisted script.}
+\label{fig:cppkeyword}
+\end{figure}
 
 \begin{table}[pos=htbp]
-\caption{Single-keyword aggregate against baselines, telemetry data,
-$N_d=10^5$, C++, median $|S|=35$; $\dagger$ marks an extrapolated value.}
+\caption{Keyword aggregate against baselines ($N_d=10^5$, C++; $\dagger$
+extrapolated).}
 \label{tab:baselines}
 \centering
 \footnotesize
@@ -819,22 +822,46 @@ FHE equality scan & $24{,}157^{\dagger}$ & n/a & none; 1 server \\
 \end{tabular}
 \end{table}
 
-In the reference implementation the packed response halves provider work and
-downlink: a single template falls from $53.0$ to $23.5$\,ms at $N=11{,}580$,
-and four templates fit in one compressed $132{,}081$\,B ciphertext in
-$32.7$\,ms, against $194.9$\,ms and $2{,}104{,}088$\,B for four unpacked
-responses. A single server holding the same columns (baseline vi) costs $42.6$
-and $92.5$\,ms at the two tag domains, $1.8$ and $2.9$ times one CR-SHE
-provider, but two providers together spend $47.0$ and $62.8$\,ms, so in total
-server work the trust split is not cheaper. Its case rests on the client: the
-single server's query is $789{,}033$ and $2{,}367{,}099$\,B of fresh
-ciphertexts against a $260$ or $294$\,B DPF key per provider, and $14.6$ and
-$67.5$\,ms of client encryption against $0.54$ and $0.62$\,ms of key
-generation.
+\emph{Packing and the single-server alternative.} In the reference
+implementation the packed response halves provider work and downlink: a single
+template falls from $53.0$ to $23.5$\,ms at $N=11{,}580$, and four templates
+fit in one compressed $132{,}081$\,B ciphertext in $32.7$\,ms, against
+$194.9$\,ms and $2{,}104{,}088$\,B for four unpacked responses
+(Fig.~\ref{fig:trustsplit}, left). A single server holding the same columns
+costs $42.6$ and $92.5$\,ms at the two tag domains, $1.8$ and $2.9$ times one
+CR-SHE provider, but two providers together spend $47.0$ and $62.8$\,ms, so in
+total server work the trust split is not cheaper. Its case rests on the client
+(right): the single server's query is $789{,}033$ and $2{,}367{,}099$\,B of
+fresh ciphertexts against a $260$ or $294$\,B DPF key per provider, and for the
+range cubes $44.4$ and $25.0$\,MB (computed from the measured ciphertext size)
+against $5.5$ and $5.2$\,kB of keys, three to four orders of magnitude, the
+regime of a thin or metered IoT client.
 
-\subsection{Leakage evaluation}
+\begin{figure}[pos=htbp]
+\centering
+\includegraphics[width=\linewidth]{figures/fig_trust_split.pdf}
+\caption{Keyword-aggregate cost by response layout (left) and query upload
+against a single server (right). Plotted with an AI-assisted script.}
+\label{fig:trustsplit}
+\end{figure}
+
+\subsection{Masked index: cost and leakage}
 \label{sec:leakeval}
-We mount a frequency and volume leakage-abuse attack
+\emph{Cost.} Packing 32 membership bits per word divides the masked index by
+exactly 32 and makes retrieval 19 to 27 times faster at $N_d=10^4$ and
+$2\times10^4$, where both layouts fit in memory (Fig.~\ref{fig:packedindex}).
+At the full $405{,}184$ records the packed index is $1.17$\,GB per provider,
+against $37.5$\,GB unpacked (computed), and a retrieval takes $1.10$\,s and
+returns $101{,}296$\,B.
+
+\begin{figure}[pos=htbp]
+\centering
+\includegraphics[width=\linewidth]{figures/fig_packed_index.pdf}
+\caption{Masked-index size and retrieval time, packed and unpacked. Plotted with an AI-assisted script.}
+\label{fig:packedindex}
+\end{figure}
+
+\emph{Leakage.} We mount a frequency and volume leakage-abuse attack
 \citep{islam2012access,cash2015leakage} against four representations of the
 index: unmasked, whose rows expose every posting-list length; padded to the
 next power of two; volume-hiding, every row padded to the longest; and the
@@ -847,18 +874,13 @@ breaking ties at random (Fig.~\ref{fig:leakage}, Table~\ref{tab:leakage}).
 \begin{figure}[pos=htbp]
 \centering
 \includegraphics[width=\linewidth]{figures/fig_leakage_reference.pdf}
-\caption{Share of tags re-identified against the adversary's auxiliary
-knowledge, four index representations, both datasets (log scales). The
-volume-hiding and masked curves coincide with random guessing. Plotted from the
-measured results by a script written with the assistance of a generative AI
-tool (see the declaration before the references).}
+\caption{Tags re-identified against the adversary's auxiliary knowledge.
+Plotted with an AI-assisted script.}
 \label{fig:leakage}
 \end{figure}
 
 \begin{table}[pos=htbp]
-\caption{Tag re-identification by class under perfect auxiliary knowledge
-($f=1$). In the masked column the attack's guesses all fall on the longest
-posting list, so one tag per dataset is matched by default.}
+\caption{Tag re-identification by class at $f=1$.}
 \label{tab:leakage}
 \centering
 \footnotesize
@@ -883,9 +905,10 @@ storage, still re-identifies $9\times$ and $11\times$ random guessing, and
 $75\%$ of the motion flags. \emph{Volume-hiding padding and the masked index}
 both reduce the attack to random guessing at every $f$ on both datasets, but
 volume hiding inflates postings $1{,}285\times$ and $752\times$, while the
-packed masked index costs $2\times$ a plaintext bitmap. Higher figures from an
-earlier run in our C++ prototype exceed this length-only bound and are
-withdrawn (Supplementary S6).
+packed masked index costs $2\times$ a plaintext bitmap. In the masked column
+the attack's guesses all fall on the longest posting list, so one tag per
+dataset is matched by default. Higher figures from an earlier run in our C++
+prototype exceed this length-only bound and are withdrawn (Supplementary S6).
 
 \subsection{Role-scoped access and deployment}
 \label{sec:authresult}
@@ -898,34 +921,19 @@ $n\in\{2,3,4\}$ provider processes over loopback, provider compute was flat in
 $n$, $34.82$--$35.48$\,ms, and end-to-end latency rose from $44.1$ to
 $52.5$\,ms in transport alone.
 
-% ===========================================================================
-\section{Discussion and limitations}
-\label{sec:limits}
+\subsection{Discussion}
+\label{sec:discussion}
 \emph{Ranges are where the design pays.} A registered range aggregate costs
 the same for a one-minute window as for a four-year timeline and returns one
 ciphertext, where single-tag aggregates need one query per cell and a single
 server an encrypted query as long as the cube. The per-query secret removes the
 old choice between a cheap unverifiable layout and an expensive per-corner one.
-
-\emph{Scope of the evaluation.} Range aggregation, the session check and
-role-scoped access run in a single-threaded reference implementation, so
-absolute latencies are those of an unoptimised driver; the C++ prototype covers
-the single-keyword path. The deployment ran over loopback, so wide-area
-latency and stragglers were not measured. No system in
-Table~\ref{tab:compare} was run on the same data and hardware.
-
-\emph{Expressiveness and adversary.} One-round ranges apply to registered cubes
-whose total stays below $p$; other predicates use the two-round flexible path,
-and cube updates are not implemented. Privacy is proved for semi-honest
-providers; tamper evidence covers arbitrary deviation without output delivery,
-and role confinement assumes providers enforce the policy. For $n>2$ our DPF is
-non-succinct, so key-size claims are for $n=2$.
-
-\emph{Prior art.} The $2^d$ box decomposition \citep{boyle2016function}, the
-one-time-padded index \citep{dory} and the client-chosen one-time MAC key
-\citep{li2026silent} each have a precursor; our contribution is their
-composition into one-round, verifiable range analytics over owner-encrypted
-replicas at $t=n-1$.
+\emph{Relation to prior art.} The $2^d$ box decomposition
+\citep{boyle2016function}, the one-time-padded index \citep{dory} and the
+client-chosen one-time MAC key \citep{li2026silent} each have a precursor; our
+contribution is their composition into one-round, verifiable range analytics
+over owner-encrypted replicas at $t=n-1$, which none of the systems in
+Table~\ref{tab:compare} provides.
 
 % ===========================================================================
 \section{Conclusion}
@@ -941,9 +949,17 @@ makes tampering evident at no extra homomorphic cost, and role-scoped columns
 confine each user to its own records. On two real IoT datasets a verified
 range query costs $0.68$--$1.19$\,s per cloud with a fixed $132$\,kB response
 and kilobytes of upload, no tampered answer was accepted, and a frequency
-attack fell to random guessing where power-of-two padding did not. Future work
-will port the range path to native code, evaluate cross-region deployments,
-add succinct multi-party DPFs for $n>2$ and support multiple data owners.
+attack fell to random guessing where power-of-two padding did not.
+
+The work has two main limitations. First, range aggregation, the session check
+and role-scoped access were measured in a single-threaded reference
+implementation with providers on one host, so the absolute latencies are those
+of an unoptimised driver and wide-area effects were not measured. Second,
+one-round ranges apply only to cubes registered in advance whose totals stay
+below the plaintext modulus, and privacy is proved for semi-honest providers.
+Future work will port the range path to native code, evaluate cross-region
+deployments, add succinct multi-party DPFs for $n>2$ and support multiple data
+owners.
 
 \section*{Supplementary material}
 The Supplementary Material (PDF) accompanies this article: S1, the full

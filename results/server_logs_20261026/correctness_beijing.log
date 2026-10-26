@@ -1,0 +1,4 @@
+2 {'tags': 200, 'fast_ok': 200, 'retrieve_ok': 200, 'flexible_ok': 200, 'response_sizes_min_max_posting': [132081]}
+3 {'tags': 200, 'fast_ok': 200, 'retrieve_ok': 200, 'flexible_ok': 200, 'response_sizes_min_max_posting': [132081]}
+4 {'tags': 200, 'fast_ok': 200, 'retrieve_ok': 200, 'flexible_ok': 200, 'response_sizes_min_max_posting': [132081]}
+wrote ../results/correctness_beijing.json

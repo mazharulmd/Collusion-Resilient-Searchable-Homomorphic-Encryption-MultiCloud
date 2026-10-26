@@ -7,6 +7,22 @@ published columns; a two-provider deployment over localhost).
 
 ## Job 1: real-corpus experiments (one Ubuntu server, about 2–4 hours)
 
+**Done 2026-10-26** on an AMD EPYC 7J13 server; results integrated into v5, see
+`docs/SERVER_RESULTS_20261026.md`. One short follow-up remains (Job 1b).
+
+### Job 1b: per-tag posting lengths (about 2 minutes)
+
+```bash
+cd ~/crshe && git pull && . .venv/bin/activate && cd bench
+python dump_lengths.py            # writes results/lengths_telemetry.csv.gz, lengths_beijing.csv.gz
+```
+
+Send back the two `.csv.gz` files and `results/lengths_summary.json`. They hold only tag names,
+classes and counts, and they let the leakage figures, the tie structure and the power-of-two
+padding cost be re-analysed without the raw data. If you still have the C++ prototype, also
+check how its leakage attack breaks ties between candidates of equal frequency (see the results
+note: its hourly-window figure exceeds what any attacker who sees only lengths can achieve).
+
 Requirements: Ubuntu 22.04 or 24.04, Python 3.12 (`sudo apt install python3.12 python3.12-venv`),
 16 GB RAM, 15 GB free disk.
 

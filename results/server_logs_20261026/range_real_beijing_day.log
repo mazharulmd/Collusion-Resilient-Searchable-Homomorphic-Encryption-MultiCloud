@@ -1,0 +1,22 @@
+beijing: dims (12, 1461, 11)  M=192,852  records=420,370
+combined  L=     1 days: dpf     242.4 ms  provider     443.8 ms  up 2,624 B  down 132,081 B
+combined  L=     7 days: dpf     229.7 ms  provider     443.8 ms  up 2,624 B  down 132,081 B
+combined  L=    30 days: dpf     263.3 ms  provider     482.3 ms  up 2,624 B  down 132,081 B
+combined  L=   365 days: dpf     263.1 ms  provider     480.7 ms  up 2,624 B  down 132,081 B
+combined  L=  1461 days: dpf     235.0 ms  provider     443.5 ms  up 2,624 B  down 132,081 B
+  tamper combined  inconsistent  {'detected': 50, 'undetected_wrong': 0, 'undetected_correct': 0}
+  tamper combined  dense         {'detected': 0, 'undetected_wrong': 50, 'undetected_correct': 0}
+  tamper combined  scale         {'detected': 0, 'undetected_wrong': 50, 'undetected_correct': 0}
+  tamper combined  random_point  {'detected': 0, 'undetected_wrong': 50, 'undetected_correct': 0}
+  tamper combined  hidden_point  {'detected': 0, 'undetected_wrong': 50, 'undetected_correct': 0}
+session   L=     1 days: dpf     546.8 ms  provider     768.4 ms  up 5,248 B  down 132,081 B
+session   L=     7 days: dpf     541.5 ms  provider     758.1 ms  up 5,248 B  down 132,081 B
+session   L=    30 days: dpf     537.5 ms  provider     763.4 ms  up 5,248 B  down 132,081 B
+session   L=   365 days: dpf     533.5 ms  provider     682.2 ms  up 5,248 B  down 132,081 B
+session   L=  1461 days: dpf     535.0 ms  provider     763.5 ms  up 5,248 B  down 132,081 B
+  tamper session   inconsistent  {'detected': 50, 'undetected_wrong': 0, 'undetected_correct': 0}
+  tamper session   dense         {'detected': 50, 'undetected_wrong': 0, 'undetected_correct': 0}
+  tamper session   scale         {'detected': 50, 'undetected_wrong': 0, 'undetected_correct': 0}
+  tamper session   random_point  {'detected': 50, 'undetected_wrong': 0, 'undetected_correct': 0}
+  tamper session   hidden_point  {'detected': 50, 'undetected_wrong': 0, 'undetected_correct': 0}
+wrote ../results/range_real_beijing_day.json

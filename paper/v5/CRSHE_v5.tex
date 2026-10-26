@@ -148,11 +148,11 @@ for every query, so an honest client accepts a wrong answer with probability
 about $2^{-36}$ whatever deviating providers compute, with no stored MAC key and no
 extra homomorphic work. Role-scoped columns and mask keys confine each user to
 its own role's records. On two real IoT corpora totalling $825{,}554$ records
-a C++ prototype answers single-keyword aggregates in $39$\,ms per provider. In
-a reference implementation on a synthetic cube of $345{,}690$ cells with the
-real corpus's dimensions, range cost and the $132$\,kB response stay flat from
-a one-minute window to the whole timeline, and no wrong answer was accepted in
-$4{,}000$ tampered trials. A verified query uploads $5{,}520$ bytes per
+a C++ prototype answers single-keyword aggregates in $39$\,ms per provider. On
+range cubes built from both corpora, a reference implementation answers a
+verified box query in $0.68$--$1.19$\,s per provider with one $132$\,kB
+response, flat from one minute or day to the whole timeline, and no wrong
+answer was accepted in $4{,}500$ tampered trials. A verified query uploads $5{,}520$ bytes per
 provider, against a computed $44$\,MB for a plain single-server baseline.
 \end{abstract}
 
@@ -330,12 +330,13 @@ which DPF shares and the homomorphic plaintext ring compose is made explicit.
 \item \textbf{Evaluation and its scope.} A C++ prototype measured the
 single-keyword path, a single-host multi-provider deployment, six baselines and
 a leakage-abuse attack on two real IoT corpora totalling $825{,}554$ records
-and $46{,}742$ tags. A reference implementation measures range aggregation on a
-synthetic cube with the primary corpus's dimensions, all three verification
-modes against five injected deviations ($4{,}000$ session-check trials), the
-role-scoped extraction attack and the packed index
-(Section~\ref{sec:resultsdisc}). Range aggregation on the real corpora, a
-native port and a cross-region deployment remain to be measured.
+and $46{,}742$ tags. A reference implementation measures range aggregation on
+cubes built from both corpora and on a synthetic cube, all three verification
+modes against five injected deviations ($4{,}500$ session-check trials), the
+role-scoped extraction attack and the packed index, and reruns correctness and
+the leakage attack, now with power-of-two and volume-hiding baselines, on both
+corpora (Section~\ref{sec:resultsdisc}). A native port of the range path and a
+cross-region deployment remain to be measured.
 \end{itemize}
 
 The remainder of this paper is organised as follows.
@@ -506,7 +507,7 @@ ORAM \citep{goldreich1996software}, volume-hiding structured encryption
 \citep{kamara2019computationally,patel2019mitigating}, which on heavy-tailed
 IoT postings is costly when it pads every list to the longest (by
 $N\max_x|I[x]|$ over the total postings, $1{,}285\times$ for our primary corpus
-and $778\times$ for the second, computed from the corpus statistics of
+and $752\times$ for the second, computed from the corpus statistics of
 Section~\ref{sec:impl}), multi-cloud variants
 \citep{xu2021privacy,xu2023symmetric} and richer or committee-authorised
 search \citep{zhang2024secure,yang2023dynamic,du2022lightweight}. Leveled
@@ -1773,7 +1774,7 @@ Insertion, $\tau$ tags  & $O(\tau)$ updates, $O(N/\ell)$ re-enc. & n/a \\
 \label{sec:impl}
 Two implementations share the parameters below. A C++17 prototype implements
 the single-keyword path in the two-ciphertext layout with a single MAC key; it
-produced the measurements on the real corpora (fast path, deployment, leakage),
+produced the measurements on the real corpora for the fast path and deployment,
 reported where the measured quantity does not depend on the later layout.
 \authorcheck{Publish the C++ prototype next to the reference implementation,
 and re-measure in it the items marked below.} An open reference implementation
@@ -1782,7 +1783,7 @@ Section~\ref{sec:construction}: range aggregation over data cubes in the
 combined, verified and per-corner layouts, the packed response, all three
 verification modes on every path, role-scoped columns and mask keys, the packed
 and masked index with rejection-sampled masks, retrieval, the flexible path,
-and baseline~(vi). Its $79$ tests include DPF checks at every point of every
+and baseline~(vi). Its $83$ tests include DPF checks at every point of every
 domain up to depth $8$, range answers against brute force for $d\le3$ and
 $n\le3$, and failure controls that must and do fail: a flipped corner sign and
 an out-of-cube corner treated as real produce wrong answers; a provider told
@@ -1817,8 +1818,14 @@ headroom below $p$. The second is the UCI Beijing Multi-Site Air-Quality
 dataset \citep{zhang2017cautionary,chen2019beijing}: $420{,}370$ hourly records
 from twelve sites after dropping $398$ with a missing temperature, $N=35{,}162$
 tags over $4{,}624{,}070$ postings, with $98.3\times$ headroom. Together the two
-corpora hold $825{,}554$ records and $46{,}742$ tags. The range experiments use a synthetic cube with the primary corpus's
-dimensions (Section~\ref{sec:rangeresult}).
+corpora hold $825{,}554$ records and $46{,}742$ tags. The reference
+implementation's loader rebuilds both; it agrees with the C++ builder on $N$,
+$N_d$ and the posting total, which hold for any band rule, and on the primary
+corpus's maximum posting length and largest single-tag aggregate, but on the
+second corpus it gives $98{,}878$ and $676{,}076{,}034$ where the C++ builder
+gave $102{,}344$ and $698{,}963{,}226$, so the two assign some band edges
+differently. Range experiments use cubes built from both corpora and a
+synthetic cube (Section~\ref{sec:rangeresult}).
 
 \emph{Baselines.} (i) a plaintext scan; (ii) single-server searchable
 encryption, which leaks search and access patterns and $|S|$; (iii) Path ORAM
@@ -1831,11 +1838,14 @@ assumption and so isolates what that assumption buys.
 
 \emph{Machines.} C++ measurements: one AMD EPYC~7J13, $64$ cores, $64$\,GB,
 Ubuntu~24.04, GCC~13 with OpenMP and AES-NI, medians of $11$ runs unless
-stated. Reference implementation: a cloud VM with
-four vCPUs of an Intel Xeon at $2.1$\,GHz with AES-NI, $16$\,GB, one OpenMP
-thread, medians of $5$--$21$ runs; every JSON output carries this environment
-stamp, and every table built from them is generated by a script rather than
-transcribed. The two sets of latencies are not comparable with each other. The
+stated. Reference implementation: synthetic-data runs on a cloud VM with
+four vCPUs of an Intel Xeon at $2.1$\,GHz with AES-NI and $16$\,GB;
+real-corpus runs (correctness, range on real cubes, leakage) on an AMD
+EPYC~7J13 server with $32$ vCPUs and $31$\,GB, Ubuntu, Python~3.12.3; one
+OpenMP thread, medians of $5$--$21$ runs. Every JSON output carries its
+environment stamp, and every table and figure built from them is generated by
+a script rather than transcribed. Latencies from different machines are not
+comparable with each other. The
 C++ fast-path figures use the two-ciphertext layout and so bound the packed
 layout from above. \authorcheck{Re-measure Tables~\ref{tab:compute},
 \ref{tab:baselines} and~\ref{tab:wan} with the packed, compressed layout in
@@ -1855,26 +1865,29 @@ reference implementation matches the ground truth for every range query in its
 benchmarks and tests, and, on a synthetic corpus shaped like the primary one,
 for $200$ random tags at each $n\in\{2,3,4\}$ on the fast path, retrieval and
 the flexible path with ad-hoc weights, with a byte-identical $132{,}081$\,B
-response for the shortest and longest posting lists.
-\authorcheck{Run bench/correctness.py on both real corpora (it needs the raw
-files, see data/README.md) and report the counts here.}
+response for the shortest and longest posting lists. On both real corpora it
+matched the ground truth for $200$ random tags at each $n\in\{2,3,4\}$ on all
+three paths, every one of the $1{,}800$ queries per corpus correct, again with
+a $132{,}081$\,B response throughout, and every range query on the real cubes
+(Section~\ref{sec:rangeresult}) was correct.
 
 
 \subsection{Range aggregation}
 \label{sec:rangeresult}
-\emph{Setup.} The range path is measured in the reference implementation on a
-telemetry-shaped cube of $3$ devices, $11{,}523$ one-minute windows and $10$
-value bands of one sensor channel, $M=345{,}690$ cells over $405{,}184$
-records, with templates \textsc{count} and \textsc{sum}. Because a summed-area table is encrypted across all $M$ cells regardless
-of cell occupancy, a range query's homomorphic and DPF evaluation costs
-depend solely on the cube's dimensions $(s_1,\dots,s_d)$ and template count
-$k$; we therefore benchmark on a synthetic record stream matching the primary
-corpus's exact dimensions ($3\times 11{,}523\times 10$), checking every
-decrypted answer against the plaintext ground truth. The records are synthetic
-because the raw corpora could not be downloaded into the environment that
-produced these measurements. A query fixes one device, a window of $L$ minutes and bands $3$--$7$,
-so $d=3$ and each provider receives $8$ keys, or $16$ in the verified layout.
-One thread, medians of $5$ runs, interquartile ranges in the result files.
+\emph{Setup.} The range path is measured in the reference implementation,
+first on a synthetic cube with the primary corpus's dimensions, $3$ devices,
+$11{,}523$ one-minute windows and $10$ value bands of one sensor channel,
+$M=345{,}690$ cells over $405{,}184$ records, with templates \textsc{count}
+and \textsc{sum}, to compare the three layouts and sweep the cube size
+(Tables~\ref{tab:range} and~\ref{tab:rangescale}); then on cubes built from
+the two real corpora (Table~\ref{tab:rangereal}). Because a summed-area table
+is encrypted across all $M$ cells regardless of occupancy, the cost depends on
+the cube's dimensions and the number of templates, not on the records, which
+the real-cube runs confirm. A query fixes one device, a window of $L$ minutes
+and bands $3$--$7$, so $d=3$ and each provider receives $8$ keys, or $16$ in
+the verified layout. Every decrypted answer is checked against the plaintext
+ground truth. One thread, medians of $5$ runs, interquartile ranges in the
+result files.
 
 \begin{table}[pos=htbp]
 \caption{Range aggregation per provider against window length $L$,
@@ -1952,6 +1965,46 @@ encrypted table needs no non-collusion assumption but an encrypted query as long
 as the table: $169$ fresh ciphertexts in the combined layout, $44.4$\,MB of
 uplink computed from the measured ciphertext size, against $2.8$\,kB of DPF
 keys per provider, or $5.5$\,kB verified.
+
+\emph{On the real corpora} (Table~\ref{tab:rangereal}). The second set of
+runs builds the cubes from the records themselves: device $\times$ one-minute
+window $\times$ CO band over the primary corpus, and site $\times$ day $\times$
+PM$_{2.5}$ band over the second, with missing readings as an eleventh band. A
+query fixes one device or site, a window of $L$ minutes or days and bands
+$3$--$7$, and every answer matched the plaintext ground truth. Per provider a
+verified query costs $1.19$\,s on the primary cube ($M=345{,}690$) and
+$0.68$--$0.77$\,s on the second ($M=192{,}852$), and a combined-layout query
+$0.77$--$0.79$\,s and $0.44$--$0.48$\,s, with no trend in $L$ from one window
+to the whole timeline. A box at the cube's origin, with seven dummy corners,
+costs the same ($1{,}192.6$ and $758.9$\,ms verified). Uplink is $5{,}520$\,B
+and $5{,}248$\,B per provider verified, half that combined, and every response
+is $132{,}081$\,B; a single server holding the same tables would need an
+encrypted query of $44.4$\,MB and $25.0$\,MB (computed). On both cubes the
+verified layout flagged all $250$ tampered queries, fifty for each of the five
+deviations of Section~\ref{sec:verifyresult}, while the combined layout without
+a check flagged only the fifty inconsistent ones and returned the other $200$
+wrong answers unflagged. These runs used another machine than the synthetic
+ones (Section~\ref{sec:impl}), so the two sets of latencies are not compared.
+
+\begin{table}[pos=htbp]
+\caption{Range aggregation per provider on cubes built from the real corpora,
+against window length $L$, $d=3$, two templates. Reference implementation,
+one thread, AMD EPYC~7J13. Every query returns $132{,}081$\,B; uplink per
+provider is $2{,}760$ and $2{,}624$\,B combined, $5{,}520$ and $5{,}248$\,B
+verified.}
+\label{tab:rangereal}
+\centering
+\footnotesize
+\begin{tabular*}{\tblwidth}{@{\extracolsep{\fill}}lccc@{}}
+\toprule
+$L$ & Combined & \multicolumn{2}{c}{Verified (session)} \\
+\cmidrule(lr){3-4}
+ & total (ms) & DPF eval (ms) & total (ms) \\
+\midrule
+\inputtbl tables/range_real.tex 
+\bottomrule
+\end{tabular*}
+\end{table}
 
 \subsection{Selection latency and key size}
 Table~\ref{tab:search} reports the per-provider full-domain evaluation in the
@@ -2305,85 +2358,106 @@ $132{,}081$\,B ciphertext.
 \subsection{Leakage evaluation}
 \label{sec:leakeval}
 We mount a frequency and volume leakage-abuse attack in the style of
-\citet{islam2012access} and \citet{cash2015leakage} against our own index,
-twice: once against an unmasked replicated index, whose rows expose their
-Hamming weight and hence every posting-list length, and once against the
-masked index of Section~\ref{sec:mask}, whose row statistics we compute with
-the real PRF over all $11{,}580\times405{,}184$ entries. The adversary's
-auxiliary knowledge is the tag-frequency distribution of a similar deployment,
-modelled by binomially thinning the true posting lengths to a sampled fraction
-of the records, so the attack is not handed the answer.
-
-Aggregated over the whole tag universe (Fig.~\ref{fig:leakage}) the unmasked
-index yields $4.27\%$ re-identification under perfect auxiliary knowledge,
-against $0.0086\%$ for random guessing, a $500\times$ lift but low in absolute
-terms. That aggregate is misleading, and Table~\ref{tab:leakage} shows why:
-$11{,}523$ of the $11{,}580$ tags are one-minute time buckets of near-identical
-length, which volume leakage genuinely cannot separate. Every other tag class,
-meaning the device identifiers, the light and motion flags and all five
-sensor-band families, is re-identified \emph{completely}, at $100\%$. These
-are precisely the tags that carry semantic meaning: which device, which sensor
-condition.
+\citet{islam2012access} and \citet{cash2015leakage} against four
+representations of the index: unmasked, whose rows expose their Hamming weight
+and hence every posting-list length; padded to the next power of two;
+volume-hiding, every row padded to the longest; and the masked index of
+Section~\ref{sec:mask}, whose row statistics are computed with the real PRF
+over all $N\times N_d$ entries. The adversary's auxiliary knowledge is the
+tag-frequency distribution of a similar deployment, modelled by binomially
+thinning the true posting lengths to a sampled fraction $f$ of the records. It
+assigns each row to the tag of nearest auxiliary frequency, and a row counts as
+re-identified with weight $1/k$ when the true tag is among $k$ equally near
+candidates, the expected success of breaking ties at random. The reference
+implementation ran the attack on both corpora at $f\in\{1,0.5,0.1,0.01\}$
+(Fig.~\ref{fig:leakage}, Table~\ref{tab:leakage}).
 
 \begin{figure}[pos=htbp]
 \centering
-\includegraphics[width=0.72\linewidth]{Figures/telemetry/fig_leakage_attack.pdf}
-\caption{Tag re-identification against the unmasked and masked index, against
-the adversary's auxiliary knowledge. Table~\ref{tab:leakage} breaks it down by
-class.}
+\includegraphics[width=\linewidth]{Figures/fig_leakage_reference.pdf}
+\caption{Share of tags re-identified against the adversary's auxiliary
+knowledge, four index representations, both corpora (log scales). The
+volume-hiding and masked curves coincide with random guessing.
+Table~\ref{tab:leakage} breaks the $f=1$ points down by class.}
 \label{fig:leakage}
 \end{figure}
 
-Against the masked index the same attack recovers $0.00\%$ in every class and
-at every level of auxiliary knowledge. A more demanding comparison is with
-the standard padding defences rather than with no defence: padding each
-posting list to the next power of two, and volume-hiding padding of every row
-to the longest, which on these corpora would inflate posting storage by
-$1{,}285\times$ and $778\times$ (computed from the corpus statistics). The
-reference implementation provides the same attack against both
-(\texttt{bench/bench\_leakage.py}); we have not yet run it on the corpora
-(Section~\ref{sec:limits}).\authorcheck{Run bench/bench\_leakage.py on both
-corpora and add the padded and volume-hiding columns to
-Table~\ref{tab:leakage}; the raw files could not be fetched where the reference
-results were produced.}
-The masked row statistics are not
-distinguishable from uniform over $\mathbb{Z}_p$ by a $64$-bin chi-square test
-($\chi^2=72.27$ on $63$ degrees of freedom, $p_{\chi^2}=0.198$). This is the
-empirical counterpart of Theorem~\ref{thm:mask}, evidence for it rather than a
-proof of it. We note that this experiment is deterministic given the corpus
-and the key seed, and reproduced to the digit on two different machines and
-microarchitectures. Section~\ref{sec:secondcorpus} repeats the attack on a
-twelve-site corpus with three times the tag domain and obtains the same
-per-class picture, so neither the $100\%$
-unmasked recovery nor the $0\%$ masked recovery is an artefact of this
-corpus's three devices.
+\emph{Unmasked, the index gives away the tags that carry meaning.} Under
+perfect auxiliary knowledge the attack re-identifies every device, light-flag,
+motion-flag and temperature-band tag of the primary corpus, $92.5\%$ of the
+humidity bands and $32.5\%$ of the CO, LPG and smoke bands; on the second
+corpus, every wind direction and $95.5$--$100\%$ of every pollutant, pressure
+and dew-point band, but only $33.3\%$ of the sites. At $f=1$ the auxiliary
+lengths are the true ones, so a tag is missed only when another tag has exactly
+the same posting length. Time buckets, of near-identical length, resist the
+attack ($0.2\%$ and $0.0\%$), and because they are most of the tag universe the
+overall rates are low, $0.484\%$ and $0.324\%$, which is $56\times$ and
+$114\times$ random guessing.
+
+\emph{Power-of-two padding helps but does not close the leak.} It cuts overall
+recovery to $0.078\%$ and $0.031\%$, still $9\times$ and $11\times$ random
+guessing, and leaves $55.6\%$ of devices, $41.7\%$ of light flags and $75.0\%$
+of motion flags identifiable on the primary corpus and up to $18.3\%$ of a band
+family on the second. With auxiliary knowledge thinned to $f=0.01$, unmasked
+recovery falls to $0.082\%$ and $0.055\%$ and padded recovery to $0.052\%$ and
+$0.022\%$, both still above random guessing.
+
+\emph{Volume hiding and masking reduce the attack to guessing.} Both give the
+random-guessing rate $1/N$ at every $f$ on both corpora. Volume hiding pays for
+it in storage, inflating postings $1{,}285\times$ on the primary corpus and
+$752\times$ on the second ($N\max_x|I[x]|$ over the total postings, computed
+from the reference loader's statistics); the masked index costs a factor of $2$
+packed (Section~\ref{sec:setupresult}). Masked row sums are spread over
+$\mathbb{Z}_p$, far beyond every auxiliary length, so the attack's guesses all
+fall on the tag with the longest posting list, which is therefore matched by
+default; that single tag is the $50.0\%$ and $10.0\%$ in the masked column of
+Table~\ref{tab:leakage}. In the C++ prototype the masked row statistics were
+not distinguishable from uniform over $\mathbb{Z}_p$ by a $64$-bin chi-square
+test ($\chi^2=72.27$ on $63$ degrees of freedom, $p_{\chi^2}=0.198$, primary
+corpus; $\chi^2=62.38$, $p_{\chi^2}=0.4986$, second corpus), empirical
+evidence for Theorem~\ref{thm:mask} rather than a proof of it.
 
 \begin{table}[pos=htbp]
-\caption{Tag re-identification by metadata class, primary corpus, under
-perfect auxiliary knowledge.}
+\caption{Tag re-identification by class under perfect auxiliary knowledge
+($f=1$), both corpora, reference implementation. Rates are the expected
+success of nearest-frequency assignment with random tie-breaking. In the
+masked column the attack's guesses all fall on the longest posting list, so
+one tag per corpus is matched by default.}
 \label{tab:leakage}
 \centering
 \footnotesize
 \setlength{\tabcolsep}{3pt}
-\renewcommand{\arraystretch}{1.15}
-\begin{tabular*}{\tblwidth}{@{\extracolsep{\fill}}lccc@{}}
+\begin{tabular*}{\tblwidth}{@{\extracolsep{\fill}}lcccc@{}}
 \toprule
-Tag class & Tags & Unmasked & Masked \\
+Tag class & Unmasked & Power of two & Volume-hiding & Masked \\
 \midrule
-Device identifier      & $3$      & $100\%$ & $0\%$ \\
-Light flag             & $2$      & $100\%$ & $0\%$ \\
-Motion flag            & $2$      & $100\%$ & $0\%$ \\
-CO band                & $10$     & $100\%$ & $0\%$ \\
-Humidity band          & $10$     & $100\%$ & $0\%$ \\
-LPG band               & $10$     & $100\%$ & $0\%$ \\
-Smoke band             & $10$     & $100\%$ & $0\%$ \\
-Temperature band       & $10$     & $100\%$ & $0\%$ \\
-One-minute window      & $11{,}523$ & $3.80\%$ & $0\%$ \\
-\midrule
-Random guessing        & n/a      & \multicolumn{2}{c}{$0.0086\%$} \\
+\inputtbl tables/leakage_real.tex 
 \bottomrule
 \end{tabular*}
 \end{table}
+
+\emph{The C++ prototype's earlier figures are withdrawn.} An earlier run of the
+attack in the C++ prototype reported higher unmasked recovery: $4.27\%$
+overall on the primary corpus, $100\%$ in every non-temporal class of both
+corpora, $3.80\%$ of one-minute windows and $0.31\%$ of hourly windows. The
+last figure is not attainable by an attacker who sees only row statistics.
+Rows with the same observed statistic are indistinguishable to such an
+attacker, so whatever its strategy it expects at most one correct assignment
+per distinct value. An hourly window of the second corpus holds at most one
+record per site, so its posting length is one of at most twelve values, and at
+most twelve of the $35{,}046$ hourly windows ($0.034\%$) can be re-identified.
+The C++ attack must therefore have used information beyond the lengths, most
+plausibly an order of tied candidates that followed the true labels, and its
+$100\%$ figures are suspect for the same reason. The two runs also used corpus
+builders that differ in band edges (Section~\ref{sec:impl}). We report the
+reference figures, which the released code and data reproduce. The conclusion
+is unchanged and is now measured against the standard defences: an unmasked
+replicated index exposes the meaningful tag classes, power-of-two padding
+still exposes many of them, and the masked index, like volume-hiding padding
+but without its storage cost, leaves the attack at random guessing.
+\authorcheck{Check the C++ attack's tie-breaking; with
+results/lengths\_*.csv.gz from bench/dump\_lengths.py, compare the two corpus
+builders tag by tag.}
 
 \subsection{Setup, masking and ingest costs}
 \label{sec:setupresult}
@@ -2542,36 +2616,10 @@ $4.05\times10^5$   & $40.9$ & n/a     & $113.98$ & $525{,}950$ \\
 \end{tabular*}
 \end{table}
 
-\emph{The leakage conclusion is not an artefact of three devices.} The
-unmasked index again gave up every one of the ten non-temporal tag classes at
-$100\%$, including the twelve sites and seventeen wind directions, and the
-hour buckets at $0.31\%$; the masked index gave up $0.00\%$ in every class,
-its row sums indistinguishable from uniform ($\chi^2=62.38$ on $63$ degrees of
-freedom, $p_{\chi^2}=0.4986$; Table~\ref{tab:leakagebeijing}).
-
-\begin{table}[pos=htbp]
-\caption{Tag re-identification by class, second corpus, perfect auxiliary
-knowledge.}
-\label{tab:leakagebeijing}
-\centering
-\footnotesize
-\setlength{\tabcolsep}{3pt}
-\begin{tabular*}{\tblwidth}{@{\extracolsep{\fill}}lccc@{}}
-\toprule
-Tag class & Tags & Unmasked & Masked \\
-\midrule
-Monitoring site        & $12$       & $100\%$   & $0\%$ \\
-Wind direction         & $17$       & $100\%$   & $0\%$ \\
-CO, NO$_2$, O$_3$ bands & $33$      & $100\%$   & $0\%$ \\
-PM$_{2.5}$, PM$_{10}$ bands & $22$  & $100\%$   & $0\%$ \\
-SO$_2$ band            & $10$       & $100\%$   & $0\%$ \\
-Pressure, dew-point bands & $22$    & $100\%$   & $0\%$ \\
-One-hour window        & $35{,}046$ & $0.31\%$  & $0\%$ \\
-\midrule
-Random guessing        & n/a        & \multicolumn{2}{c}{$0.0028\%$} \\
-\bottomrule
-\end{tabular*}
-\end{table}
+\emph{The leakage conclusion is not an artefact of three devices.} On the
+second corpus too, the unmasked index exposes the wind directions and the
+pollutant, pressure and dew-point bands, and the masked index leaves the attack
+at random guessing (Section~\ref{sec:leakeval}, Table~\ref{tab:leakage}).
 
 \emph{The remaining measurements track the primary corpus.} Provider compute
 in the single-host deployment was flat in $n$ ($38.67$, $37.65$ and
@@ -2622,14 +2670,16 @@ commodity hosts.
 \label{sec:limits}
 \emph{Evaluation.} Range aggregation, session verification, role-scoped access
 and the packed index were measured in a single-threaded reference
-implementation on synthetic data with the primary corpus's dimensions, not in
-the C++ prototype on the real corpora; absolute latencies are those of an
-unoptimised driver, and figures are per provider. The C++ deployment ran over
-loopback on one host, so wide-area latency, bandwidth variation and stragglers
-were not measured, and the padded leakage baselines have not been run.
-\authorcheck{Port range aggregation and the session check to the C++ build,
-measure them on both real corpora, run the padded leakage baselines, and deploy
-providers in at least two cloud regions.}
+implementation, range aggregation on cubes built from both real corpora and
+the rest on synthetic data with the primary corpus's dimensions; none of them
+is in the C++ prototype, absolute latencies are those of an unoptimised
+driver, and figures are per provider. The C++ deployment ran over loopback on
+one host, so wide-area latency, bandwidth variation and stragglers were not
+measured. The C++ prototype's leakage figures are withdrawn
+(Section~\ref{sec:leakeval}), and its corpus builder differs from the
+reference loader on the second corpus.
+\authorcheck{Port range aggregation and the session check to the C++ build and
+deploy providers in at least two cloud regions.}
 
 \emph{Expressiveness and updates.} One-round range queries apply to registered
 data cubes and templates whose cumulative corpus total stays below $p$ (a
@@ -2680,12 +2730,14 @@ confine each user to its own records without interaction. At $t=n-1$ a
 homomorphic layer is our route to this, since a local additive-sharing
 alternative with data-independent queries would need single-server private
 retrieval. On two real IoT corpora a C++ prototype answers single-keyword
-aggregates in $39$\,ms per provider; on a synthetic cube with the primary
-corpus's dimensions a reference implementation returns fixed-size
-$132$\,kB responses at flat cost across box lengths, accepted no wrong answer
-in $4{,}000$ tampered session queries, and leaked no other role's records under
-an index-extraction attack. Range results on the real corpora, a native port,
-cross-region latency and an outside review of the proofs come next.
+aggregates in $39$\,ms per provider; on range cubes built from both corpora a
+reference implementation answers verified box queries in $0.68$--$1.19$\,s
+per provider with fixed-size $132$\,kB responses at flat cost across box
+lengths, and it accepted no wrong answer in $4{,}500$ tampered session
+queries, leaked no other role's records under an index-extraction attack, and
+left a frequency attack at random guessing where power-of-two padding did not.
+A native port, cross-region latency and an outside review of the proofs come
+next.
 Future work will pursue sublinear preprocessing for dynamic streams,
 succinct multi-party DPF instantiations for $n>2$, wide-area multi-region and
 edge-gateway evaluations, and multi-owner key management.

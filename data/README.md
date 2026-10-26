@@ -14,11 +14,18 @@ describes. When the rebuild is right, `python bench/corpus_stats.py` should repo
 | | N (tags) | N_d (records) | postings | median / mean / max posting length |
 |---|---:|---:|---:|---|
 | telemetry | 11,580 | 405,184 | 3,646,656 | 35 / 314.9 / 404,702 |
-| beijing | 35,162 | 420,370 | 4,624,070 | 12 / 131.5 / 102,344 |
+| beijing | 35,162 | 420,370 | 4,624,070 | 12 / 131.5 / 102,344 (C++ builder); **98,878** (this loader) |
 
-If the counts differ, the band edges or NA handling differ from the C++ corpus builder,
-so reconcile them before quoting any result.
+N, N_d and the posting total hold for any band rule (every record gets one tag per family),
+so matching them does not show that the band edges agree. The maximum posting length and the
+largest single-tag aggregate do: on the first real run (2026-10-26) the telemetry corpus matched
+the C++ builder on both, while Beijing gave a maximum of 98,878 against 102,344 and a largest
+aggregate of 676,076,034 against 698,963,226. The two builders therefore assign some Beijing band
+edges differently; `bench/dump_lengths.py` writes per-tag lengths so they can be compared tag by
+tag. `scripts/run_server_experiments.sh` now checks all five values.
 
-These files could not be fetched from the environment that produced the reference
-results in `results/`: the proxy blocked kaggle.com and archive.ics.uci.edu. That is why
-the leakage experiments with padded and volume-hiding baselines have not been run yet.
+These files cannot be fetched from the environment that produced the synthetic-data results
+in `results/` (the proxy blocks kaggle.com and archive.ics.uci.edu). The real-corpus results
+(`corpus_stats.json`, `correctness_{telemetry,beijing}.json`, `leakage_{telemetry,beijing}.json`,
+`range_real_{telemetry,beijing_day}.json`) were produced by the authors on their own server with
+`scripts/run_server_experiments.sh`; its logs are in `results/server_logs_20261026/`.

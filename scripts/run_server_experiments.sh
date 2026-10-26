@@ -68,13 +68,22 @@ python corpus_stats.py 2>&1 | tee ../logs/corpus_stats.log
 python - <<'PY'
 import json
 s = json.load(open("../results/corpus_stats.json"))
-want = {"telemetry": (11580, 405184, 3646656), "beijing": (35162, 420370, 4624070)}
-for k, (N, Nd, P) in want.items():
+# N, N_d and the posting total hold for any band rule, so they alone cannot catch a
+# band-edge difference; the maximum posting length and largest single-tag sum can.
+# Values are those of the C++ corpus builder, as the manuscript states them.
+want = {"telemetry": {"N": 11580, "Nd": 405184, "postings": 3646656, "max": 404702,
+                      "largest_sum": 908575470},
+        "beijing": {"N": 35162, "Nd": 420370, "postings": 4624070, "max": 102344,
+                    "largest_sum": 698963226}}
+for k, w in want.items():
     if k not in s:
         print(k, "not available"); continue
-    got = (s[k]["N"], s[k]["Nd"], s[k]["postings"])
-    print(k, "OK" if got == (N, Nd, P) else f"MISMATCH got {got}, manuscript says {(N, Nd, P)}")
+    bad = {f: (s[k][f], v) for f, v in w.items() if s[k][f] != v}
+    print(k, "OK" if not bad else f"MISMATCH (got, C++ builder): {bad}")
 PY
+
+step "Per-tag posting lengths (for re-analysing leakage without the raw data)"
+python dump_lengths.py 2>&1 | tee ../logs/dump_lengths.log
 
 for c in $CORPORA; do
   step "Correctness on $c"

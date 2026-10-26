@@ -1,0 +1,294 @@
+{
+  "environment": {
+    "cpu": "AMD EPYC 7J13 64-Core Processor",
+    "cores": 32,
+    "python": "3.12.3",
+    "openfhe_python": "1.5.1",
+    "omp_threads": "1",
+    "implementation": "crshe reference (Python driver, OpenFHE C++ kernels)"
+  },
+  "corpus": {
+    "name": "telemetry",
+    "N": 11580,
+    "Nd": 405184,
+    "postings": 3646656,
+    "median": 35.0,
+    "mean": 314.9098445595855,
+    "max": 404702,
+    "largest_sum": 908575470
+  },
+  "runs": [
+    {
+      "scheme": "unmasked",
+      "fraction": 1.0,
+      "overall": 0.004835924006908463,
+      "per_class": {
+        "co": 0.325,
+        "device": 1.0,
+        "humidity": 0.925,
+        "light": 1.0,
+        "lpg": 0.325,
+        "minute": 0.0017356591165495097,
+        "motion": 1.0,
+        "smoke": 0.325,
+        "temp": 1.0
+      },
+      "random_guess": 8.635578583765112e-05
+    },
+    {
+      "scheme": "padded",
+      "fraction": 1.0,
+      "overall": 0.0007772020725388601,
+      "per_class": {
+        "co": 0.02040816326530612,
+        "device": 0.5555555555555555,
+        "humidity": 0.02040816326530612,
+        "light": 0.41666666666666663,
+        "lpg": 0.02040816326530612,
+        "minute": 0.00026034886748242653,
+        "motion": 0.75,
+        "smoke": 0.02040816326530612,
+        "temp": 0.11836734693877553
+      },
+      "random_guess": 8.635578583765112e-05
+    },
+    {
+      "scheme": "volume_hiding",
+      "fraction": 1.0,
+      "overall": 8.635578583765112e-05,
+      "per_class": {
+        "co": 8.635578583765112e-05,
+        "device": 8.635578583765112e-05,
+        "humidity": 8.635578583765112e-05,
+        "light": 8.635578583765112e-05,
+        "lpg": 8.635578583765112e-05,
+        "minute": 8.635578583765112e-05,
+        "motion": 8.635578583765112e-05,
+        "smoke": 8.635578583765112e-05,
+        "temp": 8.635578583765112e-05
+      },
+      "random_guess": 8.635578583765112e-05
+    },
+    {
+      "scheme": "masked",
+      "fraction": 1.0,
+      "overall": 8.635578583765112e-05,
+      "per_class": {
+        "co": 0.0,
+        "device": 0.0,
+        "humidity": 0.0,
+        "light": 0.0,
+        "lpg": 0.0,
+        "minute": 0.0,
+        "motion": 0.5,
+        "smoke": 0.0,
+        "temp": 0.0
+      },
+      "random_guess": 8.635578583765112e-05
+    },
+    {
+      "scheme": "unmasked",
+      "fraction": 0.5,
+      "overall": 0.0017515803491862168,
+      "per_class": {
+        "co": 0.1,
+        "device": 1.0,
+        "humidity": 0.3,
+        "light": 1.0,
+        "lpg": 0.0,
+        "minute": 0.00011136860570826974,
+        "motion": 1.0,
+        "smoke": 0.0,
+        "temp": 0.8
+      },
+      "random_guess": 8.635578583765112e-05
+    },
+    {
+      "scheme": "padded",
+      "fraction": 0.5,
+      "overall": 0.0006191122002073816,
+      "per_class": {
+        "co": 0.02040816326530612,
+        "device": 0.5555555555555555,
+        "humidity": 0.02040816326530612,
+        "light": 0.41666666666666663,
+        "lpg": 0.02040816326530612,
+        "minute": 0.00010147698328573121,
+        "motion": 0.75,
+        "smoke": 0.02040816326530612,
+        "temp": 0.11836734693877553
+      },
+      "random_guess": 8.635578583765112e-05
+    },
+    {
+      "scheme": "volume_hiding",
+      "fraction": 0.5,
+      "overall": 8.635578583765112e-05,
+      "per_class": {
+        "co": 8.635578583765112e-05,
+        "device": 8.635578583765112e-05,
+        "humidity": 8.635578583765112e-05,
+        "light": 8.635578583765112e-05,
+        "lpg": 8.635578583765112e-05,
+        "minute": 8.635578583765112e-05,
+        "motion": 8.635578583765112e-05,
+        "smoke": 8.635578583765112e-05,
+        "temp": 8.635578583765112e-05
+      },
+      "random_guess": 8.635578583765112e-05
+    },
+    {
+      "scheme": "masked",
+      "fraction": 0.5,
+      "overall": 8.635578583765112e-05,
+      "per_class": {
+        "co": 0.0,
+        "device": 0.0,
+        "humidity": 0.0,
+        "light": 0.0,
+        "lpg": 0.0,
+        "minute": 0.0,
+        "motion": 0.5,
+        "smoke": 0.0,
+        "temp": 0.0
+      },
+      "random_guess": 8.635578583765112e-05
+    },
+    {
+      "scheme": "unmasked",
+      "fraction": 0.1,
+      "overall": 0.001341767753750972,
+      "per_class": {
+        "co": 0.05,
+        "device": 1.0,
+        "humidity": 0.1,
+        "light": 0.5,
+        "lpg": 0.0,
+        "minute": 9.005212083973387e-05,
+        "motion": 1.0,
+        "smoke": 0.0,
+        "temp": 0.7
+      },
+      "random_guess": 8.635578583765112e-05
+    },
+    {
+      "scheme": "padded",
+      "fraction": 0.1,
+      "overall": 0.0006073997005793626,
+      "per_class": {
+        "co": 0.02040816326530612,
+        "device": 0.5555555555555555,
+        "humidity": 0.02040816326530612,
+        "light": 0.41666666666666663,
+        "lpg": 0.02040816326530612,
+        "minute": 8.970654627345465e-05,
+        "motion": 0.75,
+        "smoke": 0.02040816326530612,
+        "temp": 0.11836734693877553
+      },
+      "random_guess": 8.635578583765112e-05
+    },
+    {
+      "scheme": "volume_hiding",
+      "fraction": 0.1,
+      "overall": 8.635578583765112e-05,
+      "per_class": {
+        "co": 8.635578583765112e-05,
+        "device": 8.635578583765112e-05,
+        "humidity": 8.635578583765112e-05,
+        "light": 8.635578583765112e-05,
+        "lpg": 8.635578583765112e-05,
+        "minute": 8.635578583765112e-05,
+        "motion": 8.635578583765112e-05,
+        "smoke": 8.635578583765112e-05,
+        "temp": 8.635578583765112e-05
+      },
+      "random_guess": 8.635578583765112e-05
+    },
+    {
+      "scheme": "masked",
+      "fraction": 0.1,
+      "overall": 8.635578583765112e-05,
+      "per_class": {
+        "co": 0.0,
+        "device": 0.0,
+        "humidity": 0.0,
+        "light": 0.0,
+        "lpg": 0.0,
+        "minute": 0.0,
+        "motion": 0.5,
+        "smoke": 0.0,
+        "temp": 0.0
+      },
+      "random_guess": 8.635578583765112e-05
+    },
+    {
+      "scheme": "unmasked",
+      "fraction": 0.01,
+      "overall": 0.0008203799654576857,
+      "per_class": {
+        "co": 0.0,
+        "device": 1.0,
+        "humidity": 0.0,
+        "light": 0.5,
+        "lpg": 0.1,
+        "minute": 8.678295582747547e-05,
+        "motion": 0.5,
+        "smoke": 0.05,
+        "temp": 0.2
+      },
+      "random_guess": 8.635578583765112e-05
+    },
+    {
+      "scheme": "padded",
+      "fraction": 0.01,
+      "overall": 0.0005181347150259067,
+      "per_class": {
+        "co": 0.02040816326530612,
+        "device": 0.5555555555555555,
+        "humidity": 0.02040816326530612,
+        "light": 0.41666666666666663,
+        "lpg": 0.02040816326530612,
+        "minute": 8.678295582747547e-05,
+        "motion": 0.25,
+        "smoke": 0.02040816326530612,
+        "temp": 0.11836734693877553
+      },
+      "random_guess": 8.635578583765112e-05
+    },
+    {
+      "scheme": "volume_hiding",
+      "fraction": 0.01,
+      "overall": 8.635578583765112e-05,
+      "per_class": {
+        "co": 8.635578583765112e-05,
+        "device": 8.635578583765112e-05,
+        "humidity": 8.635578583765112e-05,
+        "light": 8.635578583765112e-05,
+        "lpg": 8.635578583765112e-05,
+        "minute": 8.635578583765112e-05,
+        "motion": 8.635578583765112e-05,
+        "smoke": 8.635578583765112e-05,
+        "temp": 8.635578583765112e-05
+      },
+      "random_guess": 8.635578583765112e-05
+    },
+    {
+      "scheme": "masked",
+      "fraction": 0.01,
+      "overall": 8.635578583765112e-05,
+      "per_class": {
+        "co": 0.0,
+        "device": 0.0,
+        "humidity": 0.0,
+        "light": 0.0,
+        "lpg": 0.0,
+        "minute": 0.0,
+        "motion": 0.5,
+        "smoke": 0.0,
+        "temp": 0.0
+      },
+      "random_guess": 8.635578583765112e-05
+    }
+  ]
+}

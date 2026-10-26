@@ -1,0 +1,30 @@
+{
+  "environment": {
+    "cpu": "AMD EPYC 7J13 64-Core Processor",
+    "cores": 32,
+    "python": "3.12.3",
+    "openfhe_python": "1.5.1",
+    "omp_threads": "1",
+    "implementation": "crshe reference (Python driver, OpenFHE C++ kernels)"
+  },
+  "telemetry": {
+    "name": "telemetry",
+    "N": 11580,
+    "Nd": 405184,
+    "postings": 3646656,
+    "median": 35.0,
+    "mean": 314.9098445595855,
+    "max": 404702,
+    "largest_sum": 908575470
+  },
+  "beijing": {
+    "name": "beijing",
+    "N": 35162,
+    "Nd": 420370,
+    "postings": 4624070,
+    "median": 12.0,
+    "mean": 131.50759342471986,
+    "max": 98878,
+    "largest_sum": 676076034
+  }
+}

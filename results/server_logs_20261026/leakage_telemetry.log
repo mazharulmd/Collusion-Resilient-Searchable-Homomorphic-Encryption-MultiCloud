@@ -1,0 +1,17 @@
+f=1.0   unmasked       overall=  0.484%  co=32.5% device=100.0% humidity=92.5% light=100.0% lpg=32.5% minute=0.2% motion=100.0% smoke=32.5% temp=100.0%
+f=1.0   padded         overall=  0.078%  co=2.0% device=55.6% humidity=2.0% light=41.7% lpg=2.0% minute=0.0% motion=75.0% smoke=2.0% temp=11.8%
+f=1.0   volume_hiding  overall=  0.009%  co=0.0% device=0.0% humidity=0.0% light=0.0% lpg=0.0% minute=0.0% motion=0.0% smoke=0.0% temp=0.0%
+f=1.0   masked         overall=  0.009%  co=0.0% device=0.0% humidity=0.0% light=0.0% lpg=0.0% minute=0.0% motion=50.0% smoke=0.0% temp=0.0%
+f=0.5   unmasked       overall=  0.175%  co=10.0% device=100.0% humidity=30.0% light=100.0% lpg=0.0% minute=0.0% motion=100.0% smoke=0.0% temp=80.0%
+f=0.5   padded         overall=  0.062%  co=2.0% device=55.6% humidity=2.0% light=41.7% lpg=2.0% minute=0.0% motion=75.0% smoke=2.0% temp=11.8%
+f=0.5   volume_hiding  overall=  0.009%  co=0.0% device=0.0% humidity=0.0% light=0.0% lpg=0.0% minute=0.0% motion=0.0% smoke=0.0% temp=0.0%
+f=0.5   masked         overall=  0.009%  co=0.0% device=0.0% humidity=0.0% light=0.0% lpg=0.0% minute=0.0% motion=50.0% smoke=0.0% temp=0.0%
+f=0.1   unmasked       overall=  0.134%  co=5.0% device=100.0% humidity=10.0% light=50.0% lpg=0.0% minute=0.0% motion=100.0% smoke=0.0% temp=70.0%
+f=0.1   padded         overall=  0.061%  co=2.0% device=55.6% humidity=2.0% light=41.7% lpg=2.0% minute=0.0% motion=75.0% smoke=2.0% temp=11.8%
+f=0.1   volume_hiding  overall=  0.009%  co=0.0% device=0.0% humidity=0.0% light=0.0% lpg=0.0% minute=0.0% motion=0.0% smoke=0.0% temp=0.0%
+f=0.1   masked         overall=  0.009%  co=0.0% device=0.0% humidity=0.0% light=0.0% lpg=0.0% minute=0.0% motion=50.0% smoke=0.0% temp=0.0%
+f=0.01  unmasked       overall=  0.082%  co=0.0% device=100.0% humidity=0.0% light=50.0% lpg=10.0% minute=0.0% motion=50.0% smoke=5.0% temp=20.0%
+f=0.01  padded         overall=  0.052%  co=2.0% device=55.6% humidity=2.0% light=41.7% lpg=2.0% minute=0.0% motion=25.0% smoke=2.0% temp=11.8%
+f=0.01  volume_hiding  overall=  0.009%  co=0.0% device=0.0% humidity=0.0% light=0.0% lpg=0.0% minute=0.0% motion=0.0% smoke=0.0% temp=0.0%
+f=0.01  masked         overall=  0.009%  co=0.0% device=0.0% humidity=0.0% light=0.0% lpg=0.0% minute=0.0% motion=50.0% smoke=0.0% temp=0.0%
+wrote ../results/leakage_telemetry.json

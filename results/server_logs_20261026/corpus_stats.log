@@ -1,0 +1,3 @@
+{"name": "telemetry", "N": 11580, "Nd": 405184, "postings": 3646656, "median": 35.0, "mean": 314.9098445595855, "max": 404702, "largest_sum": 908575470}
+{"name": "beijing", "N": 35162, "Nd": 420370, "postings": 4624070, "median": 12.0, "mean": 131.50759342471986, "max": 98878, "largest_sum": 676076034}
+wrote ../results/corpus_stats.json

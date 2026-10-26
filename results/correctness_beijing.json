@@ -1,0 +1,49 @@
+{
+  "environment": {
+    "cpu": "AMD EPYC 7J13 64-Core Processor",
+    "cores": 32,
+    "python": "3.12.3",
+    "openfhe_python": "1.5.1",
+    "omp_threads": "1",
+    "implementation": "crshe reference (Python driver, OpenFHE C++ kernels)"
+  },
+  "corpus": {
+    "name": "beijing[:20000]",
+    "N": 20103,
+    "Nd": 20000,
+    "postings": 220000,
+    "median": 1.0,
+    "mean": 10.943640252698602,
+    "max": 20000,
+    "largest_sum": 127566146
+  },
+  "checks": {
+    "n=2": {
+      "tags": 200,
+      "fast_ok": 200,
+      "retrieve_ok": 200,
+      "flexible_ok": 200,
+      "response_sizes_min_max_posting": [
+        132081
+      ]
+    },
+    "n=3": {
+      "tags": 200,
+      "fast_ok": 200,
+      "retrieve_ok": 200,
+      "flexible_ok": 200,
+      "response_sizes_min_max_posting": [
+        132081
+      ]
+    },
+    "n=4": {
+      "tags": 200,
+      "fast_ok": 200,
+      "retrieve_ok": 200,
+      "flexible_ok": 200,
+      "response_sizes_min_max_posting": [
+        132081
+      ]
+    }
+  }
+}

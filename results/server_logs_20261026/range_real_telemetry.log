@@ -1,0 +1,22 @@
+telemetry: dims (3, 11523, 10)  M=345,690  records=405,184
+combined  L=     1 minutes: dpf     450.6 ms  provider     772.2 ms  up 2,760 B  down 132,081 B
+combined  L=    60 minutes: dpf     452.3 ms  provider     787.3 ms  up 2,760 B  down 132,081 B
+combined  L=   240 minutes: dpf     452.5 ms  provider     788.3 ms  up 2,760 B  down 132,081 B
+combined  L=  1440 minutes: dpf     437.2 ms  provider     767.8 ms  up 2,760 B  down 132,081 B
+combined  L= 11523 minutes: dpf     419.3 ms  provider     771.7 ms  up 2,760 B  down 132,081 B
+  tamper combined  inconsistent  {'detected': 50, 'undetected_wrong': 0, 'undetected_correct': 0}
+  tamper combined  dense         {'detected': 0, 'undetected_wrong': 50, 'undetected_correct': 0}
+  tamper combined  scale         {'detected': 0, 'undetected_wrong': 50, 'undetected_correct': 0}
+  tamper combined  random_point  {'detected': 0, 'undetected_wrong': 50, 'undetected_correct': 0}
+  tamper combined  hidden_point  {'detected': 0, 'undetected_wrong': 50, 'undetected_correct': 0}
+session   L=     1 minutes: dpf     854.5 ms  provider    1188.9 ms  up 5,520 B  down 132,081 B
+session   L=    60 minutes: dpf     850.5 ms  provider    1188.7 ms  up 5,520 B  down 132,081 B
+session   L=   240 minutes: dpf     848.3 ms  provider    1185.8 ms  up 5,520 B  down 132,081 B
+session   L=  1440 minutes: dpf     870.4 ms  provider    1187.7 ms  up 5,520 B  down 132,081 B
+session   L= 11523 minutes: dpf     848.2 ms  provider    1189.6 ms  up 5,520 B  down 132,081 B
+  tamper session   inconsistent  {'detected': 50, 'undetected_wrong': 0, 'undetected_correct': 0}
+  tamper session   dense         {'detected': 50, 'undetected_wrong': 0, 'undetected_correct': 0}
+  tamper session   scale         {'detected': 50, 'undetected_wrong': 0, 'undetected_correct': 0}
+  tamper session   random_point  {'detected': 50, 'undetected_wrong': 0, 'undetected_correct': 0}
+  tamper session   hidden_point  {'detected': 50, 'undetected_wrong': 0, 'undetected_correct': 0}
+wrote ../results/range_real_telemetry.json

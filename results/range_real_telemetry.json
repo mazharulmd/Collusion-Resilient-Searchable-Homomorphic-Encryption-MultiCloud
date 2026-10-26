@@ -1,0 +1,671 @@
+{
+  "environment": {
+    "cpu": "AMD EPYC 7J13 64-Core Processor",
+    "cores": 32,
+    "python": "3.12.3",
+    "openfhe_python": "1.5.1",
+    "omp_threads": "1",
+    "implementation": "crshe reference (Python driver, OpenFHE C++ kernels)"
+  },
+  "corpus": "telemetry",
+  "dims": [
+    3,
+    11523,
+    10
+  ],
+  "axes": [
+    "device",
+    "minute",
+    "co_band"
+  ],
+  "records": 405184,
+  "window_unit": "minutes",
+  "modes": {
+    "combined": {
+      "M": 345690,
+      "chunks": 169,
+      "setup_s": 1.053230450999763,
+      "column_ciphertexts": 169,
+      "by_window": [
+        {
+          "box": [
+            [
+              1,
+              1
+            ],
+            [
+              3841,
+              3841
+            ],
+            [
+              3,
+              7
+            ]
+          ],
+          "token": {
+            "median_ms": 10.141605999706371,
+            "q1_ms": 10.048038500144685,
+            "q3_ms": 10.31355549980617,
+            "reps": 5
+          },
+          "dpf_eval_all_keys": {
+            "median_ms": 450.6430400001591,
+            "q1_ms": 415.61039150019496,
+            "q3_ms": 511.27508100012165,
+            "reps": 5
+          },
+          "provider_total": {
+            "median_ms": 772.2431769998366,
+            "q1_ms": 770.881122999981,
+            "q3_ms": 774.6909039999537,
+            "reps": 5
+          },
+          "user_finish": {
+            "median_ms": 1.2942100001964718,
+            "q1_ms": 1.2670779999552906,
+            "q3_ms": 1.3299069998993218,
+            "reps": 5
+          },
+          "downlink_bytes": 132081,
+          "uplink_bytes_per_provider": 2760,
+          "keys_per_provider": 8,
+          "result": {
+            "count": 10,
+            "sum": 25690
+          },
+          "window": 1
+        },
+        {
+          "box": [
+            [
+              1,
+              1
+            ],
+            [
+              3841,
+              3900
+            ],
+            [
+              3,
+              7
+            ]
+          ],
+          "token": {
+            "median_ms": 9.652605000155745,
+            "q1_ms": 9.638377999863224,
+            "q3_ms": 9.751541500008898,
+            "reps": 5
+          },
+          "dpf_eval_all_keys": {
+            "median_ms": 452.31930900035877,
+            "q1_ms": 406.461550999893,
+            "q3_ms": 472.1794179999961,
+            "reps": 5
+          },
+          "provider_total": {
+            "median_ms": 787.3421829999643,
+            "q1_ms": 786.6498984997179,
+            "q3_ms": 792.5207544997193,
+            "reps": 5
+          },
+          "user_finish": {
+            "median_ms": 1.2836799996875925,
+            "q1_ms": 1.2725934998343291,
+            "q3_ms": 1.3155995000033727,
+            "reps": 5
+          },
+          "downlink_bytes": 132081,
+          "uplink_bytes_per_provider": 2760,
+          "keys_per_provider": 8,
+          "result": {
+            "count": 565,
+            "sum": 1446500
+          },
+          "window": 60
+        },
+        {
+          "box": [
+            [
+              1,
+              1
+            ],
+            [
+              3841,
+              4080
+            ],
+            [
+              3,
+              7
+            ]
+          ],
+          "token": {
+            "median_ms": 9.719278999909875,
+            "q1_ms": 9.656771499976458,
+            "q3_ms": 9.766062999915448,
+            "reps": 5
+          },
+          "dpf_eval_all_keys": {
+            "median_ms": 452.47325699983776,
+            "q1_ms": 410.3256830001101,
+            "q3_ms": 475.28855249993285,
+            "reps": 5
+          },
+          "provider_total": {
+            "median_ms": 788.2923219999611,
+            "q1_ms": 787.1403114997975,
+            "q3_ms": 788.5204320000412,
+            "reps": 5
+          },
+          "user_finish": {
+            "median_ms": 1.285111000015604,
+            "q1_ms": 1.2713614999029232,
+            "q3_ms": 1.3097934997858829,
+            "reps": 5
+          },
+          "downlink_bytes": 132081,
+          "uplink_bytes_per_provider": 2760,
+          "keys_per_provider": 8,
+          "result": {
+            "count": 2334,
+            "sum": 6092090
+          },
+          "window": 240
+        },
+        {
+          "box": [
+            [
+              1,
+              1
+            ],
+            [
+              3841,
+              5280
+            ],
+            [
+              3,
+              7
+            ]
+          ],
+          "token": {
+            "median_ms": 9.776066999620525,
+            "q1_ms": 9.682790499937255,
+            "q3_ms": 9.857255000042642,
+            "reps": 5
+          },
+          "dpf_eval_all_keys": {
+            "median_ms": 437.18286599960265,
+            "q1_ms": 407.81683799991697,
+            "q3_ms": 475.07249399996,
+            "reps": 5
+          },
+          "provider_total": {
+            "median_ms": 767.7920890000678,
+            "q1_ms": 767.5196454997604,
+            "q3_ms": 770.0844450000659,
+            "reps": 5
+          },
+          "user_finish": {
+            "median_ms": 1.2748340000143799,
+            "q1_ms": 1.2683850000030361,
+            "q3_ms": 1.312949500288596,
+            "reps": 5
+          },
+          "downlink_bytes": 132081,
+          "uplink_bytes_per_provider": 2760,
+          "keys_per_provider": 8,
+          "result": {
+            "count": 9813,
+            "sum": 25661390
+          },
+          "window": 1440
+        },
+        {
+          "box": [
+            [
+              1,
+              1
+            ],
+            [
+              0,
+              11522
+            ],
+            [
+              3,
+              7
+            ]
+          ],
+          "token": {
+            "median_ms": 9.688452999853325,
+            "q1_ms": 9.606386500081499,
+            "q3_ms": 9.718383000063113,
+            "reps": 5
+          },
+          "dpf_eval_all_keys": {
+            "median_ms": 419.30357399996865,
+            "q1_ms": 406.27241600009256,
+            "q3_ms": 470.0802024999575,
+            "reps": 5
+          },
+          "provider_total": {
+            "median_ms": 771.6647180000109,
+            "q1_ms": 770.6257130000722,
+            "q3_ms": 773.7014749998252,
+            "reps": 5
+          },
+          "user_finish": {
+            "median_ms": 1.2820060001104139,
+            "q1_ms": 1.2601399998857232,
+            "q3_ms": 1.3289199998780532,
+            "reps": 5
+          },
+          "downlink_bytes": 132081,
+          "uplink_bytes_per_provider": 2760,
+          "keys_per_provider": 8,
+          "result": {
+            "count": 65605,
+            "sum": 170718590
+          },
+          "window": 11523
+        }
+      ],
+      "edge_box": {
+        "box": [
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            239
+          ],
+          [
+            0,
+            4
+          ]
+        ],
+        "token": {
+          "median_ms": 9.791645999939647,
+          "q1_ms": 9.725887499826058,
+          "q3_ms": 9.87625599987041,
+          "reps": 5
+        },
+        "dpf_eval_all_keys": {
+          "median_ms": 421.9491889998608,
+          "q1_ms": 410.7181345000299,
+          "q3_ms": 475.64537600010226,
+          "reps": 5
+        },
+        "provider_total": {
+          "median_ms": 775.9302959998422,
+          "q1_ms": 773.8208334999399,
+          "q3_ms": 777.4125139999342,
+          "reps": 5
+        },
+        "user_finish": {
+          "median_ms": 1.2849619997723494,
+          "q1_ms": 1.277307500004099,
+          "q3_ms": 1.3219669999671169,
+          "reps": 5
+        },
+        "downlink_bytes": 132081,
+        "uplink_bytes_per_provider": 2760,
+        "keys_per_provider": 8,
+        "result": {
+          "count": 2305,
+          "sum": 4533430
+        }
+      },
+      "tamper": {
+        "inconsistent": {
+          "detected": 50,
+          "undetected_wrong": 0,
+          "undetected_correct": 0
+        },
+        "dense": {
+          "detected": 0,
+          "undetected_wrong": 50,
+          "undetected_correct": 0
+        },
+        "scale": {
+          "detected": 0,
+          "undetected_wrong": 50,
+          "undetected_correct": 0
+        },
+        "random_point": {
+          "detected": 0,
+          "undetected_wrong": 50,
+          "undetected_correct": 0
+        },
+        "hidden_point": {
+          "detected": 0,
+          "undetected_wrong": 50,
+          "undetected_correct": 0
+        }
+      }
+    },
+    "session": {
+      "M": 345690,
+      "chunks": 169,
+      "setup_s": 1.0376255670007595,
+      "column_ciphertexts": 169,
+      "by_window": [
+        {
+          "box": [
+            [
+              1,
+              1
+            ],
+            [
+              3841,
+              3841
+            ],
+            [
+              3,
+              7
+            ]
+          ],
+          "token": {
+            "median_ms": 19.462485000076413,
+            "q1_ms": 19.346355499692436,
+            "q3_ms": 19.542121499853238,
+            "reps": 5
+          },
+          "dpf_eval_all_keys": {
+            "median_ms": 854.4719930005158,
+            "q1_ms": 838.2229095004732,
+            "q3_ms": 995.4583509997974,
+            "reps": 5
+          },
+          "provider_total": {
+            "median_ms": 1188.8569370003097,
+            "q1_ms": 1186.7419895002058,
+            "q3_ms": 1189.704196499406,
+            "reps": 5
+          },
+          "user_finish": {
+            "median_ms": 1.2822489998143283,
+            "q1_ms": 1.2589694997586776,
+            "q3_ms": 1.3008790006097115,
+            "reps": 5
+          },
+          "downlink_bytes": 132081,
+          "uplink_bytes_per_provider": 5520,
+          "keys_per_provider": 16,
+          "result": {
+            "count": 10,
+            "sum": 25690
+          },
+          "window": 1
+        },
+        {
+          "box": [
+            [
+              1,
+              1
+            ],
+            [
+              3841,
+              3900
+            ],
+            [
+              3,
+              7
+            ]
+          ],
+          "token": {
+            "median_ms": 19.343285999639193,
+            "q1_ms": 19.232928500059643,
+            "q3_ms": 19.35934699986319,
+            "reps": 5
+          },
+          "dpf_eval_all_keys": {
+            "median_ms": 850.461039000038,
+            "q1_ms": 836.9958915004645,
+            "q3_ms": 993.5892859994055,
+            "reps": 5
+          },
+          "provider_total": {
+            "median_ms": 1188.7245739999344,
+            "q1_ms": 1185.116377000213,
+            "q3_ms": 1190.1783205003085,
+            "reps": 5
+          },
+          "user_finish": {
+            "median_ms": 1.2804560001313803,
+            "q1_ms": 1.263292499970703,
+            "q3_ms": 1.3102565003464406,
+            "reps": 5
+          },
+          "downlink_bytes": 132081,
+          "uplink_bytes_per_provider": 5520,
+          "keys_per_provider": 16,
+          "result": {
+            "count": 565,
+            "sum": 1446500
+          },
+          "window": 60
+        },
+        {
+          "box": [
+            [
+              1,
+              1
+            ],
+            [
+              3841,
+              4080
+            ],
+            [
+              3,
+              7
+            ]
+          ],
+          "token": {
+            "median_ms": 19.185133000064525,
+            "q1_ms": 19.037022999782494,
+            "q3_ms": 19.214454499888234,
+            "reps": 5
+          },
+          "dpf_eval_all_keys": {
+            "median_ms": 848.3493260000614,
+            "q1_ms": 825.1485980003963,
+            "q3_ms": 992.4962300001425,
+            "reps": 5
+          },
+          "provider_total": {
+            "median_ms": 1185.7603959997505,
+            "q1_ms": 1184.4882965006036,
+            "q3_ms": 1190.7287959993482,
+            "reps": 5
+          },
+          "user_finish": {
+            "median_ms": 1.2766070003635832,
+            "q1_ms": 1.2615434998224373,
+            "q3_ms": 1.3201005003793398,
+            "reps": 5
+          },
+          "downlink_bytes": 132081,
+          "uplink_bytes_per_provider": 5520,
+          "keys_per_provider": 16,
+          "result": {
+            "count": 2334,
+            "sum": 6092090
+          },
+          "window": 240
+        },
+        {
+          "box": [
+            [
+              1,
+              1
+            ],
+            [
+              3841,
+              5280
+            ],
+            [
+              3,
+              7
+            ]
+          ],
+          "token": {
+            "median_ms": 19.275163000202156,
+            "q1_ms": 19.165038500432274,
+            "q3_ms": 19.374193500425463,
+            "reps": 5
+          },
+          "dpf_eval_all_keys": {
+            "median_ms": 870.4416030004722,
+            "q1_ms": 842.984022499877,
+            "q3_ms": 926.7818140001509,
+            "reps": 5
+          },
+          "provider_total": {
+            "median_ms": 1187.739667999267,
+            "q1_ms": 1185.7604444999197,
+            "q3_ms": 1188.2830030003788,
+            "reps": 5
+          },
+          "user_finish": {
+            "median_ms": 1.2897730002805474,
+            "q1_ms": 1.2832094998884713,
+            "q3_ms": 1.333724500000244,
+            "reps": 5
+          },
+          "downlink_bytes": 132081,
+          "uplink_bytes_per_provider": 5520,
+          "keys_per_provider": 16,
+          "result": {
+            "count": 9813,
+            "sum": 25661390
+          },
+          "window": 1440
+        },
+        {
+          "box": [
+            [
+              1,
+              1
+            ],
+            [
+              0,
+              11522
+            ],
+            [
+              3,
+              7
+            ]
+          ],
+          "token": {
+            "median_ms": 19.47117999952752,
+            "q1_ms": 19.453907499610068,
+            "q3_ms": 19.52666999932262,
+            "reps": 5
+          },
+          "dpf_eval_all_keys": {
+            "median_ms": 848.1985520002127,
+            "q1_ms": 825.7480910001505,
+            "q3_ms": 994.2221934998088,
+            "reps": 5
+          },
+          "provider_total": {
+            "median_ms": 1189.573489000395,
+            "q1_ms": 1185.4681120003079,
+            "q3_ms": 1191.4611799998056,
+            "reps": 5
+          },
+          "user_finish": {
+            "median_ms": 1.270845999897574,
+            "q1_ms": 1.256936000118003,
+            "q3_ms": 1.3095344997964276,
+            "reps": 5
+          },
+          "downlink_bytes": 132081,
+          "uplink_bytes_per_provider": 5520,
+          "keys_per_provider": 16,
+          "result": {
+            "count": 65605,
+            "sum": 170718590
+          },
+          "window": 11523
+        }
+      ],
+      "edge_box": {
+        "box": [
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            239
+          ],
+          [
+            0,
+            4
+          ]
+        ],
+        "token": {
+          "median_ms": 19.218507999539725,
+          "q1_ms": 19.13022649978302,
+          "q3_ms": 19.24632649979685,
+          "reps": 5
+        },
+        "dpf_eval_all_keys": {
+          "median_ms": 849.3417949994182,
+          "q1_ms": 825.5335484996067,
+          "q3_ms": 993.8372424999216,
+          "reps": 5
+        },
+        "provider_total": {
+          "median_ms": 1192.647718000444,
+          "q1_ms": 1189.4554200002858,
+          "q3_ms": 1194.4075544997759,
+          "reps": 5
+        },
+        "user_finish": {
+          "median_ms": 1.3141380004526582,
+          "q1_ms": 1.2892905001535837,
+          "q3_ms": 1.335288499831222,
+          "reps": 5
+        },
+        "downlink_bytes": 132081,
+        "uplink_bytes_per_provider": 5520,
+        "keys_per_provider": 16,
+        "result": {
+          "count": 2305,
+          "sum": 4533430
+        }
+      },
+      "tamper": {
+        "inconsistent": {
+          "detected": 50,
+          "undetected_wrong": 0,
+          "undetected_correct": 0
+        },
+        "dense": {
+          "detected": 50,
+          "undetected_wrong": 0,
+          "undetected_correct": 0
+        },
+        "scale": {
+          "detected": 50,
+          "undetected_wrong": 0,
+          "undetected_correct": 0
+        },
+        "random_point": {
+          "detected": 50,
+          "undetected_wrong": 0,
+          "undetected_correct": 0
+        },
+        "hidden_point": {
+          "detected": 50,
+          "undetected_wrong": 0,
+          "undetected_correct": 0
+        }
+      }
+    }
+  },
+  "single_server_uplink_bytes_computed": 44448859,
+  "note": "single-server uplink computed as chunks x fresh-ciphertext size, not measured"
+}

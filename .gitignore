@@ -25,3 +25,6 @@ data/raw/
 *.fdb_latexmk
 *.abs
 paper/iot-elsevier/CRSHE_IoT_overleaf/
+
+# server logs that results/ cite
+!results/server_logs_*/*.log

@@ -1,0 +1,17 @@
+f=1.0   unmasked       overall=  0.324%  CO=100.0% DEWP=95.5% NO2=100.0% O3=100.0% PM10=100.0% PM2.5=95.5% PRES=100.0% SO2=100.0% hour=0.0% site=33.3% wd=100.0%
+f=1.0   padded         overall=  0.031%  CO=3.0% DEWP=1.7% NO2=3.3% O3=12.2% PM10=5.6% PM2.5=3.3% PRES=10.2% SO2=18.3% hour=0.0% site=1.2% wd=10.4%
+f=1.0   volume_hiding  overall=  0.003%  CO=0.0% DEWP=0.0% NO2=0.0% O3=0.0% PM10=0.0% PM2.5=0.0% PRES=0.0% SO2=0.0% hour=0.0% site=0.0% wd=0.0%
+f=1.0   masked         overall=  0.003%  CO=0.0% DEWP=0.0% NO2=0.0% O3=0.0% PM10=0.0% PM2.5=0.0% PRES=0.0% SO2=10.0% hour=0.0% site=0.0% wd=0.0%
+f=0.5   unmasked       overall=  0.117%  CO=72.7% DEWP=0.0% NO2=27.3% O3=54.5% PM10=9.1% PM2.5=18.2% PRES=0.0% SO2=50.0% hour=0.0% site=16.7% wd=76.5%
+f=0.5   padded         overall=  0.023%  CO=2.7% DEWP=1.1% NO2=3.3% O3=12.2% PM10=5.6% PM2.5=3.3% PRES=1.1% SO2=18.3% hour=0.0% site=1.2% wd=10.6%
+f=0.5   volume_hiding  overall=  0.003%  CO=0.0% DEWP=0.0% NO2=0.0% O3=0.0% PM10=0.0% PM2.5=0.0% PRES=0.0% SO2=0.0% hour=0.0% site=0.0% wd=0.0%
+f=0.5   masked         overall=  0.003%  CO=0.0% DEWP=0.0% NO2=0.0% O3=0.0% PM10=0.0% PM2.5=0.0% PRES=0.0% SO2=10.0% hour=0.0% site=0.0% wd=0.0%
+f=0.1   unmasked       overall=  0.097%  CO=63.6% DEWP=0.0% NO2=36.4% O3=45.5% PM10=9.1% PM2.5=9.1% PRES=18.2% SO2=40.0% hour=0.0% site=8.3% wd=47.1%
+f=0.1   padded         overall=  0.023%  CO=2.7% DEWP=1.1% NO2=3.3% O3=12.2% PM10=5.6% PM2.5=3.3% PRES=1.1% SO2=18.3% hour=0.0% site=1.2% wd=10.6%
+f=0.1   volume_hiding  overall=  0.003%  CO=0.0% DEWP=0.0% NO2=0.0% O3=0.0% PM10=0.0% PM2.5=0.0% PRES=0.0% SO2=0.0% hour=0.0% site=0.0% wd=0.0%
+f=0.1   masked         overall=  0.003%  CO=0.0% DEWP=0.0% NO2=0.0% O3=0.0% PM10=0.0% PM2.5=0.0% PRES=0.0% SO2=10.0% hour=0.0% site=0.0% wd=0.0%
+f=0.01  unmasked       overall=  0.055%  CO=40.9% DEWP=0.0% NO2=0.0% O3=18.2% PM10=9.1% PM2.5=22.7% PRES=0.0% SO2=35.0% hour=0.0% site=8.3% wd=23.5%
+f=0.01  padded         overall=  0.022%  CO=3.0% DEWP=1.1% NO2=2.9% O3=7.2% PM10=10.2% PM2.5=2.9% PRES=1.1% SO2=17.8% hour=0.0% site=1.1% wd=10.0%
+f=0.01  volume_hiding  overall=  0.003%  CO=0.0% DEWP=0.0% NO2=0.0% O3=0.0% PM10=0.0% PM2.5=0.0% PRES=0.0% SO2=0.0% hour=0.0% site=0.0% wd=0.0%
+f=0.01  masked         overall=  0.003%  CO=0.0% DEWP=0.0% NO2=0.0% O3=0.0% PM10=0.0% PM2.5=0.0% PRES=0.0% SO2=10.0% hour=0.0% site=0.0% wd=0.0%
+wrote ../results/leakage_beijing.json

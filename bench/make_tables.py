@@ -167,3 +167,61 @@ write_v4("roles.tex", [
     f"Role-scoped keys & {num(rs['rows_recovered_exactly'])} & {num(rs['other_role_postings_recovered'])} of "
     f"{num(rs['other_role_postings'])} & ${100 * rs['other_role_words_passing_width_check'] / rs['other_role_words']:.2f}\\%$ \\\\"])
 print("wrote v4 tables to", os.path.relpath(V4, ROOT))
+
+# ---- v5: real-corpus range aggregation and leakage baselines ---------------
+V5 = os.path.join(ROOT, "paper", "v5", "tables")
+os.makedirs(V5, exist_ok=True)
+
+
+def write_v5(name, rows):
+    with open(os.path.join(V5, name), "w") as f:
+        f.write("\n".join(rows) + "\n")
+
+
+for name in os.listdir(V4):
+    with open(os.path.join(V4, name)) as src_f, open(os.path.join(V5, name), "w") as dst:
+        dst.write(src_f.read())
+
+rr = []
+for fname, label in (("range_real_telemetry.json", "Primary corpus, device $\\times$ minute $\\times$ CO band"),
+                     ("range_real_beijing_day.json", "Second corpus, site $\\times$ day $\\times$ PM$_{2.5}$ band")):
+    d = load(fname)
+    cb, se = d["modes"]["combined"], d["modes"]["session"]
+    dims = "\\times".join(f"{x:,}".replace(",", "{,}") for x in d["dims"])
+    if rr:
+        rr.append("\\midrule")
+    rr.append(f"\\multicolumn{{4}}{{@{{}}l}}{{\\emph{{{label}: ${dims}$, $M={num(cb['M'])[1:-1]}$}}}} \\\\")
+    unit = "min" if d["window_unit"] == "minutes" else "d"
+    for a, b in zip(cb["by_window"], se["by_window"]):
+        assert a["window"] == b["window"] and a["result"] == b["result"]
+        rr.append(f"{num(a['window'])}\\,{unit} & {ms(a['provider_total'])} & "
+                  f"{ms(b['dpf_eval_all_keys'])} & {ms(b['provider_total'])} \\\\")
+write_v5("range_real.tex", rr)
+
+CLASS = {"device": "Device", "light": "Light flag", "motion": "Motion flag", "co": "CO band",
+         "humidity": "Humidity band", "lpg": "LPG band", "smoke": "Smoke band",
+         "temp": "Temperature band", "minute": "One-minute window", "site": "Site",
+         "wd": "Wind direction", "hour": "Hour", "CO": "CO band", "NO2": "NO$_2$ band",
+         "O3": "O$_3$ band", "PM10": "PM$_{10}$ band", "PM2.5": "PM$_{2.5}$ band",
+         "SO2": "SO$_2$ band", "PRES": "Pressure band", "DEWP": "Dew-point band"}
+ORDER = {"telemetry": ["device", "light", "motion", "co", "lpg", "smoke", "humidity", "temp", "minute"],
+         "beijing": ["site", "wd", "PM2.5", "PM10", "SO2", "NO2", "CO", "O3", "PRES", "DEWP", "hour"]}
+SCHEMES = ("unmasked", "padded", "volume_hiding", "masked")
+
+
+def pct(x, nd=1):
+    return f"${100 * x:.{nd}f}\\%$"
+
+
+lk = []
+for corpus, label in (("telemetry", "Primary corpus"), ("beijing", "Second corpus")):
+    runs = {r["scheme"]: r for r in load(f"leakage_{corpus}.json")["runs"] if r["fraction"] == 1.0}
+    if lk:
+        lk.append("\\midrule")
+    lk.append(f"\\multicolumn{{5}}{{@{{}}l}}{{\\emph{{{label}}}}} \\\\")
+    for c in ORDER[corpus]:
+        lk.append(f"{CLASS[c]} & " + " & ".join(pct(runs[s]["per_class"][c]) for s in SCHEMES) + " \\\\")
+    lk.append("All tags & " + " & ".join(pct(runs[s]["overall"], 3) for s in SCHEMES) + " \\\\")
+    lk.append(f"Random guessing & \\multicolumn{{4}}{{c}}{{{pct(runs['unmasked']['random_guess'], 4)}}} \\\\")
+write_v5("leakage_real.tex", lk)
+print("wrote v5 tables to", os.path.relpath(V5, ROOT))

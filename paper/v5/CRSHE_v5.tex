@@ -2387,15 +2387,18 @@ perfect auxiliary knowledge the attack re-identifies every device, light-flag,
 motion-flag and temperature-band tag of the primary corpus, $92.5\%$ of the
 humidity bands and $32.5\%$ of the CO, LPG and smoke bands; on the second
 corpus, every wind direction and $95.5$--$100\%$ of every pollutant, pressure
-and dew-point band, but only $33.3\%$ of the sites. At $f=1$ the auxiliary
-lengths are the true ones, so a tag is missed only when another tag has exactly
-the same posting length. Time buckets, of near-identical length, resist the
-attack ($0.2\%$ and $0.0\%$), and because they are most of the tag universe the
-overall rates are low, $0.484\%$ and $0.324\%$, which is $56\times$ and
-$114\times$ random guessing.
+and dew-point band, but only $33.3\%$ of the sites, whose twelve posting
+lengths take four values. At $f=1$ the auxiliary lengths are the true ones, so
+a tag is missed only when another tag has exactly the same posting length, and
+overall the attack then reaches the length-only bound derived below.
+Time buckets, of near-identical length, resist the attack ($0.17\%$ and
+$0.02\%$), and because they are most of the tag universe the overall rates are
+low, $0.484\%$ and $0.324\%$, which is $56\times$ and $114\times$ random
+guessing.
 
-\emph{Power-of-two padding helps but does not close the leak.} It cuts overall
-recovery to $0.078\%$ and $0.031\%$, still $9\times$ and $11\times$ random
+\emph{Power-of-two padding helps but does not close the leak.} At a storage
+cost of $1.55\times$ and $1.54\times$ the postings (computed from the per-tag
+lengths), it cuts overall recovery to $0.078\%$ and $0.031\%$, still $9\times$ and $11\times$ random
 guessing, and leaves $55.6\%$ of devices, $41.7\%$ of light flags and $75.0\%$
 of motion flags identifiable on the primary corpus and up to $18.3\%$ of a band
 family on the second. With auxiliary knowledge thinned to $f=0.01$, unmasked
@@ -2439,25 +2442,34 @@ Tag class & Unmasked & Power of two & Volume-hiding & Masked \\
 \emph{The C++ prototype's earlier figures are withdrawn.} An earlier run of the
 attack in the C++ prototype reported higher unmasked recovery: $4.27\%$
 overall on the primary corpus, $100\%$ in every non-temporal class of both
-corpora, $3.80\%$ of one-minute windows and $0.31\%$ of hourly windows. The
-last figure is not attainable by an attacker who sees only row statistics.
-Rows with the same observed statistic are indistinguishable to such an
-attacker, so whatever its strategy it expects at most one correct assignment
-per distinct value. An hourly window of the second corpus holds at most one
-record per site, so its posting length is one of at most twelve values, and at
-most twelve of the $35{,}046$ hourly windows ($0.034\%$) can be re-identified.
-The C++ attack must therefore have used information beyond the lengths, most
-plausibly an order of tied candidates that followed the true labels, and its
-$100\%$ figures are suspect for the same reason. The two runs also used corpus
-builders that differ in band edges (Section~\ref{sec:impl}). We report the
-reference figures, which the released code and data reproduce. The conclusion
+corpora, $3.80\%$ of one-minute windows and $0.31\%$ of hourly windows. Several
+of these figures are not attainable by any attacker who sees only row
+statistics. Rows with the same observed statistic are indistinguishable to such
+an attacker, so whatever its strategy and auxiliary knowledge it expects at
+most one correct assignment per distinct value: a class whose $n$ tags take
+$v$ distinct lengths can lose at most $v/n$ of them, and the whole index at
+most the number of distinct lengths over $N$. An hourly window of the second
+corpus holds at most one record per site, so its length is one of at most
+twelve values, whatever the corpus builder; in our build it takes seven, and at
+most $0.020\%$ of the hourly windows can be re-identified, against the $0.31\%$
+reported. The twelve sites share four lengths, so at most $33.3\%$ of them, not
+$100\%$. On the primary corpus the one-minute windows take twenty lengths
+(between $14$ and $43$ messages), a bound of $0.17\%$ against $3.80\%$, and the
+whole index fifty-six, a bound of $0.484\%$ against $4.27\%$. The reference
+attack meets these bounds exactly at $f=1$. The C++ attack must therefore have
+used information beyond the lengths, most plausibly an order of tied
+candidates that followed the true labels. The bounds are computed from the
+per-tag lengths of our corpus build (\texttt{bench/leakage\_bounds.py}, which
+also reproduces every unmasked, padded and volume-hiding rate from those
+lengths and fails when a single tie is planted); only the twelve-value bound on
+hourly windows holds for any build. We report the reference figures, which the
+released code and data reproduce. The conclusion
 is unchanged and is now measured against the standard defences: an unmasked
 replicated index exposes the meaningful tag classes, power-of-two padding
 still exposes many of them, and the masked index, like volume-hiding padding
 but without its storage cost, leaves the attack at random guessing.
-\authorcheck{Check the C++ attack's tie-breaking; with
-results/lengths\_*.csv.gz from bench/dump\_lengths.py, compare the two corpus
-builders tag by tag.}
+\authorcheck{If the C++ prototype is released, check its attack's
+tie-breaking and compare its per-tag lengths with results/lengths\_*.csv.gz.}
 
 \subsection{Setup, masking and ingest costs}
 \label{sec:setupresult}

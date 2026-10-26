@@ -1,0 +1,176 @@
+{
+  "environment": {
+    "cpu": "Intel(R) Xeon(R) Processor @ 2.10GHz",
+    "cores": 4,
+    "python": "3.12.3",
+    "openfhe_python": "1.5.1",
+    "omp_threads": "default",
+    "implementation": "crshe reference (Python driver, OpenFHE C++ kernels)"
+  },
+  "telemetry": {
+    "reproduces_leakage_json": true,
+    "planted_tie_breaks_reproduction": true,
+    "distinct_lengths": 56,
+    "tags": 11580,
+    "overall_length_only_bound": 0.004835924006908463,
+    "overall_reference": 0.004835924006908463,
+    "overall_cpp": 0.0427,
+    "per_class": {
+      "co": {
+        "tags": 10,
+        "distinct_lengths": 10,
+        "length_only_bound": 1.0,
+        "reference": 0.325,
+        "cpp": 1
+      },
+      "device": {
+        "tags": 3,
+        "distinct_lengths": 3,
+        "length_only_bound": 1.0,
+        "reference": 1.0,
+        "cpp": 1
+      },
+      "humidity": {
+        "tags": 10,
+        "distinct_lengths": 10,
+        "length_only_bound": 1.0,
+        "reference": 0.925,
+        "cpp": 1
+      },
+      "light": {
+        "tags": 2,
+        "distinct_lengths": 2,
+        "length_only_bound": 1.0,
+        "reference": 1.0,
+        "cpp": 1
+      },
+      "lpg": {
+        "tags": 10,
+        "distinct_lengths": 10,
+        "length_only_bound": 1.0,
+        "reference": 0.325,
+        "cpp": 1
+      },
+      "minute": {
+        "tags": 11523,
+        "distinct_lengths": 20,
+        "length_only_bound": 0.0017356591165495097,
+        "reference": 0.0017356591165495097,
+        "cpp": 0.038
+      },
+      "motion": {
+        "tags": 2,
+        "distinct_lengths": 2,
+        "length_only_bound": 1.0,
+        "reference": 1.0,
+        "cpp": 1
+      },
+      "smoke": {
+        "tags": 10,
+        "distinct_lengths": 10,
+        "length_only_bound": 1.0,
+        "reference": 0.325,
+        "cpp": 1
+      },
+      "temp": {
+        "tags": 10,
+        "distinct_lengths": 10,
+        "length_only_bound": 1.0,
+        "reference": 1.0,
+        "cpp": 1
+      }
+    },
+    "inflation_power_of_two": 1.5485661384018674,
+    "inflation_volume_hiding": 1285.1360698678461
+  },
+  "beijing": {
+    "reproduces_leakage_json": true,
+    "planted_tie_breaks_reproduction": true,
+    "distinct_lengths": 114,
+    "tags": 35162,
+    "overall_length_only_bound": 0.003242136397247028,
+    "overall_reference": 0.0032421363972470274,
+    "overall_cpp": null,
+    "per_class": {
+      "CO": {
+        "tags": 11,
+        "distinct_lengths": 11,
+        "length_only_bound": 1.0,
+        "reference": 1.0,
+        "cpp": 1
+      },
+      "DEWP": {
+        "tags": 11,
+        "distinct_lengths": 11,
+        "length_only_bound": 1.0,
+        "reference": 0.9545454545454546,
+        "cpp": 1
+      },
+      "NO2": {
+        "tags": 11,
+        "distinct_lengths": 11,
+        "length_only_bound": 1.0,
+        "reference": 1.0,
+        "cpp": 1
+      },
+      "O3": {
+        "tags": 11,
+        "distinct_lengths": 11,
+        "length_only_bound": 1.0,
+        "reference": 1.0,
+        "cpp": 1
+      },
+      "PM10": {
+        "tags": 11,
+        "distinct_lengths": 11,
+        "length_only_bound": 1.0,
+        "reference": 1.0,
+        "cpp": 1
+      },
+      "PM2.5": {
+        "tags": 11,
+        "distinct_lengths": 11,
+        "length_only_bound": 1.0,
+        "reference": 0.9545454545454546,
+        "cpp": 1
+      },
+      "PRES": {
+        "tags": 11,
+        "distinct_lengths": 11,
+        "length_only_bound": 1.0,
+        "reference": 1.0,
+        "cpp": 1
+      },
+      "SO2": {
+        "tags": 10,
+        "distinct_lengths": 10,
+        "length_only_bound": 1.0,
+        "reference": 1.0,
+        "cpp": 1
+      },
+      "hour": {
+        "tags": 35046,
+        "distinct_lengths": 7,
+        "length_only_bound": 0.0001997374878730811,
+        "reference": 0.0001997374878730811,
+        "cpp": 0.0031
+      },
+      "site": {
+        "tags": 12,
+        "distinct_lengths": 4,
+        "length_only_bound": 0.3333333333333333,
+        "reference": 0.3333333333333333,
+        "cpp": 1
+      },
+      "wd": {
+        "tags": 17,
+        "distinct_lengths": 17,
+        "length_only_bound": 1.0,
+        "reference": 1.0,
+        "cpp": 1
+      }
+    },
+    "inflation_power_of_two": 1.5363024348679843,
+    "inflation_volume_hiding": 751.8805372756035
+  }
+}

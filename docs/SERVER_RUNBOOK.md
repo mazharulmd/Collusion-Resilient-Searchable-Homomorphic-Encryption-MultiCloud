@@ -10,7 +10,7 @@ published columns; a two-provider deployment over localhost).
 **Done 2026-10-26** on an AMD EPYC 7J13 server; results integrated into v5, see
 `docs/SERVER_RESULTS_20261026.md`. One short follow-up remains (Job 1b).
 
-### Job 1b: per-tag posting lengths (about 2 minutes)
+### Job 1b: per-tag posting lengths (about 2 minutes) — done 2026-10-26
 
 ```bash
 cd ~/crshe && git pull && . .venv/bin/activate && cd bench

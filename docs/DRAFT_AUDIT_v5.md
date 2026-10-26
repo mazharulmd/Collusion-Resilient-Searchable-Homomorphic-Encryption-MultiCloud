@@ -84,3 +84,13 @@ The authors later supplied Obscure (arXiv 2004.13115, TKDE version) and Hafiz et
 
 So draft E was right on more of these points than the search summaries could confirm. Hedging them
 was still the right call at the time, because no one had read the papers.
+
+## Addendum 2, 2026-10-26: draft B's power-of-two inflation
+
+Draft B (first ChatGPT/Gemini round) gave power-of-two padding inflation of 1.55× and 1.51×; it was
+left out of v4 and v5 for lack of a source. Computed now from the per-tag lengths
+(`bench/leakage_bounds.py`, `results/leakage_bounds.json`): **1.549×** for telemetry (draft B
+correct to two decimals) and **1.536×** for Beijing (draft B's 1.51× does not match this build).
+Draft B's re-identification rates under padding (50–75 %, 2.25–9.11 %) are still not supported:
+the measured overall rates are 0.078 % and 0.031 %, and the per-class rates in
+`results/leakage_*.json` do not match that range.

@@ -1,0 +1,155 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Journal of Network and Computer Applications submission (condensed from
+%% paper/v5/CRSHE_v5.tex). Elsevier CAS single-column template.
+%% The Word version is built from this file and body.tex by build_docx.py.
+%% Build: pdflatex -> bibtex -> pdflatex -> pdflatex
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\documentclass[a4paper,fleqn]{cas-sc}
+
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\setlength{\emergencystretch}{3em}
+\providecommand{\checkmark}{\ensuremath{\surd}}
+\makeatletter\let\inputtbl\@@input\makeatother
+
+\newif\ifanonymous
+\anonymousfalse
+\ifanonymous\RenewDocumentCommand\printorcid{}{}\fi
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newdefinition{definition}{Definition}
+\newproof{pf}{Proof}
+
+\input{macros}
+
+\begin{document}
+\let\WriteBookmarks\relax
+\def\floatpagepagefraction{1}
+\def\textpagefraction{.001}
+
+\shorttitle{Range analytics over homomorphically encrypted IoT data in multi-cloud storage}
+\ifanonymous\shortauthors{Anonymous authors}\else\shortauthors{M. M. Islam et~al.}\fi
+
+%%TITLE%%
+\title[mode=title]{Collusion-resilient, tamper-evident range analytics over
+homomorphically encrypted IoT data in multi-cloud storage}
+%%END%%
+
+\ifanonymous\else
+\author[1]{Md Mazharul Islam}[orcid=0000-0001-6225-1487]
+\cormark[1]
+\ead{mazharul.islam1@northsouth.edu}
+\credit{Conceptualization, Methodology, Software, Formal analysis,
+Investigation, Validation, Writing -- original draft,
+Writing -- review and editing}
+
+\author[1]{Mubasshir Ahmed}[orcid=0000-0002-7502-3835]
+\ead{mubasshir.ahmed@northsouth.edu}
+\credit{Software, Data curation, Investigation,
+Writing -- review and editing}
+
+\author[1]{Md Redowan Zaman Anik}
+\ead{redowan.anik@northsouth.edu}
+\credit{Software, Data curation, Visualization, Validation,
+Writing -- review and editing}
+
+\affiliation[1]{organization={Department of Electrical and Computer
+    Engineering, North South University},
+    city={Dhaka},
+    country={Bangladesh}}
+
+\cortext[cor1]{Corresponding author.}
+\fi
+
+%%ABSTRACT%%
+\begin{abstract}
+Internet of Things (IoT) data are increasingly stored encrypted and replicated
+across several clouds, where analysts query aggregates over time, place and
+sensor-value ranges. Existing designs fall short: hiding which records a query
+selects is undone once the clouds aggregate over them, and
+prior multi-server systems compute over plaintext, need an honest majority with
+server interaction, or leak access patterns, and cannot cheaply detect
+tampering when all but one cloud collude. We propose CR-SHE, which combines
+distributed point functions with BFV homomorphic encryption: each cloud
+contracts its share of a hidden selection against owner-encrypted columns and
+returns one ciphertext. Our contributions are one-round multi-dimensional range
+aggregation over encrypted summed-area tables, where any box becomes $2^d$
+padded point keys; tamper evidence from a secret scalar drawn per query inside
+the keys, accepting a wrong answer with probability about $2^{-36}$ at no extra
+homomorphic cost; role-scoped access without interaction; and security proofs
+against $n-1$ colluding clouds. On two real IoT datasets with $825{,}554$
+records, our OpenFHE implementation answers a verified range query in $0.68$--$1.19$\,s per cloud with one $132$\,kB ciphertext, flat
+from one minute to the whole timeline, uploading $5.5$\,kB against $44$\,MB for
+a single-server encrypted query; no tampered answer was accepted in $4{,}500$
+trials, and a frequency attack fell to random guessing. CR-SHE lets
+multi-cloud IoT deployments outsource range analytics without trusting any
+single cloud with the query, the data or the result.
+\end{abstract}
+%%END%%
+
+%%HIGHLIGHTS%%
+\begin{highlights}
+\item Range aggregates over homomorphically encrypted IoT data held by many clouds
+\item Query, matched records and result stay hidden while one cloud is honest
+\item Encrypted summed-area tables turn any d-dimensional box into $2^d$ DPF keys
+\item A fresh secret scalar per query makes any tampered answer evident
+\item Real-data range queries take under 1.2 s per cloud with one 132 kB reply
+\end{highlights}
+%%END%%
+
+%%KEYWORDS%%
+\begin{keywords}
+Homomorphic encryption \sep
+Multi-cloud storage \sep
+Internet of Things \sep
+Distributed point function \sep
+Range aggregation \sep
+Privacy-preserving analytics \sep
+Verifiable computation
+\end{keywords}
+%%END%%
+
+\maketitle
+
+\input{body}
+
+\ifanonymous\else\printcredits\fi
+
+%%DECLARATIONS%%
+\section*{Declaration of competing interest}
+The authors declare that they have no known competing financial interests or
+personal relationships that could have appeared to influence the work reported
+in this paper.
+
+\section*{Funding}
+This research did not receive any specific grant from funding agencies in the
+public, commercial, or not-for-profit sectors.
+
+\section*{Data availability}
+The two datasets are public (Kaggle, Environmental Sensor Telemetry Data; UCI
+Machine Learning Repository, Beijing Multi-Site Air-Quality Data). The
+reference implementation, benchmark scripts and result files will be made
+available on request.
+
+\section*{Declaration of generative AI and AI-assisted technologies in the
+manuscript preparation process}
+During the preparation of this work the authors used three AI assistants.
+Claude (Anthropic) was used to develop the reference implementation with its
+tests and benchmark scripts, search and compare the literature, draft and edit
+parts of the text and analysis, including the range construction, the
+tamper-evidence mechanism, role-scoped access and their proofs, condense the
+manuscript to its present length, and convert it to the journal's format.
+ChatGPT (OpenAI) and Gemini (Google) were used to edit and review intermediate
+drafts; changes adopted from them were checked against the implementation and
+the measured results. No image was generated or altered by a generative AI
+tool. After using these tools, the authors reviewed and edited the content as
+needed and take full responsibility for the content of the publication.
+%%END%%
+
+\bibliographystyle{model1-num-names}
+\bibliography{references}
+
+\end{document}

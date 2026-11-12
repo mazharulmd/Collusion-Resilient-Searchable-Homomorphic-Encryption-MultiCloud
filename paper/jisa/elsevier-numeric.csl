@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<style xmlns="http://purl.org/net/xbiblio/csl" class="in-text" version="1.0" demote-non-dropping-particle="sort-only" default-locale="en-US">
+  <info>
+    <title>Elsevier numeric, with titles (compact, for this manuscript)</title>
+    <id>crshe-elsevier-numeric</id>
+    <updated>2026-10-26T00:00:00+00:00</updated>
+  </info>
+  <macro name="author">
+    <names variable="author">
+      <name initialize-with=". " delimiter=", " and="text" delimiter-precedes-last="never" name-as-sort-order="none"/>
+      <substitute><names variable="editor"/></substitute>
+    </names>
+  </macro>
+  <macro name="year">
+    <date variable="issued"><date-part name="year"/></date>
+  </macro>
+  <macro name="doi">
+    <choose>
+      <if variable="DOI"><text variable="DOI" prefix="https://doi.org/"/></if>
+      <else-if variable="URL"><text variable="URL"/></else-if>
+    </choose>
+  </macro>
+  <citation collapse="citation-number">
+    <sort><key variable="citation-number"/></sort>
+    <layout prefix="[" suffix="]" delimiter=", ">
+      <group delimiter=", ">
+        <text variable="citation-number"/>
+        <group delimiter=" ">
+          <label variable="locator" form="short"/>
+          <text variable="locator"/>
+        </group>
+      </group>
+    </layout>
+  </citation>
+  <bibliography entry-spacing="0" second-field-align="flush">
+    <layout suffix=".">
+      <text variable="citation-number" prefix="[" suffix="]"/>
+      <group delimiter=", ">
+        <text macro="author"/>
+        <text variable="title"/>
+        <choose>
+          <if type="article-journal">
+            <group delimiter=" ">
+              <text variable="container-title"/>
+              <text variable="volume"/>
+              <text macro="year" prefix="(" suffix=")"/>
+              <text variable="page"/>
+            </group>
+          </if>
+          <else-if type="paper-conference chapter" match="any">
+            <group delimiter=", ">
+              <text variable="container-title" prefix="in: "/>
+              <text variable="publisher"/>
+              <text macro="year"/>
+              <text variable="page" prefix="pp. "/>
+            </group>
+          </else-if>
+          <else-if type="thesis report">
+            <group delimiter=", ">
+              <text variable="publisher"/>
+              <text macro="year"/>
+            </group>
+          </else-if>
+          <else>
+            <group delimiter=", ">
+              <text variable="container-title"/>
+              <text variable="publisher"/>
+              <text macro="year"/>
+            </group>
+          </else>
+        </choose>
+        <text macro="doi"/>
+      </group>
+    </layout>
+  </bibliography>
+</style>

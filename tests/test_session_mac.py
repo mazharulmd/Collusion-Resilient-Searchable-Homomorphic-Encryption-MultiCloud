@@ -193,3 +193,42 @@ def test_session_retrieval_is_correct_and_catches_flipped_bit(dep, small_db):
     # failure control: the same flip passes when the check is not requested
     got = u.finish_retrieve(t, [flip, sh[1][0]])
     assert not np.array_equal(got, o.postings[o.D[t]])
+
+
+def test_table_substitution_is_caught_with_two_providers_but_not_with_one_server(cube, bfv):
+    """What the trust split buys for integrity. A deviating party adds 1 to
+    one cell of the table, in both slot rows, before contracting.
+    Two providers: the deviator holds only a share of the selection and of
+    its delta_s-multiple, so the shift it causes in the two rows is not in
+    the ratio delta_s, and the check fails.
+    One server: it holds encryptions of the whole selection and of its
+    delta_s-multiple, so the shift is in the ratio delta_s, and the wrong
+    answer is accepted. The honest single-server answer is the control."""
+    from crshe import baselines, he
+    u, lay, cts, cells, tpl, pub = cube
+    box = ((1, 2), (5, 20), (0, 3))
+    want = truth_box(cells, tpl, box)
+    x = next(c for mask, c, beta in rangeagg.corners(box, lay.dims) if mask == 0)    # the (hi, ..., hi) corner
+    c, off = divmod(x, lay.seg)
+    bump = np.zeros(pub.slots, dtype=np.uint64)
+    for ti in range(len(lay.templates)):
+        bump[ti * lay.seg + off] = 1
+        bump[pub.half + ti * lay.seg + off] = 1
+    altered = list(cts)
+    altered[c] = pub.cc.EvalAdd(cts[c], pub.encode(bump))
+
+    # two providers, one of them contracts against the altered table
+    keys, meta = rangeagg.range_token(lay, box, 2)
+    honest = rangeagg.range_answer(pub, lay, cts, keys[1], compress=True)
+    with pytest.raises(VerificationError):
+        rangeagg.finish_range(u, lay, None, meta, [rangeagg.range_answer(pub, lay, altered, keys[0], compress=True), honest])
+
+    # one server, same alteration
+    ds = fresh_unit()
+    q = baselines.single_server_range_query(bfv, lay, box, delta_s=ds)
+    meta1 = [("session", ds)]
+    ok = baselines.single_server_range_answer(pub, lay, cts, q, compress=True)
+    assert rangeagg.finish_range(u, lay, None, meta1, [ok]) == want                  # control
+    bad = baselines.single_server_range_answer(pub, lay, altered, q, compress=True)
+    got = rangeagg.finish_range(u, lay, None, meta1, [bad])                          # no VerificationError
+    assert got == {t: v + 1 for t, v in want.items()}

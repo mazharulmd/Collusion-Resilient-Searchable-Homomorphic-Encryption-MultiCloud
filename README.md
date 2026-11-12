@@ -20,14 +20,17 @@ submission and its revision.
 | FGCS submission (FGCS-D-26-05016) | Rejected 27 Sep 2026, "results too premature". Package archived in [`paper/fgcs-2026-submission/`](paper/fgcs-2026-submission/) |
 | Why, and what to do next | [`docs/REJECTION_ANALYSIS.md`](docs/REJECTION_ANALYSIS.md) |
 | *Internet of Things* submission (IOT-D-26-03923) | Desk-rejected, "lack of sufficient novelty". Package in [`paper/iot-elsevier/`](paper/iot-elsevier/) |
-| **JNCA submission (current)** | [`paper/jnca/submission/`](paper/jnca/submission/): Word manuscript (18 pages), highlights, competing-interests declaration, figures, supplementary material, checked against the guide for authors; see [`docs/JNCA_SUBMISSION.md`](docs/JNCA_SUBMISSION.md) |
+| IEEE Internet of Things Journal | Editorial rejection of the first version: novelty, experimental rigour, validation depth |
+| **Where to submit next** | [`docs/JOURNAL_SELECTION.md`](docs/JOURNAL_SELECTION.md): candidates checked against their scope; recommended target is the *Journal of Information Security and Applications* |
+| **JISA submission (current)** | [`paper/jisa/submission/`](paper/jisa/submission/): Word manuscript (21 pages, 11 figures), cover letter, highlights, competing-interests declaration, figures, supplementary material; see [`docs/JISA_SUBMISSION.md`](docs/JISA_SUBMISSION.md) |
+| JNCA package (not submitted as far as this repository records) | [`paper/jnca/submission/`](paper/jnca/submission/), [`docs/JNCA_SUBMISSION.md`](docs/JNCA_SUBMISSION.md) |
 | **v5 manuscript (full length)** | [`paper/v5/CRSHE_v5.pdf`](paper/v5/CRSHE_v5.pdf): a second round of ChatGPT/Gemini edits checked and corrected; audit in [`docs/DRAFT_AUDIT_v5.md`](docs/DRAFT_AUDIT_v5.md) |
 | **Real-corpus results** | [`docs/SERVER_RESULTS_20261026.md`](docs/SERVER_RESULTS_20261026.md): what the authors' server run established, and why the C++ leakage figures were withdrawn |
 | **What the authors still need to run** | [`docs/SERVER_RUNBOOK.md`](docs/SERVER_RUNBOOK.md): per-tag length dump, cross-region deployment (`scripts/deploy/`) |
 | v4 manuscript | [`paper/v4/CRSHE_v4.pdf`](paper/v4/CRSHE_v4.pdf): v3 merged with two externally edited drafts; adds a per-query tamper-evidence check on every path and role-scoped access, both implemented and measured. What came from where: [`docs/MERGE_LOG_v4.md`](docs/MERGE_LOG_v4.md) |
 | v3 manuscript | [`paper/v3/CRSHE_v3.pdf`](paper/v3/CRSHE_v3.pdf): adds oblivious range aggregation over encrypted data cubes and a bit-packed masked index. Prior-art search and its limits: [`docs/NOVELTY_SEARCH.md`](docs/NOVELTY_SEARCH.md) |
 | Revised manuscript (FGCS response) | [`paper/revision/CRSHE_revised.pdf`](paper/revision/CRSHE_revised.pdf), tracked changes in [`CRSHE_diff.pdf`](paper/revision/CRSHE_diff.pdf), list of changes and open items in [`CHANGES.md`](paper/revision/CHANGES.md) |
-| Reference implementation | [`crshe/`](crshe/), 83 tests in [`tests/`](tests/) |
+| Reference implementation | [`crshe/`](crshe/), 88 tests in [`tests/`](tests/) |
 | Experiments | [`bench/`](bench/) scripts → [`results/`](results/) JSON → tables generated into the manuscript |
 | First Paillier prototype | [`legacy/`](legacy/). Superseded, kept for history, with its defects listed |
 
@@ -60,7 +63,7 @@ The OpenFHE wheel used here is built for **CPython 3.12 on Linux x86-64**.
 ```bash
 python3.12 -m venv .venv && . .venv/bin/activate
 pip install -r requirements.txt
-pytest -q                                   # 83 tests
+pytest -q                                   # 88 tests
 
 cd bench
 OMP_NUM_THREADS=1 python bench_response.py  # packing, compression, single-server baseline
@@ -68,6 +71,7 @@ python bench_mac.py                         # MAC detection, global vs per-row k
 OMP_NUM_THREADS=1 python bench_flexible.py --nd 20000 10000 5000 1000
 OMP_NUM_THREADS=1 python bench_ops.py       # per-op costs, single-server retrieval bound
 OMP_NUM_THREADS=1 python bench_range.py     # range aggregation over a synthetic telemetry-shaped cube
+OMP_NUM_THREADS=1 python bench_range_baselines.py   # the same range query by per-cell keys and by a single server
 OMP_NUM_THREADS=1 python bench_packed.py    # masked index, 1 vs 32 bits per word
 OMP_NUM_THREADS=1 python bench_verify.py    # what each verification mode catches, every path
 OMP_NUM_THREADS=1 python bench_roles.py     # index extraction with and without role-scoped keys

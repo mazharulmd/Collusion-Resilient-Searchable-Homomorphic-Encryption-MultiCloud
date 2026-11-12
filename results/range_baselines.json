@@ -1,0 +1,361 @@
+{
+  "environment": {
+    "cpu": "Intel(R) Xeon(R) Processor @ 2.10GHz",
+    "cores": 4,
+    "python": "3.12.3",
+    "openfhe_python": "1.5.1",
+    "omp_threads": "1",
+    "implementation": "crshe reference (Python driver, OpenFHE C++ kernels)"
+  },
+  "corpus": "synthetic, telemetry-shaped (3 x 11,523 x 10 cells, 405,184 records)",
+  "M": 345690,
+  "chunks": 169,
+  "workers": 4,
+  "per_key_eval_ms": 62.229903125000874,
+  "contraction_ms": 305.41866600003686,
+  "rows": [
+    {
+      "window_minutes": 1,
+      "box": [
+        [
+          1,
+          1
+        ],
+        [
+          2000,
+          2000
+        ],
+        [
+          3,
+          7
+        ]
+      ],
+      "box_cells": 5,
+      "truth": {
+        "count": 10,
+        "sum": 24028
+      },
+      "crshe_combined_serial": {
+        "provider": {
+          "median_ms": 892.0217250000633,
+          "q1_ms": 826.1234194999361,
+          "q3_ms": 951.703370999951,
+          "reps": 5
+        },
+        "keys_per_provider": 8,
+        "uplink_bytes_per_provider": 2760,
+        "downlink_bytes_per_provider": 132081
+      },
+      "crshe_combined_pool4": {
+        "provider": {
+          "median_ms": 547.3727490000329,
+          "q1_ms": 523.5432220000007,
+          "q3_ms": 589.0496419999067,
+          "reps": 5
+        },
+        "keys_per_provider": 8,
+        "uplink_bytes_per_provider": 2760,
+        "downlink_bytes_per_provider": 132081
+      },
+      "crshe_session_serial": {
+        "provider": {
+          "median_ms": 1424.1064469999856,
+          "q1_ms": 1391.509324000026,
+          "q3_ms": 1528.251141499993,
+          "reps": 5
+        },
+        "keys_per_provider": 16,
+        "uplink_bytes_per_provider": 5520,
+        "downlink_bytes_per_provider": 132081
+      },
+      "crshe_session_pool4": {
+        "provider": {
+          "median_ms": 752.6853980000396,
+          "q1_ms": 721.472978999941,
+          "q3_ms": 775.0981625000009,
+          "reps": 5
+        },
+        "keys_per_provider": 16,
+        "uplink_bytes_per_provider": 5520,
+        "downlink_bytes_per_provider": 132081
+      },
+      "percell": {
+        "provider": {
+          "median_ms": 610.6721840000091,
+          "q1_ms": 575.7165769999801,
+          "q3_ms": 701.2438509999583,
+          "reps": 5
+        },
+        "keys_per_provider": 5,
+        "measured": true,
+        "uplink_bytes_per_provider": 1725,
+        "downlink_bytes_per_provider": 132081
+      }
+    },
+    {
+      "window_minutes": 60,
+      "box": [
+        [
+          1,
+          1
+        ],
+        [
+          2000,
+          2059
+        ],
+        [
+          3,
+          7
+        ]
+      ],
+      "box_cells": 300,
+      "truth": {
+        "count": 370,
+        "sum": 918120
+      },
+      "crshe_combined_serial": {
+        "provider": {
+          "median_ms": 843.7150270000302,
+          "q1_ms": 808.9191775000586,
+          "q3_ms": 918.9690734999658,
+          "reps": 5
+        },
+        "keys_per_provider": 8,
+        "uplink_bytes_per_provider": 2760,
+        "downlink_bytes_per_provider": 132081
+      },
+      "crshe_combined_pool4": {
+        "provider": {
+          "median_ms": 505.30891999994765,
+          "q1_ms": 470.0386060000028,
+          "q3_ms": 511.13674499993067,
+          "reps": 5
+        },
+        "keys_per_provider": 8,
+        "uplink_bytes_per_provider": 2760,
+        "downlink_bytes_per_provider": 132081
+      },
+      "crshe_session_serial": {
+        "provider": {
+          "median_ms": 1457.0058640000525,
+          "q1_ms": 1440.2264569999943,
+          "q3_ms": 1490.3237540000305,
+          "reps": 5
+        },
+        "keys_per_provider": 16,
+        "uplink_bytes_per_provider": 5520,
+        "downlink_bytes_per_provider": 132081
+      },
+      "crshe_session_pool4": {
+        "provider": {
+          "median_ms": 751.2416349999285,
+          "q1_ms": 722.4200279999877,
+          "q3_ms": 782.8228375000208,
+          "reps": 5
+        },
+        "keys_per_provider": 16,
+        "uplink_bytes_per_provider": 5520,
+        "downlink_bytes_per_provider": 132081
+      },
+      "percell": {
+        "provider": {
+          "median_ms": 21710.81438600004,
+          "q1_ms": 21691.352155000004,
+          "q3_ms": 22008.28430499996,
+          "reps": 3
+        },
+        "keys_per_provider": 300,
+        "measured": true,
+        "uplink_bytes_per_provider": 103500,
+        "downlink_bytes_per_provider": 132081
+      },
+      "single_server": {
+        "server": {
+          "median_ms": 1274.4552090000525,
+          "q1_ms": 1257.0679190000646,
+          "q3_ms": 1311.733358999959,
+          "reps": 3
+        },
+        "client_query_encrypt": {
+          "median_ms": 875.0934669999424,
+          "q1_ms": 820.3891719999774,
+          "q3_ms": 908.8606709999567,
+          "reps": 3
+        },
+        "query_ciphertexts": 169,
+        "uplink_bytes": 44448859,
+        "downlink_bytes": 132121
+      }
+    },
+    {
+      "window_minutes": 1440,
+      "box": [
+        [
+          1,
+          1
+        ],
+        [
+          2000,
+          3439
+        ],
+        [
+          3,
+          7
+        ]
+      ],
+      "box_cells": 7200,
+      "truth": {
+        "count": 8428,
+        "sum": 21035474
+      },
+      "crshe_combined_serial": {
+        "provider": {
+          "median_ms": 850.7315430000517,
+          "q1_ms": 795.0379344999874,
+          "q3_ms": 872.5760515000616,
+          "reps": 5
+        },
+        "keys_per_provider": 8,
+        "uplink_bytes_per_provider": 2760,
+        "downlink_bytes_per_provider": 132081
+      },
+      "crshe_combined_pool4": {
+        "provider": {
+          "median_ms": 508.8340350000635,
+          "q1_ms": 502.99104849995047,
+          "q3_ms": 554.6155685000258,
+          "reps": 5
+        },
+        "keys_per_provider": 8,
+        "uplink_bytes_per_provider": 2760,
+        "downlink_bytes_per_provider": 132081
+      },
+      "crshe_session_serial": {
+        "provider": {
+          "median_ms": 1381.1161940000147,
+          "q1_ms": 1362.7466335000236,
+          "q3_ms": 1523.382543499963,
+          "reps": 5
+        },
+        "keys_per_provider": 16,
+        "uplink_bytes_per_provider": 5520,
+        "downlink_bytes_per_provider": 132081
+      },
+      "crshe_session_pool4": {
+        "provider": {
+          "median_ms": 731.4071370000192,
+          "q1_ms": 673.9301860000069,
+          "q3_ms": 757.8410509999571,
+          "reps": 5
+        },
+        "keys_per_provider": 16,
+        "uplink_bytes_per_provider": 5520,
+        "downlink_bytes_per_provider": 132081
+      },
+      "percell": {
+        "provider": {
+          "median_ms": 448360.7211660063,
+          "reps": 0
+        },
+        "keys_per_provider": 7200,
+        "measured": false,
+        "uplink_bytes_per_provider": 2484000,
+        "note": "computed: keys x measured time per key + measured contraction; uplink is keys x measured key size"
+      }
+    },
+    {
+      "window_minutes": 11523,
+      "box": [
+        [
+          1,
+          1
+        ],
+        [
+          0,
+          11522
+        ],
+        [
+          3,
+          7
+        ]
+      ],
+      "box_cells": 57615,
+      "truth": {
+        "count": 67622,
+        "sum": 169040701
+      },
+      "crshe_combined_serial": {
+        "provider": {
+          "median_ms": 825.5857089999381,
+          "q1_ms": 766.1413310000285,
+          "q3_ms": 835.1425964999635,
+          "reps": 5
+        },
+        "keys_per_provider": 8,
+        "uplink_bytes_per_provider": 2760,
+        "downlink_bytes_per_provider": 132081
+      },
+      "crshe_combined_pool4": {
+        "provider": {
+          "median_ms": 517.269732999921,
+          "q1_ms": 511.47028350004575,
+          "q3_ms": 557.2098395000467,
+          "reps": 5
+        },
+        "keys_per_provider": 8,
+        "uplink_bytes_per_provider": 2760,
+        "downlink_bytes_per_provider": 132081
+      },
+      "crshe_session_serial": {
+        "provider": {
+          "median_ms": 1301.619770000002,
+          "q1_ms": 1263.1564754999545,
+          "q3_ms": 1377.901965000035,
+          "reps": 5
+        },
+        "keys_per_provider": 16,
+        "uplink_bytes_per_provider": 5520,
+        "downlink_bytes_per_provider": 132081
+      },
+      "crshe_session_pool4": {
+        "provider": {
+          "median_ms": 765.3404380000666,
+          "q1_ms": 727.2571785000537,
+          "q3_ms": 819.156291000013,
+          "reps": 5
+        },
+        "keys_per_provider": 16,
+        "uplink_bytes_per_provider": 5520,
+        "downlink_bytes_per_provider": 132081
+      },
+      "percell": {
+        "provider": {
+          "median_ms": 3585681.2872129255,
+          "reps": 0
+        },
+        "keys_per_provider": 57615,
+        "measured": false,
+        "uplink_bytes_per_provider": 19877175,
+        "note": "computed: keys x measured time per key + measured contraction; uplink is keys x measured key size"
+      },
+      "single_server": {
+        "server": {
+          "median_ms": 1269.820836000008,
+          "q1_ms": 1205.449010000052,
+          "q3_ms": 1297.5664089999555,
+          "reps": 3
+        },
+        "client_query_encrypt": {
+          "median_ms": 850.8460089999517,
+          "q1_ms": 825.106605999963,
+          "q3_ms": 856.1142620000055,
+          "reps": 3
+        },
+        "query_ciphertexts": 169,
+        "uplink_bytes": 44448859,
+        "downlink_bytes": 132121
+      }
+    }
+  ],
+  "note": "pool rows evaluate the DPF keys in worker processes; the homomorphic contraction stays on one thread. percell rows with measured=false are computed."
+}

@@ -1,0 +1,20 @@
+\begin{algorithmic}[1]
+\Statex \textbf{Token} at the data user, for box $B$ of a registered cube
+\State $\delta_s\gets\mathbb{Z}_p^{*}$ \Comment{fresh per query}
+\ForAll{$\sigma\in\{0,1\}^d$}
+  \State $c\gets\kappa_\sigma(B)$; \ $\beta\gets(-1)^{|\sigma|}$
+  \State \textbf{if} $c$ lies outside the cube \textbf{then} $c\gets$ random cell, $\beta\gets0$ \Comment{dummy}
+  \State $(\kappa_{\sigma,1},\dots,\kappa_{\sigma,n})\gets\Gen(1^\lambda,c,\beta)$
+  \State $(\hat\kappa_{\sigma,1},\dots,\hat\kappa_{\sigma,n})\gets\Gen(1^\lambda,c,\delta_s\beta)$
+\EndFor
+\State send $\{\kappa_{\sigma,j},\hat\kappa_{\sigma,j}\}_\sigma$ to $\text{CP}_j$
+\Statex \textbf{Answer} at provider $\text{CP}_j$
+\State $e_j\gets\sum_\sigma\mathsf{FullEval}(j,\kappa_{\sigma,j})$; \
+  $\hat e_j\gets\sum_\sigma\mathsf{FullEval}(j,\hat\kappa_{\sigma,j})$ \Comment{$O(2^dM)$ PRG}
+\State $\text{ct}_j\gets\bplus_c E_{j,c}\bdot T_c$, \ $E_{j,c}$: chunk $c$ of $e_j$ in row 0, of $\hat e_j$ in row 1
+\State rotate and sum within segments; modulus-switch; \Return $\text{ct}_j$ \Comment{one ciphertext}
+\Statex \textbf{Combine} at the data user
+\State $(y,\hat y)\gets$ slots $(0,\ell/2)$ of $\Dec\big(sk,\bplus_j\text{ct}_j\big)$
+\State \textbf{if} $\hat y\neq\delta_s y$ \textbf{then abort} \Comment{tamper evidence}
+\State \Return $y$
+\end{algorithmic}

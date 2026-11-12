@@ -3,7 +3,7 @@ import itertools
 import numpy as np
 import pytest
 
-from crshe import Owner, VerificationError, field, he, rangeagg
+from crshe import Owner, VerificationError, baselines, field, he, rangeagg
 
 
 def setup(bfv, dims, n, mode, seed=0, nd=3000):
@@ -168,3 +168,73 @@ def test_tampered_dummy_corner_is_caught(bfv):
             rangeagg.range_answer(pub, layout, cts, bent)]
     with pytest.raises(VerificationError):
         rangeagg.finish_range(user, layout, secret, meta, resp)
+
+
+# ---- baselines for the same range query, and parallel key evaluation ---------
+
+def _cell_cts(co, layout, cells, tpl):
+    tables = {t: baselines.cell_table(cells, layout.dims, c) for t, c in tpl.items()}
+    return co._encrypt(layout, tables, None)
+
+
+def setup_combined(bfv, dims, seed=0, nd=3000):
+    rng = np.random.default_rng(seed)
+    cells = np.stack([rng.integers(0, s, nd) for s in dims], axis=1)
+    values = rng.integers(1000, 4000, nd)
+    owner = Owner(["t0"], [np.arange(5)], values, {"sum": values}, n=2, bfv=bfv, seed=seed)
+    co = rangeagg.CubeOwner(owner)
+    tpl = {"count": np.ones(nd, dtype=np.int64), "sum": values}
+    layout, cts = co.register("cube", dims, cells, tpl, mode="combined")
+    return owner.user(), co, layout, cts, cells, tpl, bfv.public_view()
+
+
+def test_percell_baseline_matches_ground_truth(bfv):
+    dims = (3, 40, 5)
+    user, co, layout, cts, cells, tpl, pub = setup_combined(bfv, dims)
+    cell_cts = _cell_cts(co, layout, cells, tpl)
+    for box in (((1, 1), (5, 9), (1, 3)), ((0, 2), (0, 39), (0, 4)), ((2, 2), (39, 39), (4, 4))):
+        keys = baselines.percell_token(layout, box, 2)
+        volume = int(np.prod([hi - lo + 1 for lo, hi in box]))
+        assert len(keys[0]) == volume                    # one key per cell: the cost of no prefix sums
+        resp = [baselines.percell_answer(pub, layout, cell_cts, k, compress=True) for k in keys]
+        got = rangeagg.finish_range(user, layout, None, [None], resp)
+        assert got == truth(cells, tpl, box), (box, got)
+
+
+def test_single_server_range_matches_ground_truth_and_can_fail(bfv, monkeypatch):
+    dims = (12, 9)
+    user, co, layout, cts, cells, tpl, pub = setup_combined(bfv, dims)
+    rng = np.random.default_rng(2)
+    for box in boxes(dims, rng, 4):
+        q = baselines.single_server_range_query(bfv, layout, box)
+        assert len(q) == layout.chunks                   # the query is as long as the table
+        r = baselines.single_server_range_answer(pub, layout, cts, q, compress=True)
+        assert rangeagg.finish_range(user, layout, None, [None], [r]) == truth(cells, tpl, box), box
+    # failure control: a flipped corner sign must give a wrong answer
+    box = ((3, 8), (2, 6))
+    real = rangeagg.corners
+
+    def flipped(b, d):
+        out = real(b, d)
+        mask, x, beta = out[1]
+        out[1] = (mask, x, (field.P - beta) % field.P)
+        return out
+    monkeypatch.setattr(rangeagg, "corners", flipped)
+    q = baselines.single_server_range_query(bfv, layout, box)
+    r = baselines.single_server_range_answer(pub, layout, cts, q, compress=True)
+    assert rangeagg.finish_range(user, layout, None, [None], [r]) != truth(cells, tpl, box)
+
+
+@pytest.mark.parametrize("mode", ["combined", "session"])
+def test_parallel_key_evaluation_gives_the_same_answer(bfv, mode):
+    import multiprocessing as mp
+    dims = (3, 40, 5)
+    user, layout, cts, secret, cells, tpl, pub = setup(bfv, dims, 2, mode)
+    box = ((1, 2), (4, 30), (1, 3))
+    keys, meta = rangeagg.range_token(layout, box, 2)
+    serial = rangeagg.eval_keys(keys[0])
+    with mp.get_context("fork").Pool(2) as pool:
+        par = rangeagg.eval_keys(keys[0], pool)
+        resp = [rangeagg.range_answer(pub, layout, cts, k, compress=True, pool=pool) for k in keys]
+    assert all(np.array_equal(a, b) for a, b in zip(serial, par))
+    assert rangeagg.finish_range(user, layout, secret, meta, resp) == truth(cells, tpl, box)

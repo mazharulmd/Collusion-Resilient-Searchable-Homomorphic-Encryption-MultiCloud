@@ -1,0 +1,20 @@
+\begin{algorithmic}[1]
+\Require records $i\in[N_d]$ with tags, values $m_i$ and roles $\rho(i)\in[R]$;
+  templates $\{w_f\}$; cubes $(\mathcal{F}_1,\dots,\mathcal{F}_d)$
+\State $(pk,sk)\gets\mathsf{KGen}(1^\lambda,p,\ell)$; \ $K'\gets\{0,1\}^\lambda$; \ $D\gets\emptyset$
+\ForAll{keywords $w$ in arrival order}
+  \State \textbf{if} $w\notin D$ \textbf{then} $D(w)\gets|D|$ \Comment{rows never move}
+\EndFor
+\State $I[D(w)][i]\gets1$ for every keyword $w$ of record $i$
+\State $K'_\rho\gets F_{K'}(\rho)$ for every role $\rho$
+\State $P[x][c]\gets$ rejection-sampled $F'_{K'_{\rho(c)}}(x,c)$, uniform on $\mathbb{Z}_p$
+\State $I'\gets\mathrm{pack}_{32}(I)+P \bmod p$ \Comment{masked, packed index}
+\ForAll{roles $\rho$ and templates $f$}
+  \State $A^{\rho}_f[x]\gets\sum_{i:\rho(i)=\rho} I[x][i]\,w_f[i]\,m_i$ for $x\in[N]$
+  \State $C^{\rho}_f[c]\gets\sum_{i:\,c(i)=c,\,\rho(i)=\rho} w_f[i]\,m_i$; \ $T^{\rho}_f[c]\gets\sum_{c'\le c}C^{\rho}_f[c']$
+  \State pack $A^{\rho}_f$, $T^{\rho}_f$ and the record column in slot row 0,
+  \Statex \hspace{\algorithmicindent} with a copy in row 1, and encrypt under $pk$
+\EndFor
+\State \Return $I'$, ciphertexts and $pk$ to every $\text{CP}_j$;
+  \ $(sk, D, K'_\rho)$ to the data users of role $\rho$
+\end{algorithmic}

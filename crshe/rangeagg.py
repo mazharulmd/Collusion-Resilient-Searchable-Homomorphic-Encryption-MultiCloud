@@ -187,30 +187,27 @@ def range_token(layout, box, n):
     return keys, meta
 
 
-def range_answer(public_he, layout, cts, corner_keys, compress=False):
-    """Provider side: evaluate every corner key over the whole cube and
-    contract against the encrypted SAT. Returns one ciphertext."""
-    want = layout.corners * (2 if layout.mode == "session" else 1)
-    if len(corner_keys) != want:
-        raise ValueError("a query must carry one key per corner")
-    for k in corner_keys:
-        if k.N != layout.M:
-            raise ValueError("key domain does not match the cube")
+def _eval_key(key):
+    return key.eval_full()
+
+
+def eval_keys(keys, pool=None):
+    """Full-domain evaluation of every key. With a process pool the keys are
+    evaluated in parallel; the evaluations are independent of one another."""
+    return pool.map(_eval_key, keys) if pool is not None else [_eval_key(k) for k in keys]
+
+
+def _total(evals):
+    e = evals[0]
+    for v in evals[1:]:
+        e = field.add(e, v)
+    return e
+
+
+def contract(public_he, layout, cts, evals, compress=False):
+    """Contract (row 0, row 1) evaluation-vector pairs against the encrypted
+    table: one plaintext-ciphertext product per chunk, then the segment sum."""
     cc, H, seg = public_he.cc, public_he.half, layout.seg
-
-    def total(ks):
-        e = ks[0].eval_full()
-        for k in ks[1:]:
-            e = field.add(e, k.eval_full())
-        return e
-
-    if layout.mode == "per_corner":
-        evals = [(k.eval_full(),) * 2 for k in corner_keys]
-    elif layout.mode == "combined":
-        e = total(corner_keys)
-        evals = [(e, e)]
-    else:                                   # session: row 0 signs, row 1 delta_s * signs
-        evals = [(total(corner_keys[:layout.corners]), total(corner_keys[layout.corners:]))]
     acc = None
     for c, ct in enumerate(cts):
         lo, hi = c * seg, min((c + 1) * seg, layout.M)
@@ -223,6 +220,26 @@ def range_answer(public_he, layout, cts, corner_keys, compress=False):
         acc = he.add(cc, acc, cc.EvalMult(ct, public_he.encode(v)))
     acc = he.segment_sum(cc, acc, seg)
     return he.compress(cc, acc) if compress else acc
+
+
+def range_answer(public_he, layout, cts, corner_keys, compress=False, pool=None):
+    """Provider side: evaluate every corner key over the whole cube and
+    contract against the encrypted SAT. Returns one ciphertext."""
+    want = layout.corners * (2 if layout.mode == "session" else 1)
+    if len(corner_keys) != want:
+        raise ValueError("a query must carry one key per corner")
+    for k in corner_keys:
+        if k.N != layout.M:
+            raise ValueError("key domain does not match the cube")
+    ev = eval_keys(corner_keys, pool)
+    if layout.mode == "per_corner":
+        evals = [(e,) * 2 for e in ev]
+    elif layout.mode == "combined":
+        e = _total(ev)
+        evals = [(e, e)]
+    else:                                   # session: row 0 signs, row 1 delta_s * signs
+        evals = [(_total(ev[:layout.corners]), _total(ev[layout.corners:]))]
+    return contract(public_he, layout, cts, evals, compress)
 
 
 def finish_range(user, layout, mac_keys, meta, responses):

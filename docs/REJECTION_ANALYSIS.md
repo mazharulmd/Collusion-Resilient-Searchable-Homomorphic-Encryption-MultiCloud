@@ -1,5 +1,8 @@
 # FGCS-D-26-05016: why it was rejected, and what the revision changes
 
+*Updated 2026-11-12 with the two editorial rejections that preceded and followed it; see
+[Third round](#third-round-2026-11-12-three-rejections-read-together).*
+
 **Decision (27 Sep 2026):** reject, no reconsideration. Editor's summary:
 *"The research results reported are too premature for publication. More work is
 needed to substantiate the conclusions."* The individual reviewer reports were not
@@ -181,6 +184,56 @@ fit:
 Before submitting anywhere: finish the WAN run, publish the C++ code, run
 `bench/bench_leakage.py` on both corpora, re-measure the `\authorcheck` items, and fix
 the AI declaration.
+
+## Third round (2026-11-12): three rejections, read together
+
+### Which manuscript each journal saw
+
+| Journal | Decision, in the editor's words | Manuscript it saw | Evidence |
+|---|---|---|---|
+| IEEE Internet of Things Journal | Editorial rejection: "does not meet the level of technical novelty, experimental rigor, and validation depth expected" | *CR-SHE: Collusion-Resilient Searchable Homomorphic Encryption for Multi-Cloud IoT Data Sharing*, the first version | `paper/fgcs-2026-submission/README_conversion.md` says the FGCS file was converted from it |
+| Future Generation Computer Systems (FGCS-D-26-05016) | Rejected after review, 27 Sep 2026: "too premature ... More work is needed to substantiate the conclusions" | *CR-SHE: Oblivious Homomorphic Aggregation for Collusion-Resilient Search and Analytics over Encrypted Multi-cloud IoT Data* | `paper/fgcs-2026-submission/` |
+| Internet of Things (IOT-D-26-03923) | Editorial rejection: "lack of sufficient novelty" | Same title as the FGCS version, revised | `paper/iot-elsevier/`, committed 21 Oct 2026 |
+
+None of the three contains range aggregation, the per-query tamper check or role-scoped
+access: `summed-area` and `delta_s` occur zero times in `CRSHE_FGCS.tex` and
+`CRSHE_IoT.tex`, and the range work was first committed on 25 Oct 2026, after the third
+submission. **The manuscript as it now stands has not been reviewed by any journal.**
+The reviewer reports of FGCS were never supplied, so what follows reads the editors'
+sentences, not the reports.
+
+### What the three decisions have in common
+
+1. **The contribution they saw was keyword search plus one homomorphic sum.** To an
+   editor of an IoT or general-systems journal that is one more searchable-encryption
+   scheme for IoT. The parts that distinguish the present manuscript came later.
+2. **The venues were not security venues.** Two of the three decisions were made by an
+   editor without review. The papers this work builds on and compares with appeared in
+   security, privacy and database venues (`docs/JOURNAL_SELECTION.md`).
+3. **Evaluation depth.** "Experimental rigor", "validation depth" and "premature" all
+   point at the evaluation: one host, a reference implementation, and baselines that
+   were weaker than the obvious alternative.
+
+### What still applied to the current manuscript, and what was done
+
+| Criticism | State before this round | Done in this round |
+|---|---|---|
+| Novelty not visible early | Four contributions, but the reader met the prior-art boundary only in the Discussion | The Introduction now says which building blocks are borrowed (2^d decomposition, one-time-padded index, client-chosen one-time MAC key) and which three elements are new, and ends on what no compared system provides |
+| No picture of the central idea | Architecture figure only | New figure: a 2-D box as signed corner keys over the summed-area table, with dummy keys at the edge |
+| Range path had no measured baseline | Single-server upload was computed; per-cell alternative not shown | `bench/bench_range_baselines.py`: the same queries answered by per-cell keys and by a single server, on one machine; new subsection and figure. `scripts/check_range_baselines_text.py` ties every number of the subsection to the result file and fails on a planted fault |
+| "Single-threaded reference implementation" | One thread only | Key evaluation by four worker processes measured: a verified query drops from 1.30–1.46 s to 0.73–0.77 s per provider |
+| What the trust split buys | Server time and upload | Also integrity: a single server holding encryptions of the selection and of its δ_s-multiple can alter the table and pass the per-query check; with two providers the same alteration is caught. `tests/test_session_mac.py` exercises both |
+| Soundness 2^-36 looks low | Stated without comment | One sentence: r independent scalars give (p−1)^-r + rε; only r = 1 is implemented |
+| Terms used before they are defined | "template", "cube", "flexible" | Defined in the system model |
+| Threat model split across sections | Semi-honest privacy, active integrity, stated apart | One sentence in the threat model says which guarantee holds against which adversary |
+| A sentence about "withdrawn" figures in the main text | Present | Moved to the supplement, which derives the bound; the earlier figures never appeared in print |
+| Wide-area deployment | Not measured | **Still not measured.** The Discussion gives a figure computed from the measured message sizes and says so. `docs/SERVER_RUNBOOK.md` has the cross-region procedure |
+| Range path in native code | Not done | **Still not done.** Stated as the first limitation |
+| C++ prototype not public | Authors' choice | Unchanged; the data availability statement says "on reasonable request" |
+
+Honest limits of this round: the reading that produced the table above was done by the
+same AI session that edited the text. It is not an outside review, and no separate
+session checked the changes.
 
 ## Reviewer comments
 

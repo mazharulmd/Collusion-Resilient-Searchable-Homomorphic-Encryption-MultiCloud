@@ -1,9 +1,11 @@
-"""Draw the result figures of the JNCA manuscript from results/*.json, so no point
-is transcribed by hand. Writes vector PDFs to paper/jnca/figures/.
+"""Draw the figures of the condensed manuscript from results/*.json, so no point
+is transcribed by hand. Writes vector PDFs to paper/<--paper>/figures/ (default
+paper/jisa; paper/jnca holds the earlier package).
 
 Palette: categorical slots 1-4 of the validated default palette, in fixed order;
 every series also has its own marker or fill, so identity never rests on colour.
 """
+import argparse
 import csv
 import gzip
 import json
@@ -16,7 +18,9 @@ import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
 
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
-OUT = os.path.join(ROOT, "paper", "jnca", "figures")
+_ap = argparse.ArgumentParser()
+_ap.add_argument("--paper", default="jisa", help="folder under paper/ that receives figures/")
+OUT = os.path.join(ROOT, "paper", _ap.parse_args().paper, "figures")
 os.makedirs(OUT, exist_ok=True)
 BLUE, ORANGE, AQUA, YELLOW, MAGENTA = "#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4"
 BLUE_LIGHT, ORANGE_LIGHT = "#9ec5f4", "#f6b89c"
@@ -50,6 +54,66 @@ def save(fig, name):
 def ms(t):
     return t["median_ms"]
 
+
+# 0. schematic: a box as signed corners of the summed-area table --------------------
+def _grid(ax, nx, ny):
+    for i in range(nx + 1):
+        ax.plot([i, i], [0, ny], color=GRID, lw=0.6, zorder=1)
+    for j in range(ny + 1):
+        ax.plot([0, nx], [j, j], color=GRID, lw=0.6, zorder=1)
+    ax.set_xlim(-0.15, nx + 0.15)
+    ax.set_ylim(-0.15, ny + 0.15)
+    ax.set_aspect("equal")
+    ax.set_xticks(np.arange(nx) + 0.5, [str(i) for i in range(nx)], fontsize=6)
+    ax.set_yticks(np.arange(ny) + 0.5, [str(j) for j in range(ny)], fontsize=6)
+    ax.tick_params(length=0)
+    for s in ax.spines.values():
+        s.set_visible(False)
+
+
+def _box(ax, lo1, hi1, lo2, hi2):
+    ax.add_patch(plt.Rectangle((lo1, lo2), hi1 - lo1 + 1, hi2 - lo2 + 1, facecolor=BLUE_LIGHT, alpha=0.55,
+                               edgecolor=BLUE, lw=1.2, zorder=2))
+    ax.text((lo1 + hi1 + 1) / 2, (lo2 + hi2 + 1) / 2, "box $B$", ha="center", va="center", fontsize=8,
+            color="#184f95", zorder=3)
+
+
+def _corner(ax, x, y, sign):
+    colour, marker = (BLUE, "o") if sign > 0 else (ORANGE, "s")
+    ax.plot(x + 0.5, y + 0.5, marker=marker, ms=9, color=colour, mec="white", mew=0.8, zorder=4)
+    ax.text(x + 0.5, y + 0.5, "+" if sign > 0 else "−", ha="center", va="center", fontsize=7, color="white",
+            fontweight="bold", zorder=5)
+
+
+def _dummy(ax, x, y):
+    ax.plot(x + 0.5, y + 0.5, marker="D", ms=8, mfc="white", mec=MUTED, mew=1.2, zorder=4)
+    ax.text(x + 0.5, y + 0.5, "0", ha="center", va="center", fontsize=6, color=MUTED, zorder=5)
+
+
+NX, NY = 10, 6
+fig, (a1, a2) = plt.subplots(1, 2, figsize=(6.6, 2.75))
+_grid(a1, NX, NY)
+_box(a1, 3, 7, 2, 4)
+for x, y, sg in ((7, 4, 1), (2, 4, -1), (7, 1, -1), (2, 1, 1)):
+    _corner(a1, x, y, sg)
+a1.set_title("(a) Interior box: four signed corner keys", fontsize=8, color=INK)
+_grid(a2, NX, NY)
+_box(a2, 0, 4, 2, 4)
+_corner(a2, 4, 4, 1)
+_corner(a2, 4, 1, -1)
+_dummy(a2, 8, 0)
+_dummy(a2, 6, 5)
+a2.set_title("(b) Box at the edge: two corners become dummy keys", fontsize=8, color=INK)
+for ax in (a1, a2):
+    ax.set_xlabel("Dimension 1 (for example, time window)")
+a1.set_ylabel("Dimension 2 (for example, value band)")
+handles = [plt.Line2D([], [], marker="o", ls="", ms=8, color=BLUE, label="Key with output $+1$"),
+           plt.Line2D([], [], marker="s", ls="", ms=8, color=ORANGE, label="Key with output $-1$"),
+           plt.Line2D([], [], marker="D", ls="", ms=7, mfc="white", mec=MUTED, mew=1.2,
+                      label="Dummy key, output $0$, random cell")]
+fig.legend(handles=handles, loc="upper center", ncol=3, bbox_to_anchor=(0.5, 1.0), fontsize=7)
+fig.tight_layout(rect=(0, 0, 1, 0.9))
+save(fig, "fig_range_idea")
 
 # 1. posting-list length distribution of both datasets --------------------------
 fig, ax = plt.subplots(figsize=(3.4, 2.3))
@@ -228,3 +292,47 @@ for ax, ylab, title in ((a1, "Masked index per provider (GB)", "Index size"),
     style(ax, "both")
 fig.tight_layout()
 save(fig, "fig_packed_index")
+
+# 8. the same range query answered three ways, on one machine --------------------------
+rb = load("range_baselines.json")
+rows = rb["rows"]
+wk = rb["workers"]
+L = [r["window_minutes"] for r in rows]
+fig, (a1, a2) = plt.subplots(1, 2, figsize=(6.6, 2.7))
+a1.plot(L, [ms(r["crshe_session_serial"]["provider"]) / 1000 for r in rows], color=ORANGE, marker="D", lw=2, ms=6,
+        label="CR-SHE verified, 1 thread")
+a1.plot(L, [ms(r[f"crshe_session_pool{wk}"]["provider"]) / 1000 for r in rows], color=BLUE, marker="o", lw=2, ms=6,
+        ls="--", label=f"CR-SHE verified, {wk} workers")
+ss = [r for r in rows if "single_server" in r]
+a1.plot([r["window_minutes"] for r in ss], [ms(r["single_server"]["server"]) / 1000 for r in ss], color=AQUA,
+        marker="s", lw=2, ms=6, ls="-.", label="Single server")
+meas = [r for r in rows if r["percell"]["measured"]]
+comp = [r for r in rows if not r["percell"]["measured"]]
+a1.plot([r["window_minutes"] for r in meas], [ms(r["percell"]["provider"]) / 1000 for r in meas], color=MAGENTA,
+        marker="^", lw=2, ms=7, label="Per-cell keys (measured)")
+a1.plot([meas[-1]["window_minutes"]] + [r["window_minutes"] for r in comp],
+        [ms(meas[-1]["percell"]["provider"]) / 1000] + [ms(r["percell"]["provider"]) / 1000 for r in comp],
+        color=MAGENTA, lw=1.5, ls=":", zorder=1)
+a1.plot([r["window_minutes"] for r in comp], [ms(r["percell"]["provider"]) / 1000 for r in comp], color=MAGENTA,
+        marker="^", ls="", ms=7, mfc="white", mew=1.4, label="Per-cell keys (computed)")
+a1.set_ylabel("Time per provider or server (s)")
+a1.set_title("Server-side time", fontsize=8, color=INK)
+a1.set_ylim(0.2, 3e4)
+a2.plot(L, [r["crshe_session_serial"]["uplink_bytes_per_provider"] for r in rows], color=ORANGE, marker="D", lw=2,
+        ms=6, label="CR-SHE verified")
+a2.plot(L, [r["percell"]["uplink_bytes_per_provider"] for r in rows], color=MAGENTA, marker="^", lw=2, ms=7,
+        label="Per-cell keys")
+a2.plot([r["window_minutes"] for r in ss], [r["single_server"]["uplink_bytes"] for r in ss], color=AQUA, marker="s",
+        lw=2, ms=6, ls="-.", label="Single server")
+a2.set_ylabel("Query upload per provider or server (bytes)")
+a2.set_title("Query upload", fontsize=8, color=INK)
+a2.set_ylim(500, 5e9)
+for ax in (a1, a2):
+    ax.set_xscale("log")
+    ax.set_yscale("log")
+    ax.set_xlabel("Window length L (minutes)")
+    style(ax, "both")
+a1.legend(loc="upper left", fontsize=6.3)
+a2.legend(loc="upper left", fontsize=6.3, ncol=3, columnspacing=0.9, handletextpad=0.4)
+fig.tight_layout()
+save(fig, "fig_range_baselines")

@@ -1,7 +1,7 @@
 # FGCS-D-26-05016: why it was rejected, and what the revision changes
 
 *Updated 2026-11-12 with the two editorial rejections that preceded and followed it; see
-[Third round](#third-round-2026-11-12-three-rejections-read-together).*
+[Third round](#third-round-2026-11-12-three-rejections-read-together). Updated 2026-11-17 with the JISA desk rejection; see [Fourth round](#fourth-round-2026-11-17-jisa-desk-rejection-jisas-d-26-08846).*
 
 **Decision (27 Sep 2026):** reject, no reconsideration. Editor's summary:
 *"The research results reported are too premature for publication. More work is
@@ -234,6 +234,36 @@ sentences, not the reports.
 Honest limits of this round: the reading that produced the table above was done by the
 same AI session that edited the text. It is not an outside review, and no separate
 session checked the changes.
+
+## Fourth round (2026-11-17): JISA desk rejection, JISAS-D-26-08846
+
+**Decision (Associate Editor-in-Chief):** "The presentation is below standard. The paper is
+not suitable for formal peer reviews." This is the first decision on the current
+manuscript, and the first that names presentation rather than novelty or evaluation.
+
+What the editor most plausibly saw, from the submitted Word file rendered in LibreOffice
+(the PDF the submission system built was not available here; **the authors should open
+it and check**):
+
+| Problem | Where | Evidence |
+|---|---|---|
+| Mathematics damaged by the Word conversion | Every page with formulas | Multi-letter names set letter by letter in italics ("G e n", "E v a l", "A d v"); parentheses shown as bars; the notation table's symbols not aligned with their meanings; displayed formulas in theorems split badly. The LaTeX PDF of the same text has none of this |
+| Algorithms as Word tables | Algorithms 1–2 | Readable, but look unlike pseudocode in the field |
+| Dense prose | Whole text | 6,600 words, mean sentence 28 words, 65 sentences over 35 words, 82 semicolons, 54 italic run-in heads; 15 subsections in 21 pages |
+| Too many mechanisms for one paper | Sections 4–7 | Keyword aggregates, range aggregates, retrieval, flexible two-round queries, role-scoped access, tamper evidence, a masked index and a leakage attack, each with its own result. The central contribution (verified range aggregation) is one of eight threads |
+| Abbreviations | Whole text | DO, DU, CP, DPF used throughout as nouns |
+| "Plotted with an AI-assisted script." on every caption | 11 captions | Added under the JNCA guide's figure rule. Elsevier's rule concerns images made or altered by generative AI; plots drawn by a script from measured data are not that. The tag on every figure reads oddly and the declaration already covers the scripts |
+| Reference list | References | Inconsistent capitalisation ("(s&p)"), missing pages ([19], [23] ends "2159–"), mixed venue styles |
+
+Not the cause: the length limit (none was found) and the subject (the editor wrote that the
+problem is "potentially of interest").
+
+**A note on how the text was written.** The declaration says, correctly, that an AI
+assistant drafted and edited much of the text. Five rewrites in this repository have not
+produced prose an editor accepts. The next version should be written by the authors from
+the paper's argument, with the assistant limited to checking numbers, proofs and
+references, and should be read by an experienced researcher in applied cryptography
+before submission.
 
 ## Reviewer comments
 

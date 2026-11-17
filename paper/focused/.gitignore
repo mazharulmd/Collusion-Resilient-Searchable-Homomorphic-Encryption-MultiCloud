@@ -1,0 +1,18 @@
+build/
+*.aux
+*.log
+*.out
+*.bbl
+*.blg
+*.spl
+
+# figures make_figures.py writes but this paper does not use
+figures/fig_cpp_keyword.*
+figures/fig_packed_index.*
+figures/fig_postings.*
+figures/fig_tamper.*
+figures/fig_trust_split.*
+figures/fig_architecture.*
+figures/*.png
+*.pdf
+!figures/*.pdf

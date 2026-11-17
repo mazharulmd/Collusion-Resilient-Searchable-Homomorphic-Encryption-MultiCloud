@@ -22,6 +22,7 @@ submission and its revision.
 | *Internet of Things* submission (IOT-D-26-03923) | Desk-rejected, "lack of sufficient novelty". Package in [`paper/iot-elsevier/`](paper/iot-elsevier/) |
 | IEEE Internet of Things Journal | Editorial rejection of the first version: novelty, experimental rigour, validation depth |
 | **Where to submit next** | [`docs/JOURNAL_SELECTION.md`](docs/JOURNAL_SELECTION.md): candidates checked against their scope; recommended target is the *Journal of Information Security and Applications* |
+| **Focused manuscript (in progress, authors writing)** | [`paper/focused/`](paper/focused/): verified range aggregation only; LaTeX skeleton with one box per paragraph, [`OUTLINE.md`](paper/focused/OUTLINE.md) (argument, style rules, checklist) and [`NUMBERS.md`](paper/focused/NUMBERS.md) (every quotable number with its source) |
 | JISA submission (JISAS-D-26-08846) | Desk-rejected 2026-11-17: "presentation is below standard"; analysis in [`docs/REJECTION_ANALYSIS.md`](docs/REJECTION_ANALYSIS.md#fourth-round-2026-11-17-jisa-desk-rejection-jisas-d-26-08846) |
 | JISA package | [`paper/jisa/submission/`](paper/jisa/submission/): Word manuscript (21 pages, 11 figures), cover letter, highlights, competing-interests declaration, figures, supplementary material; see [`docs/JISA_SUBMISSION.md`](docs/JISA_SUBMISSION.md) |
 | JNCA package (not submitted as far as this repository records) | [`paper/jnca/submission/`](paper/jnca/submission/), [`docs/JNCA_SUBMISSION.md`](docs/JNCA_SUBMISSION.md) |

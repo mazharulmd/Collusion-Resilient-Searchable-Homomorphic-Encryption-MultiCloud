@@ -336,3 +336,70 @@ a1.legend(loc="upper left", fontsize=6.3)
 a2.legend(loc="upper left", fontsize=6.3, ncol=3, columnspacing=0.9, handletextpad=0.4)
 fig.tight_layout()
 save(fig, "fig_range_baselines")
+
+# 9. system overview for the focused paper: the range path only ----------------------
+from matplotlib.patches import FancyArrowPatch, FancyBboxPatch  # noqa: E402
+
+fig, ax = plt.subplots(figsize=(6.6, 3.1))
+ax.set_xlim(0, 10)
+ax.set_ylim(0, 4.7)
+ax.axis("off")
+
+
+def panel(x, y, w, h, title, fc, ec):
+    ax.add_patch(FancyBboxPatch((x, y), w, h, boxstyle="round,pad=0.02,rounding_size=0.12", fc=fc, ec=ec, lw=1))
+    if title:
+        ax.text(x + w / 2, y + h - 0.18, title, ha="center", va="top", fontsize=8.5, fontweight="bold", color=INK)
+
+
+def lines(x, y, rows, size=7.2, colour=INK, gap=0.27):
+    for k, r in enumerate(rows):
+        ax.text(x, y - k * gap, r, ha="left", va="top", fontsize=size, color=colour)
+
+
+def arrow(x0, y0, x1, y1, colour, ls="-"):
+    ax.add_patch(FancyArrowPatch((x0, y0), (x1, y1), arrowstyle="-|>", mutation_scale=10, lw=1.3, color=colour,
+                                 linestyle=ls, shrinkA=0, shrinkB=0))
+
+
+def step(x, y, k):
+    ax.add_patch(plt.Circle((x, y), 0.15, color=INK, zorder=5))
+    ax.text(x, y, str(k), ha="center", va="center", fontsize=7, color="white", fontweight="bold", zorder=6)
+
+
+OW, CL, AN = (0.05, 2.3), (3.25, 2.75), (7.55, 2.4)          # x, width of the three columns
+panel(OW[0], 1.0, OW[1], 3.4, "Data owner", "#eef5fd", BLUE)
+lines(0.18, 3.85, ["Places each record in a", "cell of a cube, e.g.", "device × minute × CO band", "",
+                   "Builds summed-area", "tables $T_f$, encrypts", "them under $pk$ and", "sends a copy to each cloud"])
+CLOUDS = ((3.4, "Cloud 1"), (2.2, "Cloud 2"), (0.7, "Cloud $n$"))
+for y, name in CLOUDS:
+    panel(CL[0], y, CL[1], 0.95, "", "#fdf1ec", ORANGE)
+    ax.text(CL[0] + 0.14, y + 0.8, name, fontsize=8, fontweight="bold", color=INK, va="top")
+    lines(CL[0] + 0.14, y + 0.52, ["stores Enc$(T_f)$, expands its keys", "over all cells, returns one ciphertext"],
+          size=6.7, gap=0.24)
+ax.text(CL[0] + CL[1] / 2, 1.9, "⋮", ha="center", va="center", fontsize=12, color=MUTED)
+ax.text(CL[0] + CL[1] / 2, 0.38, "no channel between clouds;", ha="center", fontsize=6.8, color="#b0461d", style="italic")
+ax.text(CL[0] + CL[1] / 2, 0.12, "any $n-1$ of them may collude", ha="center", fontsize=6.8, color="#b0461d",
+        style="italic")
+panel(AN[0], 0.55, AN[1], 3.85, "Analyst", "#eefaf4", AQUA)
+lines(7.68, 3.85, ["Asks for box $B$, e.g.", "one device, one hour,", "CO bands 3–7", "",
+                   "Turns its $2^d$ corners into", "DPF keys, twice: with signs,", "and with signs × a fresh",
+                   "secret $\\delta_s$"])
+lines(7.68, 1.45, ["Adds the $n$ replies,", "accepts only if $\\hat y=\\delta_s y$,", "decrypts $y$"])
+
+for y, _ in CLOUDS:                                          # owner -> clouds
+    arrow(OW[0] + OW[1], 2.7, CL[0], y + 0.48, BLUE)
+for y, _ in CLOUDS:                                          # analyst -> clouds (keys)
+    arrow(AN[0], 2.9, CL[0] + CL[1], y + 0.62, "#127a55")
+for y, _ in CLOUDS:                                          # clouds -> analyst (replies)
+    arrow(CL[0] + CL[1], y + 0.25, AN[0], 1.25, ORANGE, ls="--")
+step(2.9, 3.35, 1)
+ax.text(2.9, 3.62, "setup", ha="center", fontsize=6.6, color=BLUE)
+step(6.9, 3.55, 2)
+ax.text(6.9, 3.95, "$2^{d+1}$ keys", ha="center", fontsize=6.6, color="#127a55")
+ax.text(6.9, 3.77, "≈ 5 kB", ha="center", fontsize=6.6, color="#127a55")
+step(CL[0] + CL[1] - 0.25, 1.9, 3)
+step(6.9, 0.55, 4)
+ax.text(6.9, 0.27, "1 ciphertext each, 132 kB", ha="center", fontsize=6.6, color="#b0461d")
+fig.tight_layout(pad=0.2)
+save(fig, "fig_system")

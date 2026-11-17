@@ -14,5 +14,4 @@ figures/fig_tamper.*
 figures/fig_trust_split.*
 figures/fig_architecture.*
 figures/*.png
-*.pdf
-!figures/*.pdf
+/*.pdf

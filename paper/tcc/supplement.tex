@@ -1,0 +1,256 @@
+%% Supplemental material for the TCC manuscript (range-only scheme).
+%% Proofs adapted from paper/jisa/supplementary.tex (S2-S4 there), with the
+%% keyword, retrieval, flexible and role parts removed.
+\documentclass[10pt,journal,compsoc]{IEEEtran}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage[nocompress]{cite}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{definition}{Definition}
+\newtheorem*{theorem*}{Theorem}
+\renewcommand{\thesection}{S\arabic{section}}
+\input{macros}
+
+\begin{document}
+\title{Supplemental Material for ``One-Round Verifiable Range Aggregation over
+Encrypted Data Replicated across Non-Colluding Clouds''}
+\author{Md~Mazharul~Islam, Mubasshir~Ahmed, and Md~Redowan~Zaman~Anik}
+\maketitle
+
+\noindent Section, equation and theorem numbers without an ``S'' refer to the
+main paper. Notation follows Table~2 of the main paper; $u_x$ denotes the unit
+vector at cell $x$.
+
+% ---------------------------------------------------------------------------
+\section{Proof of Theorem~1 (Correctness)}
+
+\begin{theorem*}[Theorem 1, restated]
+Suppose $w_f[i]\,m_i\ge0$ for every record and $\sum_iw_f[i]\,m_i<p$. Then a
+query on box $B$ returns $\sum_{i:\,c(i)\in B}w_f[i]\,m_i$, except with the
+probability that decryption fails, and honest replies pass the check.
+\end{theorem*}
+
+\begin{IEEEproof}
+For each corner $\sigma$ the analyst generates keys for the point function
+$f_{\kappa_\sigma(B),\beta_\sigma}$, with $\beta_\sigma=(-1)^{|\sigma|}\bmod p$
+for a corner inside the cube and $\beta_\sigma=0$ at a random cell for a dummy.
+By DPF correctness, the evaluations of all $n$ clouds sum to the point
+function, so
+\[
+e:=\sum_{j}e_j=\sum_{\sigma}\beta_\sigma\,u_{\kappa_\sigma(B)},
+\]
+where dummies contribute the zero vector whatever cell they name. Cloud $j$
+places its evaluation of the $\beta$-keys in row~0 and of the
+$\delta_s\beta$-keys in row~1 of the same plaintexts, and multiplies them into
+the encrypted table, which holds $T_f$ in both rows. By Lemma~1 the sum of the
+replies decrypts in row~0 to
+\[
+\sum_x e[x]\,T_f[x]=\sum_{\sigma\text{ real}}(-1)^{|\sigma|}\,T_f[\kappa_\sigma(B)]\pmod p .
+\]
+The corners outside the cube are exactly those that would contribute $0$ in
+Eq.~(2), since a summed-area table is zero below the origin. Eq.~(2) therefore
+turns the right-hand side into the box total $Y=\sum_{c\in B}C_f[c]$ modulo
+$p$. Because every contribution is non-negative, $0\le Y\le\sum_iw_f[i]\,m_i<p$,
+so reduction modulo $p$ returns $Y$ exactly, although single signed terms are
+negative.
+
+\emph{Segments.} Several templates share a ciphertext, each in its own segment
+of each row. Rotations move values only within a row, and the rotate-and-sum
+covers one segment, so the slot of template $r$ receives only template $r$'s
+products, and the two rows do not mix. Compressing the reply to one modulus
+tower is a public map that preserves the decrypted value.
+
+\emph{Check.} In row~1 the keys share $\delta_s$ times the same point
+functions, so the same argument gives $\delta_sY$. Honest replies therefore
+pass the test $\hat y=\delta_sy$ with certainty. The only failure term is the
+decryption-failure probability of the leveled scheme under the noise growth
+discussed in the proof of Lemma~1.
+\end{IEEEproof}
+
+% ---------------------------------------------------------------------------
+\section{Proof of Theorem~2 (Privacy)}
+
+\emph{Leakage.} The setup leakage is
+$\Leak_{\mathrm{Setup}}=(n,p,\ell,\{(s_1,\dots,s_d)\}_{\text{cubes}},
+\text{number of templates and ciphertexts})$. The query leakage of query $q$ is
+$\Leak_{\mathrm{Query}}(q)=(\text{cube addressed},\ \text{check keys present or
+not})$. It fixes the number of keys a cloud receives, $2^d$ or $2^{d+1}$.
+
+\begin{theorem*}[Theorem 2, restated]
+If $(\Gen,\Eval)$ is an $(n{-}1)$-private DPF and BFV is IND-CPA secure given
+its evaluation keys, then for every efficient adversary corrupting at most
+$n-1$ clouds there is an efficient simulator such that
+\[
+\big|\Pr[\Real=1]-\Pr[\Ideal=1]\big|\le Q\,2^{d_{\max}+1}\,\advDPF+m\,\advCPA ,
+\]
+where $Q$ is the number of queries, $d_{\max}$ the largest cube dimension and
+$m$ the number of ciphertexts the coalition stores.
+\end{theorem*}
+
+\begin{IEEEproof}
+Take a coalition $C$ of exactly $n-1$ clouds; a smaller coalition sees a
+subset of the same view. Its view consists of the stored ciphertexts, the
+public and evaluation keys, and for each query its members' keys and the
+replies they compute. Let $H_0$ be the real experiment.
+
+\emph{$H_1$: simulated keys.} Replace, one key generation at a time, the keys
+of the coalition by the output of the DPF simulator for the right domain $[M]$.
+$(n{-}1)$-privacy hides the output $\beta$ as well as the point, so this
+covers real corners, dummy corners and the keys carrying $\delta_s\beta$ alike.
+A query to a $d$-dimensional cube makes $2^d$ key generations, and $2^d$ more
+when it carries the check, so the hybrid costs at most
+$Q\,2^{d_{\max}+1}\advDPF$. After it, the keys depend only on the domain and
+on how many keys the query carries, which the query leakage fixes. In
+particular they no longer depend on the box, on which corners were dummies, or
+on $\delta_s$.
+
+\emph{$H_2$: encryptions of zero.} Replace each of the $m$ stored ciphertexts
+by an encryption of $0$ under $pk$. The coalition holds only $pk$ and the
+evaluation keys, so by IND-CPA security this costs at most $m\,\advCPA$. As is
+standard for BFV, we assume IND-CPA security holds given the rotation keys
+(circular security).
+
+\emph{Simulator.} In $H_2$ every stored value is an encryption of $0$ whose
+number and shape are given by $\Leak_{\mathrm{Setup}}$, and every key is
+simulated from $\Leak_{\mathrm{Query}}$. A reply is a deterministic function
+of a cloud's keys, the addressed table and the public keys, so the simulator
+recomputes the replies of the coalition itself. It thus produces $H_2$ from
+the leakage alone, which is the ideal experiment. Summing the two hybrid costs
+proves the bound.
+\end{IEEEproof}
+
+\emph{Why sharing the selection matters.} Suppose instead that the analyst
+recovered the set of matching cells and asked the clouds to sum over it. That
+set is a function of the query and the data, and no simulator given only the
+leakage above could produce it. The proof works because each cloud contracts
+its own share of the selection, which is pseudorandom on its own.
+
+\emph{Deviating clouds.} Clouds never interact and receive nothing but keys,
+so a coalition that deviates sees the same view as one that does not. Its
+deviation gains it no information about queries; Theorem~3 makes any
+deviation that changes an answer evident. Not covered are output delivery and
+the rejection events themselves, discussed after Theorem~3 in the main paper.
+
+% ---------------------------------------------------------------------------
+\section{Proof of Theorem~3 (Detection of wrong answers)}
+
+\begin{theorem*}[Theorem 3, restated]
+Let up to $n-1$ clouds return arbitrary replies computed from their views,
+with at least one cloud honest, $\delta_s$ known only to the analyst, and no
+cloud colluding with the analyst. The analyst accepts an output $y'\neq y$
+with probability at most $1/(p-1)+2^d\advDPF$ per query, and the bounds add
+over $Q$ queries.
+\end{theorem*}
+
+\begin{IEEEproof}
+Fix one query and one template. Let $V$ be the coalition's view: both key sets
+of its members, the stored ciphertexts, the public and evaluation keys, and
+everything it saw in earlier queries. Its replies, summed over $C$, decrypt to
+some $(r_0,r_1)$ in the two rows, a function of $V$, the data and the
+coalition's coins. The decryption key is independent of $\delta_s$. Let $y_C$
+and $\hat y_C$ be what the coalition would have contributed honestly, also
+functions of $V$ and the data. The honest clouds contribute $y-y_C$ and
+$\delta_sy-\hat y_C$. The analyst therefore decrypts
+\[
+y'=y-y_C+r_0,\qquad \hat y'=\delta_sy-\hat y_C+r_1,
+\]
+and accepts if and only if $\hat y'=\delta_sy'$, that is,
+\begin{equation}
+\label{eq:accept}
+r_1-\hat y_C=\delta_s\,(y'-y).
+\end{equation}
+
+Replace the coalition's $2^d$ keys that carry $\delta_s\beta_\sigma$ by keys
+for the same points and an independent scalar $\delta'_s$. A reduction that
+knows the points, the signs, the data and $\delta_s$ can evaluate the event
+``$y'\neq y$ and \eqref{eq:accept} holds'' from the coalition's keys and
+outputs. By $(n{-}1)$-privacy, which hides the output as well as the point,
+the probability of the event changes by at most $2^d\advDPF$.
+
+After the change, $V$ is independent of $\delta_s$. Conditioned on $V$, the
+data and the coins, every quantity in \eqref{eq:accept} except $\delta_s$ is
+fixed. Since $y'-y\neq0$, the right-hand side is a bijective function of
+$\delta_s$, so at most one of the $p-1$ equally likely values of $\delta_s$
+satisfies \eqref{eq:accept}. This gives the bound for one query. Each query
+draws a fresh $\delta_s$, so what the coalition learns from earlier queries,
+including whether they were accepted, concerns independent scalars, and a
+union bound over $Q$ queries completes the proof.
+\end{IEEEproof}
+
+The proof places no restriction on how a cloud deviates. It may change its
+share, rescale the queried cell, swap or mix the two rows, replay an old reply
+or return any ciphertext. The bound does not guarantee an answer, since a
+deviating cloud can always force a rejection. Whether the analyst rejects can
+depend on the data, for example on whether a cell the cloud chose to change is
+empty. An analyst that reveals its rejections can therefore leak up to one bit
+about the data per query, though nothing about the query. Retrying silently
+through another set of clouds closes this channel.
+
+\emph{Several secrets.} With $r$ independent secrets
+$\delta_s^{(1)},\dots,\delta_s^{(r)}$, each with its own key set and slot
+segment, the analyst accepts only if all $r$ relations hold. Repeating the
+argument for each secret, with the other secrets fixed, gives
+$(p-1)^{-r}+r\,2^d\advDPF$. Our implementation uses $r=1$.
+
+% ---------------------------------------------------------------------------
+\section{Why the Data Are Encrypted Rather Than Secret-Shared}
+
+Under requirements (R1)--(R3) of the main paper, one might deal the data as an
+additive sharing $T=\sum_kS_k$ and let cloud $j$ answer
+$\langle e_j,S_j\rangle$. This is wrong: $\langle e,T\rangle=\sum_{j,k}\langle
+e_j,S_k\rangle$, and the cross terms $j\neq k$ are held by no single cloud.
+For $n=2$ the error is $-\langle e_1,T\rangle+\langle e_1-e_2,S_1\rangle$,
+which is uniform because $S_1$ is uniform and independent of the keys whenever
+$e_1\neq e_2$.
+
+The cross terms are not an artefact of linear answers. Take any
+non-interactive scheme in which cloud~1 holds an additive share $S_1$ of the
+data, the client forms queries without looking at the data, and the scheme is
+correct for every tuple of shares. Given a database $X$ held by one server, a
+client can run the scheme with $S_1:=X$ and the other shares chosen by itself.
+It plays clouds $2,\dots,n$ locally, sends only the first query to the server,
+and subtracts the other contributions. Privacy against cloud~1 hides the query
+from the server, so this is single-server private information retrieval, which
+implies oblivious transfer~\cite{dicrescenzo2000single} and is usually built
+from homomorphic encryption~\cite{kushilevitz1997replication}. Within this
+class, sharing the data does not remove the public-key primitive; it moves it
+into a retrieval per share.
+
+The argument does not cover all designs. A lower threshold escapes it: with
+$(t{+}1,n)$ shares and $t<n/2$, servers can multiply shared values locally,
+which is the route of Obscure~\cite{gupta2020obscure} at the price of an
+honest majority and $2l+1$ servers for a predicate of length $l$. Interaction
+between servers or preprocessing also escape it, and (R2) excludes the first.
+Encryption under one owner key has operational advantages as well. A shared
+store with threshold $n-1$ is lost when one share is lost, whereas copies
+survive the loss of $n-1$ clouds. Queries continue over any two surviving
+clouds. The owner can add or replace a cloud by copying ciphertexts instead of
+re-dealing the whole store.
+
+% ---------------------------------------------------------------------------
+\section{Check Layouts with Stored Keys}
+
+The evaluation compares the per-query check with two layouts that store keys.
+
+\emph{One stored key.} Row~1 holds $\delta T_f$ for a secret $\delta$, and
+the analyst accepts only if $\hat y=\delta y$. A cloud that adds a constant to
+one row, corrupts one row or returns an unrelated ciphertext is caught except
+with probability $1/p$. A cloud that applies the same linear change to both
+rows passes. Contracting against $k\,e_j$ instead of $e_j$, for example,
+shifts $y$ and $\hat y$ by amounts in the ratio $\delta$.
+
+\emph{Per-cell stored keys.} Row~1 holds $\delta_cT_f[c]$ with a key per
+cell, and the reply carries one segment per corner so that the analyst can
+check each corner against its own key. This needs $2^d$ copies of the table.
+A change $e_j+\Delta$ then passes only if
+$\sum_{c}\Delta[c](\delta_c-\delta_{\kappa})T_f[c]=0$ at each checked corner
+$\kappa$, a non-zero linear form in independent keys whenever $\Delta$ touches
+a non-empty cell other than $\kappa$. A change at the queried corner itself
+leaves the ratio intact and passes, which a cloud that knows or guesses the
+corner can exploit. Table~3 of the main paper confirms both failures; the
+per-query check catches them at the cost of a second key set and no extra
+homomorphic product.
+
+\bibliographystyle{IEEEtran}
+\bibliography{references}
+\end{document}

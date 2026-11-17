@@ -20,7 +20,14 @@ import numpy as np  # noqa: E402
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
 _ap = argparse.ArgumentParser()
 _ap.add_argument("--paper", default="jisa", help="folder under paper/ that receives figures/")
-OUT = os.path.join(ROOT, "paper", _ap.parse_args().paper, "figures")
+PAPER = _ap.parse_args().paper
+OUT = os.path.join(ROOT, "paper", PAPER, "figures")
+# focused and tcc name the layouts by what they check, and do not name the scheme
+PLAIN = PAPER in ("focused", "tcc")
+
+
+def lab(old, new):
+    return new if PLAIN else old
 os.makedirs(OUT, exist_ok=True)
 BLUE, ORANGE, AQUA, YELLOW, MAGENTA = "#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4"
 BLUE_LIGHT, ORANGE_LIGHT = "#9ec5f4", "#f6b89c"
@@ -139,8 +146,8 @@ for ax, (fname, title, unit) in zip(axes, (("range_real_telemetry.json", "Teleme
     cb, se = d["modes"]["combined"]["by_window"], d["modes"]["session"]["by_window"]
     x = np.arange(len(cb))
     w = 0.38
-    for off, rows, dark, light, name in ((-w / 2, cb, BLUE, BLUE_LIGHT, "Combined"),
-                                         (w / 2, se, ORANGE, ORANGE_LIGHT, "Verified")):
+    for off, rows, dark, light, name in ((-w / 2, cb, BLUE, BLUE_LIGHT, lab("Combined", "One stored key")),
+                                         (w / 2, se, ORANGE, ORANGE_LIGHT, lab("Verified", "Per-query check"))):
         dpf = np.array([ms(r["dpf_eval_all_keys"]) for r in rows])
         tot = np.array([ms(r["provider_total"]) for r in rows])
         ax.bar(x + off, dpf, w * 0.92, color=dark, label=f"{name}: DPF evaluation")
@@ -150,7 +157,7 @@ for ax, (fname, title, unit) in zip(axes, (("range_real_telemetry.json", "Teleme
     ax.set_title(title, fontsize=8, color=INK)
     ax.set_xlabel("Window length L (minutes)" if unit == "min" else "Window length L (days)")
     style(ax)
-axes[0].set_ylabel("Per-provider time (ms)")
+axes[0].set_ylabel(lab("Per-provider time (ms)", "Time per cloud (ms)"))
 h, l = axes[0].get_legend_handles_labels()
 fig.legend(h, l, loc="upper center", ncol=2, bbox_to_anchor=(0.5, 1.0))
 fig.tight_layout(rect=(0, 0, 1, 0.84))
@@ -161,27 +168,31 @@ ra, rs = load("range_aggregation.json"), load("range_session.json")
 fig, (a1, a2) = plt.subplots(1, 2, figsize=(6.6, 2.4))
 wins = [r["window_minutes"] for r in ra["modes"]["combined"]["by_window"]]
 x = np.arange(len(wins))
-for k, (rows, colour, marker, name) in enumerate(((ra["modes"]["per_corner"]["by_window"], AQUA, "s", "Per-corner keys"),
-                                                  (rs["modes"]["session"]["by_window"], ORANGE, "D", "Verified (session)"),
-                                                  (ra["modes"]["combined"]["by_window"], BLUE, "o", "Combined"))):
+for k, (rows, colour, marker, name) in enumerate(((ra["modes"]["per_corner"]["by_window"], AQUA, "s",
+                                                   lab("Per-corner keys", "Per-cell stored keys")),
+                                                  (rs["modes"]["session"]["by_window"], ORANGE, "D",
+                                                   lab("Verified (session)", "Per-query check")),
+                                                  (ra["modes"]["combined"]["by_window"], BLUE, "o",
+                                                   lab("Combined", "One stored key")))):
     a1.plot(x, [ms(r["provider_total"]) / 1000 for r in rows], color=colour, marker=marker, lw=2, ms=6, label=name)
 a1.set_xticks(x, [f"{w:,}" for w in wins])
 a1.set_xlabel("Window length L (min)")
-a1.set_ylabel("Per-provider time (s)")
+a1.set_ylabel(lab("Per-provider time (s)", "Time per cloud (s)"))
 a1.set_ylim(0, 4.6)
 a1.set_title("Layouts, synthetic cube (345,690 cells)", fontsize=8, color=INK)
 a1.legend(loc="upper center", ncol=3, fontsize=6.5)
 style(a1)
 sc = ra["cube_scaling"]
 M = [r["M"] for r in sc]
-a2.plot(M, [ms(r["provider_total"]) for r in sc], color=BLUE, marker="o", lw=2, ms=6, label="Provider total")
+a2.plot(M, [ms(r["provider_total"]) for r in sc], color=BLUE, marker="o", lw=2, ms=6,
+        label=lab("Provider total", "Total"))
 a2.plot(M, [ms(r["dpf_eval_all_corners"]) for r in sc], color=ORANGE, marker="s", lw=2, ms=6, ls="--",
         label="DPF evaluation")
 a2.set_xscale("log")
 a2.set_yscale("log")
 a2.set_xlabel("Cube size M (cells)")
-a2.set_ylabel("Per-provider time (ms)")
-a2.set_title("Cube size, combined layout, d = 2", fontsize=8, color=INK)
+a2.set_ylabel(lab("Per-provider time (ms)", "Time per cloud (ms)"))
+a2.set_title(lab("Cube size, combined layout, d = 2", "Cube size, one stored key, d = 2"), fontsize=8, color=INK)
 a2.legend(loc="upper left")
 style(a2, "both")
 fig.tight_layout()
@@ -300,9 +311,9 @@ wk = rb["workers"]
 L = [r["window_minutes"] for r in rows]
 fig, (a1, a2) = plt.subplots(1, 2, figsize=(6.6, 2.7))
 a1.plot(L, [ms(r["crshe_session_serial"]["provider"]) / 1000 for r in rows], color=ORANGE, marker="D", lw=2, ms=6,
-        label="CR-SHE verified, 1 thread")
+        label=lab("CR-SHE verified, 1 thread", "Ours, checked, 1 thread"))
 a1.plot(L, [ms(r[f"crshe_session_pool{wk}"]["provider"]) / 1000 for r in rows], color=BLUE, marker="o", lw=2, ms=6,
-        ls="--", label=f"CR-SHE verified, {wk} workers")
+        ls="--", label=lab(f"CR-SHE verified, {wk} workers", f"Ours, checked, {wk} workers"))
 ss = [r for r in rows if "single_server" in r]
 a1.plot([r["window_minutes"] for r in ss], [ms(r["single_server"]["server"]) / 1000 for r in ss], color=AQUA,
         marker="s", lw=2, ms=6, ls="-.", label="Single server")
@@ -315,16 +326,16 @@ a1.plot([meas[-1]["window_minutes"]] + [r["window_minutes"] for r in comp],
         color=MAGENTA, lw=1.5, ls=":", zorder=1)
 a1.plot([r["window_minutes"] for r in comp], [ms(r["percell"]["provider"]) / 1000 for r in comp], color=MAGENTA,
         marker="^", ls="", ms=7, mfc="white", mew=1.4, label="Per-cell keys (computed)")
-a1.set_ylabel("Time per provider or server (s)")
+a1.set_ylabel(lab("Time per provider or server (s)", "Time per cloud or server (s)"))
 a1.set_title("Server-side time", fontsize=8, color=INK)
 a1.set_ylim(0.2, 3e4)
 a2.plot(L, [r["crshe_session_serial"]["uplink_bytes_per_provider"] for r in rows], color=ORANGE, marker="D", lw=2,
-        ms=6, label="CR-SHE verified")
+        ms=6, label=lab("CR-SHE verified", "Ours, checked"))
 a2.plot(L, [r["percell"]["uplink_bytes_per_provider"] for r in rows], color=MAGENTA, marker="^", lw=2, ms=7,
         label="Per-cell keys")
 a2.plot([r["window_minutes"] for r in ss], [r["single_server"]["uplink_bytes"] for r in ss], color=AQUA, marker="s",
         lw=2, ms=6, ls="-.", label="Single server")
-a2.set_ylabel("Query upload per provider or server (bytes)")
+a2.set_ylabel(lab("Query upload per provider or server (bytes)", "Upload per cloud or server (bytes)"))
 a2.set_title("Query upload", fontsize=8, color=INK)
 a2.set_ylim(500, 5e9)
 for ax in (a1, a2):

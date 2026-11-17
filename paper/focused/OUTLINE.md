@@ -1,5 +1,7 @@
 # Focused manuscript: outline and writing guide
 
+*2026-11-17: the authors then asked the assistant to write the full paper for IEEE Transactions on Cloud Computing. That version is `paper/tcc/`; it follows this outline and its style rules.*
+
 Decided on 2026-11-17, after the JISA desk rejection ("presentation is below standard"):
 
 - **Scope:** one contribution, verified one-round range aggregation over encrypted data

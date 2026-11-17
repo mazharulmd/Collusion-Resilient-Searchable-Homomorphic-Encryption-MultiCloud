@@ -1,0 +1,11 @@
+*.aux
+*.log
+*.out
+*.blg
+*.bbl
+figures/*.png
+figures/fig_cpp_keyword.*
+figures/fig_packed_index.*
+figures/fig_postings.*
+figures/fig_tamper.*
+figures/fig_trust_split.*
